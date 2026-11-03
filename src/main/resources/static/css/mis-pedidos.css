@@ -1,0 +1,229 @@
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Segoe UI',sans-serif;
+}
+
+body{
+    background:#fff;
+    color:#111;
+}
+
+.navbar{
+    height:70px;
+    background:#16264d;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 45px;
+    box-shadow:0 2px 5px rgba(0,0,0,.35);
+}
+
+.logo img{
+    width:60px;
+}
+
+.search-container{
+    width:48%;
+}
+
+.search-container input{
+    width:100%;
+    height:28px;
+    border:none;
+    border-radius:9px;
+    padding:0 15px;
+    outline:none;
+}
+
+.nav-icons{
+    display:flex;
+    align-items:center;
+    gap:25px;
+    color:#fff;
+}
+
+.account{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    cursor:pointer;
+    position:relative;
+    min-height:70px;
+}
+
+.account i,
+.cart i{
+    font-size:22px;
+}
+
+.account .fa-chevron-down{
+    font-size:12px;
+}
+
+.cart{
+    color:#fff;
+    text-decoration:none;
+}
+
+.account-menu{
+    position:absolute;
+    top:64px;
+    right:0;
+    width:150px;
+    padding:8px 0;
+    background:#182746;
+    border-radius:4px;
+    box-shadow:0 8px 20px rgba(0,0,0,.25);
+    display:none;
+    z-index:10;
+}
+
+.account:hover .account-menu,
+.account:focus-within .account-menu{
+    display:block;
+}
+
+.account-menu a,
+.account-menu button{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    width:100%;
+    padding:9px 12px;
+    border:0;
+    background:transparent;
+    color:#fff;
+    font:inherit;
+    font-size:12px;
+    text-align:left;
+    text-decoration:none;
+    cursor:pointer;
+}
+
+.account-menu a:hover,
+.account-menu button:hover{
+    background:#24395f;
+}
+
+.orders-page{
+    width:96%;
+    margin:26px auto 70px;
+}
+
+.back-link{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:42px;
+    height:42px;
+    margin-bottom:6px;
+    border:3px solid #111;
+    border-radius:50%;
+    color:#111;
+    text-decoration:none;
+    font-size:22px;
+}
+
+.orders-content{
+    width:min(980px, 82%);
+    margin:0 auto;
+}
+
+.orders-content h1{
+    margin-bottom:28px;
+    font-size:30px;
+    font-weight:700;
+}
+
+.orders-list{
+    display:flex;
+    flex-direction:column;
+    gap:26px;
+}
+
+.order-item{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
+.status-pill{
+    width:max-content;
+    min-width:118px;
+    height:30px;
+    padding:0 10px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    background:#b9cdfd;
+    border-radius:4px;
+    font-size:13px;
+    font-weight:700;
+}
+
+.status-pill i{
+    font-size:18px;
+}
+
+.order-card{
+    min-height:66px;
+    padding:18px 14px;
+    display:grid;
+    grid-template-columns:140px minmax(240px, 1fr) 150px;
+    gap:20px;
+    align-items:center;
+    background:#b9cdfd;
+    border-radius:5px;
+    font-size:14px;
+}
+
+.order-card p{
+    text-align:center;
+    line-height:1.35;
+}
+
+.order-total{
+    text-align:right;
+}
+
+.order-total strong{
+    font-weight:500;
+}
+
+.empty-orders{
+    padding:22px;
+    background:#f4f6fb;
+    border-radius:5px;
+    color:#555;
+}
+
+@media (max-width:760px){
+    .navbar{
+        height:auto;
+        padding:14px 18px;
+        gap:14px;
+        flex-wrap:wrap;
+    }
+
+    .search-container{
+        order:3;
+        width:100%;
+    }
+
+    .orders-content{
+        width:92%;
+    }
+
+    .order-card{
+        grid-template-columns:1fr;
+        gap:10px;
+    }
+
+    .order-card p,
+    .order-total{
+        text-align:left;
+    }
+}

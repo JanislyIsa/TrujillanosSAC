@@ -1,0 +1,57 @@
+{
+  "/api": {
+    "target": "http://localhost:9191",
+    "secure": false,
+    "changeOrigin": false
+  },
+  "/img": {
+    "target": "http://localhost:9191",
+    "secure": false,
+    "changeOrigin": false
+  },
+  "/uploads": {
+    "target": "http://localhost:9191",
+    "secure": false,
+    "changeOrigin": false
+  },
+  "/admin": {
+    "target": "http://localhost:9191",
+    "changeOrigin": false,
+    "secure": false
+  },
+  "/ventas": {
+    "target": "http://localhost:9191",
+    "changeOrigin": false,
+    "secure": false
+  },
+  "/proveedor": {
+    "target": "http://localhost:9191",
+    "changeOrigin": false,
+    "secure": false
+  },
+  "/login": {
+    "target": "http://localhost:9191",
+    "changeOrigin": false,
+    "secure": false
+  },
+  "/logout": {
+    "target": "http://localhost:9191",
+    "changeOrigin": false,
+    "secure": false
+  },
+  "/css": {
+    "target": "http://localhost:9191",
+    "secure": false,
+    "changeOrigin": false
+  },
+  "/js": {
+    "target": "http://localhost:9191",
+    "secure": false,
+    "changeOrigin": false
+  },
+  "/inventario-app": {
+    "target": "http://localhost:9191",
+    "secure": false,
+    "changeOrigin": false
+  }
+}

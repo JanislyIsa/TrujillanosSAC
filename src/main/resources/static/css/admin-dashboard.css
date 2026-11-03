@@ -1,0 +1,27 @@
+/* Misma paleta, medidas y jerarquia que el layout de inventario Angular. */
+body{grid-template-columns:250px minmax(0,1fr);background:#f7f8fa;color:#20252b}
+.admin-sidebar{position:sticky;top:0;height:100dvh;min-height:0;padding:0;background:#0c213b}
+.brand{padding:32px 24px 25px;margin:0;font-size:21px;letter-spacing:-.65px}
+.brand small{display:block;margin-top:4px;font-size:9px;letter-spacing:1.6px;color:#95a6bd}
+.admin-sidebar nav{padding:12px 16px;overflow:auto;gap:4px}
+.admin-sidebar nav a{padding:13px 12px;min-height:48px;color:#a5b3c8;border-radius:4px;border-left:3px solid transparent}
+.admin-sidebar nav a:hover{background:#182f4b;color:#fff}
+.admin-sidebar nav a.is-active{background:#263a54;color:#fff;border-left-color:#f7aa16}
+.back-store{margin: auto 16px 16px}
+.dashboard-user{display:flex;align-items:center;gap:12px;padding:24px 22px;border-top:1px solid #1d334f}
+.dashboard-avatar{display:grid;place-items:center;width:38px;height:38px;border-radius:50%;background:#2469e6;color:white;text-transform:uppercase}
+.dashboard-user strong{font-size:13px;font-weight:500}.dashboard-user small{display:block;color:#97a8bf;font-size:10px;margin-top:4px}
+.admin-content{min-width:0;padding:0 32px 48px}.admin-content header{height:76px;border-bottom:1px solid #d7dce4;justify-content:space-between}
+.dashboard-breadcrumb{font-size:12px;color:#747b88;display:flex;gap:12px}.dashboard-breadcrumb strong{color:#0754c5}
+.dashboard-logout{border:0;background:none;color:#0754c5;font-size:12px;font-weight:650;letter-spacing:.6px;text-transform:uppercase;cursor:pointer;padding:12px}
+.module-panel{width:100%;margin:34px 0 26px;padding:0;background:none;border:0;border-radius:0;box-shadow:none}
+.module-panel .eyebrow{font-size:11px;letter-spacing:1.8px;font-weight:700;color:#747b88;margin-bottom:10px}
+.module-panel h1{font-size:32px;line-height:1.25;letter-spacing:-1.1px}.module-panel p:last-child{margin-top:9px;color:#747b88;font-size:14px;line-height:1.6}
+.dashboard-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px;max-width:1200px}
+.dashboard-card{display:flex;flex-direction:column;align-items:flex-start;padding:28px;background:#fff;border:1px solid #d7dce4;border-radius:8px;color:inherit;text-decoration:none;transition:border-color .15s,box-shadow .15s}
+.dashboard-card:hover{border-color:#0754c5;box-shadow:0 6px 20px #0c213b0a}.dashboard-card-icon{display:grid;place-items:center;width:44px;height:44px;border-radius:8px;background:#edf3fd;color:#0754c5;margin-bottom:20px}
+.dashboard-card h2{font-size:20px;margin-bottom:9px}.dashboard-card p{font-size:14px;line-height:1.6;color:#747b88;margin-bottom:24px}.dashboard-card-action{margin-top:auto;color:#0754c5;font-size:13px;font-weight:650;display:flex;justify-content:space-between;gap:20px;width:100%}
+a:focus-visible,button:focus-visible{outline:3px solid #89b7ff;outline-offset:3px}
+@media(max-width:760px){body{grid-template-columns:1fr}.admin-sidebar{position:static;height:auto}.brand{padding:20px 24px}.admin-sidebar nav{flex-direction:row;flex-wrap:wrap;padding-top:0}.admin-sidebar nav a{min-height:40px}.back-store,.dashboard-user{display:none}.admin-content{padding:0 20px 32px}.admin-content header{height:64px}.module-panel{margin-top:26px}.module-panel h1{font-size:28px}}
+@media(max-width:520px){.dashboard-grid{grid-template-columns:1fr;gap:14px}.dashboard-card{padding:22px}}
+@media(prefers-reduced-motion:reduce){.dashboard-card{transition:none}}

@@ -1,0 +1,5 @@
+# Copiar como application-local.properties y completar en cada laptop.
+# Este archivo de ejemplo si se versiona; application-local.properties se ignora.
+spring.datasource.url=${DB_URL:jdbc:oracle:thin:@//localhost:1522/FREEPDB1}
+spring.datasource.username=${DB_USERNAME:eltrujillano_app}
+spring.datasource.password=${DB_PASSWORD:CAMBIA_ESTA_CLAVE}

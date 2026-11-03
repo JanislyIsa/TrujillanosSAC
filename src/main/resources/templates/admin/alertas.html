@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alertas de Inventario</title>
+    <link rel="stylesheet" href="/css/admin-inventario.css">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="/js/admin-alertas.js" defer></script>
+</head>
+<body>
+
+<aside class="inventory-sidebar">
+    <div class="inventory-brand">
+        <strong>El Trujillano</strong>
+        <span>Manufacturing ERP</span>
+    </div>
+
+    <nav class="inventory-nav" aria-label="Modulos internos">
+        <th:block th:each="modulo : ${modulosAdmin}">
+            <div class="inventory-nav-group" th:if="${modulo.url() == '/admin/inventario'}">
+                <span>Inventario</span>
+                <a href="/admin/inventario"
+                   th:classappend="${currentAdminPath == '/admin/inventario'} ? ' is-active'">
+                    <i class="fa-solid fa-boxes-stacked"></i>
+                    Gestion de producto e insumo
+                </a>
+                <a href="/admin/inventario/control-stock"
+                   th:classappend="${currentAdminPath == '/admin/inventario/control-stock'} ? ' is-active'">
+                    <i class="fa-solid fa-clipboard-check"></i>
+                    Control de stock
+                </a>
+                <a href="/admin/inventario/movimientos"
+                   th:classappend="${currentAdminPath == '/admin/inventario/movimientos'} ? ' is-active'">
+                    <i class="fa-solid fa-arrows-rotate"></i>
+                    Movimiento de inventario
+                </a>
+                <a href="/admin/inventario/alertas"
+                   th:classappend="${currentAdminPath == '/admin/inventario/alertas'} ? ' is-active'">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    Alertas
+                </a>
+            </div>
+
+            <a class="inventory-nav-single"
+               th:if="${modulo.url() != '/admin/inventario'}"
+               th:href="${modulo.url()}">
+                <i th:class="${'fa-solid ' + modulo.icono()}"></i>
+                <span>
+                    <span th:text="${modulo.nombre()}"></span>
+                    <small th:text="${modulo.descripcion()}"></small>
+                </span>
+            </a>
+        </th:block>
+    </nav>
+
+    <div class="inventory-sidebar-user">
+        <span class="user-avatar" th:text="${#strings.substring(usuarioNombre, 0, 1)}">A</span>
+        <span th:text="${usuarioNombre}">Admin</span>
+    </div>
+</aside>
+
+<header class="inventory-topbar">
+    <form th:action="@{/logout}" method="post">
+        <button class="inventory-icon" type="submit" aria-label="Cerrar sesion">
+            <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
+    </form>
+</header>
+
+<main class="inventory-page">
+    <section class="inventory-header alert-header">
+        <div>
+            <h1>Alertas de Inventario</h1>
+            <p>Consulta productos e insumos que requieren atencion por stock bajo o sobrestock.</p>
+        </div>
+    </section>
+
+    <section class="inventory-toolbar alert-toolbar">
+        <label class="inventory-search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input id="alertSearch" type="search" placeholder="Codigo o nombre...">
+        </label>
+        <label class="stock-filter">
+            <span>Tipo de alerta</span>
+            <select id="alertTypeFilter">
+                <option value="">Todas las alertas</option>
+                <option value="stock bajo">Stock bajo</option>
+                <option value="sobrestock">Sobrestock</option>
+            </select>
+        </label>
+        <label class="stock-filter">
+            <span>Tipo de item</span>
+            <select id="alertItemFilter">
+                <option value="">Todos los tipos</option>
+                <option value="producto">Producto</option>
+                <option value="insumo">Insumo</option>
+            </select>
+        </label>
+        <button class="inventory-button primary" type="button">Buscar</button>
+    </section>
+
+    <section class="inventory-panel is-active">
+        <div class="inventory-table-wrap">
+            <table class="inventory-table alert-table">
+                <thead>
+                <tr>
+                    <th>Codigo alerta</th>
+                    <th>Fecha / Hora</th>
+                    <th>Tipo de alerta</th>
+                    <th>Tipo item</th>
+                    <th>Nombre</th>
+                    <th>Stock actual</th>
+                    <th>Stock minimo</th>
+                    <th>Stock limite</th>
+                    <th>Estado</th>
+                    <th>Accion</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="alerta : ${alertas}"
+                    th:data-alert-search="${#strings.toLowerCase(alerta.codigoAlerta() + ' ' + alerta.nombre() + ' ' + alerta.tipoAlerta() + ' ' + alerta.tipoItem())}"
+                    th:data-alert-type="${#strings.toLowerCase(alerta.tipoAlerta())}"
+                    th:data-item-type="${#strings.toLowerCase(alerta.tipoItem())}"
+                    th:data-code="${alerta.codigoAlerta()}"
+                    th:data-type="${alerta.tipoAlerta()}"
+                    th:data-item-type-label="${alerta.tipoItem()}"
+                    th:data-name="${alerta.nombre()}"
+                    th:data-stock="${alerta.stockActual()}"
+                    th:data-min="${alerta.stockMinimo()}"
+                    th:data-limit="${alerta.stockLimite()}"
+                    th:data-unit="${alerta.unidad()}"
+                    th:data-date="${#temporals.format(alerta.fechaHora(), 'dd/MM/yyyy')}"
+                    th:data-time="${#temporals.format(alerta.fechaHora(), 'hh:mm a')}"
+                    data-status="Pendiente">
+                    <td class="inventory-code" th:text="${alerta.codigoAlerta()}"></td>
+                    <td>
+                        <span th:text="${#temporals.format(alerta.fechaHora(), 'dd/MM/yyyy')}"></span>
+                        <small th:text="${#temporals.format(alerta.fechaHora(), 'hh:mm a')}"></small>
+                    </td>
+                    <td>
+                        <span class="alert-type-pill"
+                              th:classappend="${#strings.equalsIgnoreCase(alerta.tipoAlerta(), 'Stock bajo')} ? ' low' : ' over'"
+                              th:text="${alerta.tipoAlerta()}"></span>
+                    </td>
+                    <td th:text="${alerta.tipoItem()}"></td>
+                    <td><strong th:text="${alerta.nombre()}"></strong></td>
+                    <td>
+                        <strong th:classappend="${#strings.equalsIgnoreCase(alerta.tipoAlerta(), 'Stock bajo')} ? ' stock-danger' : ' stock-over'"
+                                th:text="${#numbers.formatInteger(alerta.stockActual(), 1, 'COMMA')}"></strong>
+                        <span class="stock-unit" th:text="${alerta.unidad()}"></span>
+                    </td>
+                    <td>
+                        <span th:text="${#numbers.formatInteger(alerta.stockMinimo(), 1, 'COMMA')}"></span>
+                        <span class="stock-unit" th:text="${alerta.unidad()}"></span>
+                    </td>
+                    <td>
+                        <span th:text="${#numbers.formatInteger(alerta.stockLimite(), 1, 'COMMA')}"></span>
+                        <span class="stock-unit" th:text="${alerta.unidad()}"></span>
+                    </td>
+                    <td><span class="status-pill pending" data-alert-status>Pendiente</span></td>
+                    <td>
+                        <div class="inventory-actions">
+                            <button class="inventory-icon movement-voucher-button" type="button" data-alert-detail>Ver detalle</button>
+                            <button class="inventory-icon movement-voucher-button" type="button" data-alert-notify>Notificar</button>
+                        </div>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(alertas)}">
+                    <td colspan="10" class="empty-row">No hay alertas de inventario activas.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+<div class="inventory-modal" id="alertDetailModal" aria-hidden="true">
+    <section class="inventory-modal-card alert-detail-card" role="dialog" aria-modal="true">
+        <button class="modal-close" type="button" data-close-modal aria-label="Cerrar">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <h2>Detalle de alerta</h2>
+        <p data-alert-detail-subtitle>Informacion de la alerta generada.</p>
+
+        <div class="alert-detail-grid">
+            <div><span>Codigo alerta</span><strong data-alert-code></strong></div>
+            <div><span>Fecha / Hora</span><strong data-alert-date></strong></div>
+            <div><span>Tipo de alerta</span><strong data-alert-type></strong></div>
+            <div><span>Tipo de item</span><strong data-alert-item-type></strong></div>
+            <div><span>Nombre</span><strong data-alert-name></strong></div>
+            <div><span>Stock actual</span><strong data-alert-stock></strong></div>
+            <div><span>Stock minimo</span><strong data-alert-min></strong></div>
+            <div><span>Stock limite</span><strong data-alert-limit></strong></div>
+            <div><span>Estado</span><strong class="status-pill pending" data-alert-state>Pendiente</strong></div>
+        </div>
+
+        <div class="stock-message" data-alert-message></div>
+        <p class="alert-note">Esta alerta puede ser notificada al Jefe de Compras para evaluar una reposicion o revision de inventario.</p>
+
+        <div class="modal-actions">
+            <button type="button" data-close-modal>Regresar</button>
+            <button class="primary-action" type="button" data-notify-from-detail>Notificar al Jefe de Compras</button>
+        </div>
+    </section>
+</div>
+
+<div class="inventory-modal" id="alertNotifiedModal" aria-hidden="true">
+    <section class="inventory-modal-card alert-detail-card" role="dialog" aria-modal="true">
+        <button class="modal-close" type="button" data-close-modal aria-label="Cerrar">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <h2>Alerta notificada</h2>
+        <p>La alerta fue marcada como notificada al Jefe de Compras.</p>
+
+        <div class="alert-detail-grid">
+            <div><span>Codigo alerta</span><strong data-notified-code></strong></div>
+            <div><span>Tipo de alerta</span><strong data-notified-type></strong></div>
+            <div><span>Tipo de item</span><strong data-notified-item-type></strong></div>
+            <div><span>Nombre</span><strong data-notified-name></strong></div>
+            <div><span>Stock actual</span><strong data-notified-stock></strong></div>
+            <div><span>Stock minimo</span><strong data-notified-min></strong></div>
+            <div><span>Stock limite</span><strong data-notified-limit></strong></div>
+            <div><span>Destinatario</span><strong>Jefe de Compras</strong></div>
+            <div><span>Estado</span><strong class="status-pill normal">Notificada</strong></div>
+            <div><span>Fecha / Hora de notificacion</span><strong data-notified-date></strong></div>
+        </div>
+
+        <div class="stock-message normal">
+            <strong>Notificacion marcada correctamente.</strong>
+        </div>
+
+        <div class="modal-actions">
+            <button class="primary-action" type="button" data-close-modal>Volver a alertas</button>
+        </div>
+    </section>
+</div>
+
+</body>
+</html>

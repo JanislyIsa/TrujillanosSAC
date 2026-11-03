@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movimiento de Inventario</title>
+    <link rel="stylesheet" href="/css/admin-inventario.css">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="/js/admin-movimientos.js" defer></script>
+</head>
+<body>
+
+<aside class="inventory-sidebar">
+    <div class="inventory-brand">
+        <strong>El Trujillano</strong>
+        <span>Manufacturing ERP</span>
+    </div>
+
+    <nav class="inventory-nav" aria-label="Modulos internos">
+        <th:block th:each="modulo : ${modulosAdmin}">
+            <div class="inventory-nav-group" th:if="${modulo.url() == '/admin/inventario'}">
+                <span>Inventario</span>
+                <a href="/admin/inventario"
+                   th:classappend="${currentAdminPath == '/admin/inventario'} ? ' is-active'">
+                    <i class="fa-solid fa-boxes-stacked"></i>
+                    Gestion de producto e insumo
+                </a>
+                <a href="/admin/inventario/control-stock"
+                   th:classappend="${currentAdminPath == '/admin/inventario/control-stock'} ? ' is-active'">
+                    <i class="fa-solid fa-clipboard-check"></i>
+                    Control de stock
+                </a>
+                <a href="/admin/inventario/movimientos"
+                   th:classappend="${currentAdminPath == '/admin/inventario/movimientos'} ? ' is-active'">
+                    <i class="fa-solid fa-arrows-rotate"></i>
+                    Movimiento de inventario
+                </a>
+                <a href="/admin/inventario/alertas"
+                   th:classappend="${currentAdminPath == '/admin/inventario/alertas'} ? ' is-active'">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    Alertas
+                </a>
+            </div>
+
+            <a class="inventory-nav-single"
+               th:if="${modulo.url() != '/admin/inventario'}"
+               th:href="${modulo.url()}">
+                <i th:class="${'fa-solid ' + modulo.icono()}"></i>
+                <span>
+                    <span th:text="${modulo.nombre()}"></span>
+                    <small th:text="${modulo.descripcion()}"></small>
+                </span>
+            </a>
+        </th:block>
+    </nav>
+
+    <div class="inventory-sidebar-user">
+        <span class="user-avatar" th:text="${#strings.substring(usuarioNombre, 0, 1)}">A</span>
+        <span th:text="${usuarioNombre}">Admin</span>
+    </div>
+</aside>
+
+<header class="inventory-topbar">
+    <form th:action="@{/logout}" method="post">
+        <button class="inventory-icon" type="submit" aria-label="Cerrar sesion">
+            <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
+    </form>
+</header>
+
+<main class="inventory-page">
+    <p class="inventory-alert success" th:if="${mensajeExito}" th:text="${mensajeExito}"></p>
+    <p class="inventory-alert error" th:if="${mensajeError}" th:text="${mensajeError}"></p>
+
+    <section class="inventory-header movement-header">
+        <h1>Movimiento de Inventario</h1>
+        <button class="inventory-button primary" type="button" data-open-movement-modal>
+            <i class="fa-solid fa-circle-plus"></i>
+            Registrar movimiento
+        </button>
+    </section>
+
+    <section class="inventory-toolbar movement-toolbar">
+        <label class="inventory-search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input id="movementSearch" type="search" placeholder="Buscar por codigo, producto o insumo...">
+        </label>
+        <select id="movementTypeFilter" class="toolbar-select">
+            <option value="">Tipo movimiento</option>
+            <option value="ingreso">Ingreso</option>
+            <option value="salida">Salida</option>
+        </select>
+        <select id="movementItemFilter" class="toolbar-select">
+            <option value="">Tipo de item</option>
+            <option value="producto">Producto</option>
+            <option value="insumo">Insumo</option>
+        </select>
+        <button class="inventory-button primary" type="button">Buscar</button>
+    </section>
+
+    <section class="inventory-panel is-active">
+        <div class="inventory-table-wrap">
+            <table class="inventory-table movement-table">
+                <thead>
+                <tr>
+                    <th>Codigo mov.</th>
+                    <th>Fecha / Hora</th>
+                    <th>Tipo mov.</th>
+                    <th>Tipo item</th>
+                    <th>Nombre</th>
+                    <th>Cantidad</th>
+                    <th>Unidad</th>
+                    <th>Stock anterior</th>
+                    <th>Stock nuevo</th>
+                    <th>Accion</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="movimiento : ${movimientos}"
+                    th:data-movement-search="${#strings.toLowerCase(movimiento.codigoMovimiento() + ' ' + movimiento.codigoComprobante() + ' ' + movimiento.nombreItem() + ' ' + movimiento.tipoMovimiento() + ' ' + movimiento.tipoItem())}"
+                    th:data-movement-type="${#strings.toLowerCase(movimiento.tipoMovimiento())}"
+                    th:data-item-type="${#strings.toLowerCase(movimiento.tipoItem())}"
+                    th:data-code="${movimiento.codigoMovimiento()}"
+                    th:data-voucher="${movimiento.codigoComprobante()}"
+                    th:data-type="${movimiento.tipoMovimiento()}"
+                    th:data-item-type-label="${movimiento.tipoItem()}"
+                    th:data-name="${movimiento.nombreItem()}"
+                    th:data-quantity="${movimiento.cantidad()}"
+                    th:data-unit="${movimiento.unidad()}"
+                    th:data-stock-old="${movimiento.stockAnterior()}"
+                    th:data-stock-new="${movimiento.stockNuevo()}"
+                    th:data-date="${#temporals.format(movimiento.fecha(), 'dd/MM/yyyy')}"
+                    th:data-time="${#temporals.format(movimiento.hora(), 'hh:mm a')}"
+                    th:data-warehouse="${movimiento.almacen()}">
+                    <td class="inventory-code" th:text="${movimiento.codigoMovimiento()}"></td>
+                    <td>
+                        <span th:text="${#temporals.format(movimiento.fecha(), 'dd/MM/yyyy')}"></span>
+                        <small th:text="${#temporals.format(movimiento.hora(), 'hh:mm a')}"></small>
+                    </td>
+                    <td>
+                        <span class="movement-pill"
+                              th:classappend="${#strings.equalsIgnoreCase(movimiento.tipoMovimiento(), 'Ingreso')} ? ' income' : ' outcome'"
+                              th:text="${movimiento.tipoMovimiento()}"></span>
+                    </td>
+                    <td th:text="${movimiento.tipoItem()}"></td>
+                    <td><strong th:text="${movimiento.nombreItem()}"></strong></td>
+                    <td>
+                        <strong th:text="${(#strings.equalsIgnoreCase(movimiento.tipoMovimiento(), 'Salida') ? '-' : '+') + #numbers.formatInteger(movimiento.cantidad(), 1, 'COMMA')}"></strong>
+                    </td>
+                    <td th:text="${movimiento.unidad()}"></td>
+                    <td class="muted-number" th:text="${#numbers.formatInteger(movimiento.stockAnterior(), 1, 'COMMA')}"></td>
+                    <td>
+                        <strong th:classappend="${movimiento.stockNuevo() < movimiento.stockAnterior()} ? ' stock-danger'"
+                                th:text="${#numbers.formatInteger(movimiento.stockNuevo(), 1, 'COMMA')}"></strong>
+                    </td>
+                    <td>
+                        <button class="inventory-icon movement-voucher-button" type="button" data-open-voucher>
+                            Ver comprobante
+                        </button>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(movimientos)}">
+                    <td colspan="10" class="empty-row">No hay movimientos registrados.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+<div class="inventory-modal" id="movementFormModal" aria-hidden="true">
+    <form class="inventory-modal-card movement-form-card" th:action="@{/admin/inventario/movimientos}" method="post">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+        <button class="modal-close" type="button" data-close-modal aria-label="Cerrar">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <h2>Registrar movimiento</h2>
+        <p>Registre ingresos o salidas y actualice el stock del item seleccionado.</p>
+
+        <div class="modal-form-grid">
+            <label>Tipo de movimiento
+                <select id="movementTypeInput" name="tipoMovimiento" required>
+                    <option value="Ingreso">Ingreso</option>
+                    <option value="Salida">Salida</option>
+                </select>
+            </label>
+            <label>Tipo de item
+                <select id="movementItemTypeInput" name="tipoItem" required>
+                    <option value="Producto">Producto</option>
+                    <option value="Insumo">Insumo</option>
+                </select>
+            </label>
+            <label>Producto o insumo
+                <select id="movementItemInput" name="idItem" required>
+                    <option th:each="producto : ${productos}"
+                            th:value="${producto.idProducto}"
+                            data-type="Producto"
+                            th:data-name="${producto.nombre}"
+                            th:data-unit="${producto.presentacion.nombre}"
+                            th:data-stock="${producto.stock}"
+                            th:text="${producto.nombre}"></option>
+                    <option th:each="insumo : ${insumos}"
+                            th:value="${insumo.idInsumo}"
+                            data-type="Insumo"
+                            th:data-name="${insumo.nombre}"
+                            th:data-unit="${insumo.unidadMedida.nombre}"
+                            th:data-stock="${insumo.stock}"
+                            th:text="${insumo.nombre}"></option>
+                </select>
+            </label>
+            <label>Unidad<input id="movementUnitInput" type="text" readonly></label>
+            <label>Cantidad del movimiento<input id="movementQuantityInput" type="number" name="cantidad" min="1" required></label>
+            <label>Stock anterior<input id="movementOldStockInput" type="number" readonly></label>
+            <label>Stock nuevo<input id="movementNewStockInput" type="number" readonly></label>
+        </div>
+
+        <div class="movement-summary" id="movementSummary">Seleccione un item e ingrese una cantidad.</div>
+
+        <div class="modal-actions">
+            <button type="button" data-close-modal>Cancelar</button>
+            <button class="primary-action" type="submit">Guardar movimiento</button>
+        </div>
+    </form>
+</div>
+
+<div class="inventory-modal" id="movementVoucherModal"
+     th:classappend="${comprobanteSeleccionado != null} ? ' is-open'"
+     th:attr="aria-hidden=${comprobanteSeleccionado == null}">
+    <section class="inventory-modal-card movement-voucher-card" role="dialog" aria-modal="true">
+        <button class="modal-close" type="button" data-close-modal aria-label="Cerrar">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <h2>Comprobante de movimiento</h2>
+        <p>Detalle del movimiento registrado en el inventario.</p>
+
+        <div class="voucher-grid">
+            <div><span>Codigo comprobante</span><strong data-voucher-code th:text="${comprobanteSeleccionado != null ? comprobanteSeleccionado.codigoComprobante() : ''}"></strong></div>
+            <div><span>Codigo movimiento</span><strong data-voucher-movement th:text="${comprobanteSeleccionado != null ? comprobanteSeleccionado.codigoMovimiento() : ''}"></strong></div>
+            <div><span>Tipo de movimiento</span><strong data-voucher-type th:text="${comprobanteSeleccionado != null ? comprobanteSeleccionado.tipoMovimiento() : ''}"></strong></div>
+            <div><span>Tipo de item</span><strong data-voucher-item-type th:text="${comprobanteSeleccionado != null ? comprobanteSeleccionado.tipoItem() : ''}"></strong></div>
+            <div><span>Producto o insumo</span><strong data-voucher-name th:text="${comprobanteSeleccionado != null ? comprobanteSeleccionado.nombreItem() : ''}"></strong></div>
+            <div><span>Cantidad del movimiento</span><strong data-voucher-quantity th:text="${comprobanteSeleccionado != null ? (#strings.equalsIgnoreCase(comprobanteSeleccionado.tipoMovimiento(), 'Salida') ? '-' : '+') + comprobanteSeleccionado.cantidad() + ' ' + comprobanteSeleccionado.unidad() : ''}"></strong></div>
+            <div><span>Stock anterior</span><strong data-voucher-old th:text="${comprobanteSeleccionado != null ? comprobanteSeleccionado.stockAnterior() + ' ' + comprobanteSeleccionado.unidad() : ''}"></strong></div>
+            <div><span>Stock nuevo</span><strong data-voucher-new th:text="${comprobanteSeleccionado != null ? comprobanteSeleccionado.stockNuevo() + ' ' + comprobanteSeleccionado.unidad() : ''}"></strong></div>
+            <div><span>Fecha / Hora</span><strong data-voucher-date th:text="${comprobanteSeleccionado != null ? #temporals.format(comprobanteSeleccionado.fecha(), 'dd/MM/yyyy') + ' - ' + #temporals.format(comprobanteSeleccionado.hora(), 'hh:mm a') : ''}"></strong></div>
+            <div><span>Almacen</span><strong data-voucher-warehouse th:text="${comprobanteSeleccionado != null ? comprobanteSeleccionado.almacen() : ''}"></strong></div>
+        </div>
+
+        <div class="voucher-summary">
+            <span>Resumen del movimiento</span>
+            <p data-voucher-summary
+               th:text="${comprobanteSeleccionado != null ? comprobanteSeleccionado.tipoMovimiento() + ' de ' + (#strings.equalsIgnoreCase(comprobanteSeleccionado.tipoMovimiento(), 'Salida') ? '-' : '+') + comprobanteSeleccionado.cantidad() + ' ' + comprobanteSeleccionado.unidad() + ' de ' + comprobanteSeleccionado.nombreItem() + '. El stock fue actualizado de ' + comprobanteSeleccionado.stockAnterior() + ' a ' + comprobanteSeleccionado.stockNuevo() + ' ' + comprobanteSeleccionado.unidad() + '.' : ''}"></p>
+        </div>
+
+        <div class="modal-actions">
+            <button class="primary-action" type="button" data-close-modal>Volver al historial de movimientos</button>
+        </div>
+    </section>
+</div>
+
+</body>
+</html>

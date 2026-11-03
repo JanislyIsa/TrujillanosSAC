@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ventas</title>
+    <link rel="stylesheet" href="/css/catalogo.css">
+    <link rel="stylesheet" href="/css/admin-menu.css">
+    <link rel="stylesheet" href="/css/admin-tools.css">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="/js/catalogo.js" defer></script>
+    <script src="/js/admin-menu.js" defer></script>
+</head>
+<body th:data-authenticated="${clienteAutenticado}" th:data-cart-key="${carritoKey}">
+
+<header class="navbar">
+    <div class="logo">
+        <button th:if="${puedeAbrirPanelAdmin}" class="logo-button" type="button" data-admin-menu-toggle aria-label="Abrir modulos internos">
+            <img src="/img/payaso_ventas.png" alt="Logo">
+        </button>
+        <img th:unless="${puedeAbrirPanelAdmin}" src="/img/payaso_ventas.png" alt="Logo">
+    </div>
+
+    <div class="search-container">
+        <input id="productSearch" type="text" placeholder="Que desea hoy?">
+    </div>
+
+    <div class="nav-icons">
+        <div class="account">
+            <i class="fa-regular fa-circle-user"></i>
+            <span th:text="${usuarioNombre}">Mi cuenta</span>
+            <i class="fa-solid fa-chevron-down"></i>
+
+            <div class="account-menu">
+                <a th:if="${!clienteAutenticado}" href="/login">
+                    <i class="fa-solid fa-right-to-bracket"></i>
+                    Iniciar sesion
+                </a>
+                <a th:if="${clienteAutenticado}" href="#">
+                    <i class="fa-regular fa-user"></i>
+                    Mi perfil
+                </a>
+                <a th:if="${clienteAutenticado}" href="/ventas/mis-pedidos">
+                    <i class="fa-solid fa-box"></i>
+                    Mis pedidos
+                </a>
+                <form th:if="${clienteAutenticado}" th:action="@{/logout}" method="post">
+                    <button type="submit">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                        Cerrar sesion
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="admin-tools" th:if="${puedeAbrirPanelAdmin}">
+            <button class="admin-tools__button" type="button" aria-label="Opciones administrativas">
+                <i class="fa-solid fa-gear"></i>
+                <i class="fa-solid fa-chevron-down"></i>
+            </button>
+            <div class="admin-tools__menu">
+                <a href="/admin/inventario">
+                    <i class="fa-solid fa-boxes-stacked"></i>
+                    Inventario
+                </a>
+                <a href="/admin/productos">
+                    <i class="fa-solid fa-box-open"></i>
+                    Gestionar productos
+                </a>
+                <a href="/admin/pedidos">
+                    <i class="fa-solid fa-receipt"></i>
+                    Gestionar pedidos
+                </a>
+            </div>
+        </div>
+
+        <div class="cart">
+            <a href="/ventas/carrito" aria-label="Carrito de compras">
+                <i class="fa-solid fa-cart-shopping"></i>
+            </a>
+        </div>
+    </div>
+</header>
+
+<div th:if="${puedeAbrirPanelAdmin}" class="admin-drawer" id="adminDrawer" aria-hidden="true">
+    <div class="admin-drawer__backdrop" data-admin-menu-backdrop></div>
+    <aside class="admin-drawer__panel" aria-label="Modulos internos">
+        <div class="admin-drawer__header">
+            <div>
+                <strong>El Trujillano</strong>
+                <span th:text="${cargoAdmin}">ADMIN</span>
+            </div>
+            <button class="admin-drawer__close" type="button" data-admin-menu-close aria-label="Cerrar">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <nav class="admin-drawer__nav">
+            <a th:each="modulo : ${modulosAdmin}" th:href="${modulo.url()}">
+                <i th:class="${'fa-solid ' + modulo.icono()}"></i>
+                <span>
+                    <span th:text="${modulo.nombre()}">Modulo</span>
+                    <small th:text="${modulo.descripcion()}">Descripcion</small>
+                </span>
+            </a>
+        </nav>
+    </aside>
+</div>
+
+<main class="products-container">
+    <article class="product-card" th:each="producto : ${productos}">
+        <div class="product-image">
+            <a th:href="@{/ventas/producto/{id}(id=${producto.idProducto})}">
+                <img th:src="${producto.imagenUrl}"
+                     th:alt="${producto.nombre}"
+                     onerror="this.src='/img/tetin%20pop.jpeg'">
+            </a>
+        </div>
+
+        <h3 th:text="${producto.nombre}">Producto</h3>
+
+        <p>
+            Precio
+            <span th:if="${producto.presentacion != null}" th:text="'x ' + ${producto.presentacion.nombre}">x Caja</span>:
+            S/ <span th:text="${#numbers.formatDecimal(producto.precio, 1, 2)}">0.00</span>
+        </p>
+        <p th:text="${producto.stock > 0 ? 'Stock disponible' : 'Sin stock'}">Stock disponible</p>
+
+        <button class="add-button"
+                type="button"
+                th:data-id="${producto.idProducto}"
+                th:data-nombre="${producto.nombre}"
+                th:data-precio="${producto.precio}"
+                th:data-presentacion="${producto.presentacion != null ? producto.presentacion.nombre : 'Unidad'}"
+                th:data-imagen="${producto.imagenUrl}"
+                th:disabled="${producto.stock <= 0}"
+                th:text="${producto.stock > 0 ? '+ Agregar' : 'Sin stock'}">
+            + Agregar
+        </button>
+    </article>
+
+    <p class="empty-message" th:if="${#lists.isEmpty(productos)}">
+        No hay productos disponibles por ahora.
+    </p>
+</main>
+
+<div class="login-modal" id="loginModal" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <button class="modal-close" type="button" aria-label="Cerrar">&times;</button>
+        <h2 id="modalTitle">Bienvenido</h2>
+        <p>Para agregar productos y comprar debes iniciar sesion.</p>
+        <a class="modal-primary" href="/login">Iniciar sesion</a>
+        <a class="modal-secondary" href="#">Registrarse</a>
+    </div>
+</div>
+
+<div class="cart-toast" id="cartToast">
+    Producto agregado al carrito
+</div>
+
+</body>
+</html>

@@ -1,0 +1,57 @@
+.admin-tools{
+    position:relative;
+    min-height:70px;
+    display:flex;
+    align-items:center;
+}
+
+.admin-tools__button{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    border:0;
+    background:transparent;
+    color:#fff;
+    cursor:pointer;
+}
+
+.admin-tools__button .fa-gear{
+    font-size:24px;
+}
+
+.admin-tools__button .fa-chevron-down{
+    font-size:12px;
+}
+
+.admin-tools__menu{
+    position:absolute;
+    top:64px;
+    right:0;
+    width:190px;
+    padding:8px 0;
+    background:#182746;
+    border-radius:4px;
+    box-shadow:0 8px 20px rgba(0,0,0,.25);
+    display:none;
+    z-index:15;
+}
+
+.admin-tools:hover .admin-tools__menu,
+.admin-tools:focus-within .admin-tools__menu{
+    display:block;
+}
+
+.admin-tools__menu a{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    width:100%;
+    padding:9px 12px;
+    color:#fff;
+    font-size:12px;
+    text-decoration:none;
+}
+
+.admin-tools__menu a:hover{
+    background:#24395f;
+}

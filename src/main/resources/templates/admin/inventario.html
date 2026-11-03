@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventario</title>
+    <link rel="stylesheet" href="/css/admin-inventario.css">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="/js/admin-inventario.js" defer></script>
+</head>
+<body>
+
+<aside class="inventory-sidebar">
+    <div class="inventory-brand">
+        <strong>El Trujillano</strong>
+        <span>Manufacturing ERP</span>
+    </div>
+
+    <nav class="inventory-nav" aria-label="Modulos internos">
+        <th:block th:each="modulo : ${modulosAdmin}">
+            <div class="inventory-nav-group" th:if="${modulo.url() == '/admin/inventario'}">
+                <span>Inventario</span>
+                <a href="/admin/inventario"
+                   th:classappend="${currentAdminPath == '/admin/inventario'} ? ' is-active'">
+                    <i class="fa-solid fa-boxes-stacked"></i>
+                    Gestion de producto e insumo
+                </a>
+                <a href="/admin/inventario/control-stock"
+                   th:classappend="${currentAdminPath == '/admin/inventario/control-stock'} ? ' is-active'">
+                    <i class="fa-solid fa-clipboard-check"></i>
+                    Control de stock
+                </a>
+                <a href="/admin/inventario/movimientos"
+                   th:classappend="${currentAdminPath == '/admin/inventario/movimientos'} ? ' is-active'">
+                    <i class="fa-solid fa-arrows-rotate"></i>
+                    Movimiento de inventario
+                </a>
+                <a href="/admin/inventario/alertas"
+                   th:classappend="${currentAdminPath == '/admin/inventario/alertas'} ? ' is-active'">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    Alertas
+                </a>
+            </div>
+
+            <a class="inventory-nav-single"
+               th:if="${modulo.url() != '/admin/inventario'}"
+               th:href="${modulo.url()}">
+                <i th:class="${'fa-solid ' + modulo.icono()}"></i>
+                <span>
+                    <span th:text="${modulo.nombre()}"></span>
+                    <small th:text="${modulo.descripcion()}"></small>
+                </span>
+            </a>
+        </th:block>
+    </nav>
+
+    <div class="inventory-sidebar-user">
+        <span class="user-avatar" th:text="${#strings.substring(usuarioNombre, 0, 1)}">A</span>
+        <span th:text="${usuarioNombre}">Admin</span>
+    </div>
+</aside>
+
+<header class="inventory-topbar">
+    <form th:action="@{/logout}" method="post">
+        <button class="inventory-icon" type="submit" aria-label="Cerrar sesion">
+            <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
+    </form>
+</header>
+
+<main class="inventory-page">
+    <p class="inventory-alert success" th:if="${mensajeExito}" th:text="${mensajeExito}"></p>
+    <p class="inventory-alert error" th:if="${mensajeError}" th:text="${mensajeError}"></p>
+
+    <section class="inventory-header">
+        <h1>Gestion de Productos e Insumos</h1>
+        <div class="inventory-tabs" role="tablist" aria-label="Tipo de inventario">
+            <button class="inventory-tab is-active" type="button" data-inventory-tab="productos">Productos</button>
+            <button class="inventory-tab" type="button" data-inventory-tab="insumos">Insumos</button>
+        </div>
+    </section>
+
+    <section class="inventory-toolbar">
+        <label class="inventory-search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input id="inventorySearch" type="search" placeholder="Buscar por nombre o codigo...">
+        </label>
+        <button class="inventory-button primary" type="button">Buscar</button>
+        <button class="inventory-button accent inventory-action-for is-active"
+                type="button"
+                data-panel-action="productos"
+                data-open-product-create>
+            <i class="fa-solid fa-plus"></i>
+            Registrar producto
+        </button>
+        <button class="inventory-button accent inventory-action-for"
+                type="button"
+                data-panel-action="insumos"
+                data-open-insumo-create>
+            <i class="fa-solid fa-plus"></i>
+            Registrar insumo
+        </button>
+    </section>
+
+    <section class="inventory-panel is-active" data-inventory-panel="productos">
+        <div class="inventory-table-wrap">
+            <table class="inventory-table">
+                <thead>
+                <tr>
+                    <th>Codigo</th>
+                    <th>Imagen</th>
+                    <th>Nombre</th>
+                    <th>Categoria</th>
+                    <th>Stock actual</th>
+                    <th>Minimo</th>
+                    <th>Limite</th>
+                    <th>Estado</th>
+                    <th>Accion</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="producto : ${productos}"
+                    th:data-inventory-search="${#strings.toLowerCase('prd-' + producto.idProducto + ' ' + producto.nombre + ' ' + producto.categoria.nombre)}"
+                    th:data-id="${producto.idProducto}"
+                    th:data-codigo="${'PRD-' + #numbers.formatInteger(producto.idProducto, 3)}"
+                    th:data-nombre="${producto.nombre}"
+                    th:data-descripcion="${producto.descripcion}"
+                    th:data-precio="${producto.precio}"
+                    th:data-categoria-id="${producto.categoria.idCategoria}"
+                    th:data-categoria="${producto.categoria.nombre}"
+                    th:data-presentacion-id="${producto.presentacion.idPresentacion}"
+                    th:data-presentacion="${producto.presentacion.nombre}"
+                    th:data-almacen="${producto.almacen.nombre}"
+                    th:data-stock="${producto.stock}"
+                    th:data-stock-minimo="${producto.stockMinimo}"
+                    th:data-stock-limite="${producto.stockLimite}"
+                    th:data-imagen="${producto.imagenUrl}"
+                    th:data-estado="${producto.stock <= 0 ? 'Sin stock' : (producto.stock <= producto.stockMinimo ? 'Bajo' : 'Activa')}"
+                    data-tipo="Producto">
+                    <td class="inventory-code" th:text="${'PRD-' + #numbers.formatInteger(producto.idProducto, 3)}"></td>
+                    <td>
+                        <img class="inventory-image"
+                             th:src="${producto.imagenUrl}"
+                             th:alt="${producto.nombre}"
+                             onerror="this.src='/img/tetin%20pop.jpeg'">
+                    </td>
+                    <td><strong th:text="${producto.nombre}"></strong></td>
+                    <td th:text="${producto.categoria.nombre}"></td>
+                    <td>
+                        <span class="stock-value"
+                              th:classappend="${producto.stock <= producto.stockMinimo} ? ' low'"
+                              th:text="${#numbers.formatInteger(producto.stock, 1, 'COMMA')}"></span>
+                        <span class="stock-unit" th:text="${producto.presentacion.nombre}"></span>
+                    </td>
+                    <td th:text="${#numbers.formatInteger(producto.stockMinimo, 1, 'COMMA')}"></td>
+                    <td th:text="${#numbers.formatInteger(producto.stockLimite, 1, 'COMMA')}"></td>
+                    <td>
+                        <span class="status-pill low"
+                              th:if="${producto.stock <= 0}">Sin stock</span>
+                        <span class="status-pill warning"
+                              th:if="${producto.stock > 0 and producto.stock <= producto.stockMinimo}">Bajo</span>
+                        <span class="status-pill"
+                              th:if="${producto.stock > producto.stockMinimo}">Activa</span>
+                    </td>
+                    <td>
+                        <div class="inventory-actions">
+                            <button class="inventory-icon" type="button" data-product-detail aria-label="Ver producto">
+                                <i class="fa-regular fa-eye"></i>
+                            </button>
+                            <button class="inventory-icon" type="button" data-product-edit aria-label="Editar producto">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <button class="inventory-icon" type="button" data-product-delete aria-label="Eliminar producto">
+                                <i class="fa-regular fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(productos)}">
+                    <td colspan="9" class="empty-row">No hay productos registrados.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="inventory-panel" data-inventory-panel="insumos">
+        <div class="inventory-table-wrap">
+            <table class="inventory-table">
+                <thead>
+                <tr>
+                    <th>Codigo</th>
+                    <th>Nombre</th>
+                    <th>Unidad</th>
+                    <th>Stock actual</th>
+                    <th>Minimo</th>
+                    <th>Limite</th>
+                    <th>Estado</th>
+                    <th>Accion</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="insumo : ${insumos}"
+                    th:data-inventory-search="${#strings.toLowerCase('ins-' + insumo.idInsumo + ' ' + insumo.nombre + ' ' + insumo.unidadMedida.nombre)}"
+                    th:data-id="${insumo.idInsumo}"
+                    th:data-codigo="${'INS-' + #numbers.formatInteger(insumo.idInsumo, 3)}"
+                    th:data-nombre="${insumo.nombre}"
+                    th:data-unidad-id="${insumo.unidadMedida.idUnidadMedida}"
+                    th:data-unidad="${insumo.unidadMedida.nombre}"
+                    th:data-almacen-id="${insumo.almacen.idAlmacen}"
+                    th:data-almacen="${insumo.almacen.nombre}"
+                    th:data-stock="${insumo.stock}"
+                    th:data-stock-minimo="${insumo.stockMinimo}"
+                    th:data-stock-limite="${insumo.stockLimite}"
+                    th:data-estado="${insumo.stock <= 0 ? 'Sin stock' : (insumo.stock <= insumo.stockMinimo ? 'Bajo' : 'Activa')}"
+                    data-tipo="Insumo">
+                    <td class="inventory-code" th:text="${'INS-' + #numbers.formatInteger(insumo.idInsumo, 3)}"></td>
+                    <td><strong th:text="${insumo.nombre}"></strong></td>
+                    <td th:text="${insumo.unidadMedida.nombre}"></td>
+                    <td>
+                        <span class="stock-value"
+                              th:classappend="${insumo.stock <= insumo.stockMinimo} ? ' low'"
+                              th:text="${#numbers.formatInteger(insumo.stock, 1, 'COMMA')}"></span>
+                        <span class="stock-unit" th:text="${insumo.unidadMedida.nombre}"></span>
+                    </td>
+                    <td th:text="${#numbers.formatInteger(insumo.stockMinimo, 1, 'COMMA')}"></td>
+                    <td th:text="${#numbers.formatInteger(insumo.stockLimite, 1, 'COMMA')}"></td>
+                    <td>
+                        <span class="status-pill low"
+                              th:if="${insumo.stock <= 0}">Sin stock</span>
+                        <span class="status-pill warning"
+                              th:if="${insumo.stock > 0 and insumo.stock <= insumo.stockMinimo}">Bajo</span>
+                        <span class="status-pill"
+                              th:if="${insumo.stock > insumo.stockMinimo}">Activa</span>
+                    </td>
+                    <td>
+                        <div class="inventory-actions">
+                            <button class="inventory-icon request-purchase-button" type="button" data-request-purchase aria-label="Solicitar compra">
+                                <i class="fa-solid fa-plus"></i>
+                            </button>
+                            <button class="inventory-icon" type="button" data-insumo-detail aria-label="Ver insumo">
+                                <i class="fa-regular fa-eye"></i>
+                            </button>
+                            <button class="inventory-icon" type="button" data-insumo-edit aria-label="Editar insumo">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <button class="inventory-icon" type="button" data-insumo-delete aria-label="Eliminar insumo">
+                                <i class="fa-regular fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(insumos)}">
+                    <td colspan="8" class="empty-row">No hay insumos registrados.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+<div class="inventory-modal" id="productDetailModal" aria-hidden="true">
+    <section class="inventory-modal-card detail-card" role="dialog" aria-modal="true">
+        <button class="modal-close" type="button" data-close-modal aria-label="Cerrar">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <h2>Detalle del producto</h2>
+        <p>Informacion completa del producto registrado en inventario.</p>
+
+        <div class="detail-grid">
+            <div>
+                <img class="detail-image" data-product-detail-image alt="">
+                <div class="detail-stock">
+                    <span>Estado de stock</span>
+                    <strong data-product-detail-stock></strong>
+                    <small data-product-detail-unit></small>
+                </div>
+            </div>
+            <div class="detail-fields">
+                <div class="detail-two">
+                    <label>Codigo<input data-product-detail-code readonly></label>
+                    <label>Estado<span class="status-pill" data-product-detail-status></span></label>
+                </div>
+                <label>Nombre<input data-product-detail-name readonly></label>
+                <div class="detail-two">
+                    <div><span>Categoria</span><strong data-product-detail-category></strong></div>
+                    <div><span>Precio</span><strong data-product-detail-price></strong></div>
+                </div>
+                <label>Descripcion<textarea data-product-detail-description readonly></textarea></label>
+                <div class="detail-two">
+                    <div><span>Almacen</span><strong data-product-detail-warehouse></strong></div>
+                    <div><span>Unidad de stock</span><strong data-product-detail-unit-name></strong></div>
+                </div>
+                <div class="detail-two detail-border">
+                    <div><span>Stock minimo</span><strong data-product-detail-min></strong></div>
+                    <div><span>Stock limite</span><strong data-product-detail-limit></strong></div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<div class="inventory-modal" id="insumoDetailModal" aria-hidden="true">
+    <section class="inventory-modal-card detail-card compact-detail" role="dialog" aria-modal="true">
+        <button class="modal-close" type="button" data-close-modal aria-label="Cerrar">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <h2>Detalle del insumo</h2>
+        <p>Informacion completa del insumo registrado en inventario.</p>
+
+        <div class="detail-grid">
+            <div class="detail-placeholder">
+                <i class="fa-regular fa-square"></i>
+                <small>Insumo registrado en la base de datos</small>
+            </div>
+            <div class="detail-fields">
+                <div class="detail-two">
+                    <div><span>Codigo</span><strong data-insumo-detail-code></strong></div>
+                    <div><span>Estado</span><strong data-insumo-detail-status></strong></div>
+                </div>
+                <div><span>Nombre</span><strong data-insumo-detail-name></strong></div>
+                <div class="detail-two">
+                    <div><span>Unidad de medida</span><strong data-insumo-detail-unit></strong></div>
+                    <div><span>Almacen</span><strong data-insumo-detail-warehouse></strong></div>
+                </div>
+                <div class="detail-two">
+                    <div><span>Stock actual</span><strong data-insumo-detail-stock></strong></div>
+                    <div><span>Stock minimo</span><strong data-insumo-detail-min></strong></div>
+                </div>
+                <div><span>Stock limite</span><strong data-insumo-detail-limit></strong></div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<div class="inventory-modal" id="productFormModal" aria-hidden="true">
+    <form class="inventory-modal-card form-card" id="productInventoryForm" method="post" enctype="multipart/form-data">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+        <input type="hidden" name="returnTo" value="/admin/inventario">
+        <button class="modal-close" type="button" data-close-modal aria-label="Cerrar">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <h2 data-product-form-title>Registrar producto</h2>
+        <p data-product-form-subtitle>Ingrese los datos necesarios para registrar un producto en el inventario.</p>
+
+        <div class="modal-form-grid">
+            <label>Nombre del producto<input id="productFormName" type="text" name="nombre" required maxlength="100"></label>
+            <label>Precio<input id="productFormPrice" type="number" name="precio" min="0.01" step="0.01" required></label>
+            <label>Categoria
+                <select id="productFormCategory" name="idCategoria" required>
+                    <option value="">Seleccione</option>
+                    <option th:each="categoria : ${categorias}"
+                            th:value="${categoria.idCategoria}"
+                            th:text="${categoria.nombre}"></option>
+                </select>
+            </label>
+            <label>Unidad de stock
+                <select id="productFormPresentation" name="idPresentacion" required>
+                    <option value="">Seleccione</option>
+                    <option th:each="presentacion : ${presentaciones}"
+                            th:value="${presentacion.idPresentacion}"
+                            th:text="${presentacion.nombre}"></option>
+                </select>
+            </label>
+            <label>Stock actual<input id="productFormStock" type="number" name="stock" min="0" value="0" required></label>
+            <label>Stock minimo<input id="productFormMin" type="number" name="stockMinimo" min="0" value="0" required></label>
+            <label>Stock limite<input id="productFormLimit" type="number" name="stockLimite" min="0" value="0" required></label>
+            <label class="product-image-field">Imagen del producto
+                <span class="upload-box">
+                    <i class="fa-regular fa-file-image"></i>
+                    <span id="productImageText">Cargar imagen del producto</span>
+                    <small>Formato JPG, PNG o WEBP</small>
+                    <input id="productFormImage" type="file" name="imagen" accept="image/*">
+                </span>
+            </label>
+        </div>
+        <label>Descripcion<textarea id="productFormDescription" name="descripcion" required maxlength="255"></textarea></label>
+
+        <div class="modal-actions">
+            <button type="button" data-close-modal>Cancelar</button>
+            <button class="primary-action" type="submit" data-product-form-submit>Guardar producto</button>
+        </div>
+    </form>
+</div>
+
+<div class="inventory-modal" id="insumoFormModal" aria-hidden="true">
+    <form class="inventory-modal-card form-card" id="insumoInventoryForm" method="post">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+        <button class="modal-close" type="button" data-close-modal aria-label="Cerrar">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <h2 data-insumo-form-title>Registrar insumo</h2>
+        <p data-insumo-form-subtitle>Ingrese los datos necesarios para registrar un insumo en el inventario.</p>
+
+        <div class="modal-form-grid">
+            <label>Nombre del insumo<input id="insumoFormName" type="text" name="nombre" required maxlength="100"></label>
+            <label>Unidad de medida
+                <select id="insumoFormUnit" name="idUnidadMedida" required>
+                    <option value="">Seleccione</option>
+                    <option th:each="unidad : ${unidadesMedida}"
+                            th:value="${unidad.idUnidadMedida}"
+                            th:text="${unidad.nombre}"></option>
+                </select>
+            </label>
+            <label>Almacen
+                <select id="insumoFormWarehouse" name="idAlmacen">
+                    <option value="">Almacen principal</option>
+                    <option th:each="almacen : ${almacenes}"
+                            th:value="${almacen.idAlmacen}"
+                            th:text="${almacen.nombre}"></option>
+                </select>
+            </label>
+            <label>Stock inicial<input id="insumoFormStock" type="number" name="stock" min="0" value="0" required></label>
+            <label>Stock minimo<input id="insumoFormMin" type="number" name="stockMinimo" min="0" value="0" required></label>
+            <label>Stock limite<input id="insumoFormLimit" type="number" name="stockLimite" min="0" value="0" required></label>
+        </div>
+
+        <div class="modal-actions">
+            <button type="button" data-close-modal>Cancelar</button>
+            <button class="primary-action" type="submit" data-insumo-form-submit>Guardar insumo</button>
+        </div>
+    </form>
+</div>
+
+<div class="inventory-modal" id="purchaseRequestModal" aria-hidden="true">
+    <form class="inventory-modal-card form-card purchase-request-card"
+          th:action="@{/admin/compras/carrito/agregar}"
+          method="post">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+        <input id="purchaseInsumoId" type="hidden" name="idInsumo">
+        <button class="modal-close" type="button" data-close-modal aria-label="Cerrar">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <h2>Agregar al carrito</h2>
+        <p>Agregue el insumo al carrito para registrar la solicitud de compra.</p>
+
+        <div class="modal-form-grid">
+            <label>Insumo<input id="purchaseInsumoName" type="text" readonly></label>
+            <label>Cantidad solicitada<input id="purchaseQuantity" type="number" name="cantidad" min="1" step="0.01" required></label>
+            <label>Unidad<input id="purchaseUnit" type="text" readonly></label>
+            <label>Stock actual<input id="purchaseStock" type="number" readonly></label>
+            <label>Stock minimo<input id="purchaseMin" type="number" readonly></label>
+            <label>Stock limite<input id="purchaseLimit" type="number" readonly></label>
+        </div>
+
+        <div class="movement-summary" id="purchaseSummary">Revise la cantidad solicitada antes de registrar.</div>
+
+        <div class="modal-actions">
+            <button type="button" data-close-modal>Cancelar</button>
+            <button class="primary-action" type="submit">
+                <i class="fa-solid fa-cart-plus"></i>
+                Agregar al carrito
+            </button>
+        </div>
+    </form>
+</div>
+
+<div class="inventory-modal" id="deleteModal" aria-hidden="true">
+    <form class="inventory-modal-card delete-card" id="deleteInventoryForm" method="post">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+        <input id="deleteReturnTo" type="hidden" name="returnTo" value="/admin/inventario">
+        <i class="fa-solid fa-triangle-exclamation delete-warning"></i>
+        <h2 data-delete-title>Eliminar registro</h2>
+        <p data-delete-message>Confirme la eliminacion del registro seleccionado.</p>
+        <div class="delete-summary">
+            <div><span>Codigo</span><strong data-delete-code></strong></div>
+            <div><span>Nombre</span><strong data-delete-name></strong></div>
+            <div><span>Stock actual</span><strong data-delete-stock></strong></div>
+            <div><span>Estado actual</span><strong data-delete-status></strong></div>
+        </div>
+        <div class="modal-actions">
+            <button type="button" data-close-modal>Cancelar</button>
+            <button class="danger-action" type="submit" data-delete-submit>Eliminar</button>
+        </div>
+    </form>
+</div>
+
+</body>
+</html>

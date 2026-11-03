@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestionar pedidos</title>
+    <link rel="stylesheet" href="/css/admin-productos.css">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="/js/admin-pedidos.js" defer></script>
+</head>
+<body>
+
+<header class="admin-products-nav">
+    <a class="admin-logo" href="/ventas/catalogo" aria-label="Volver al catalogo">
+        <img src="/img/payaso_ventas.png" alt="Logo">
+    </a>
+
+    <div class="admin-user">
+        <i class="fa-regular fa-circle-user"></i>
+        <span th:text="${usuarioNombre}">Admin</span>
+        <a href="/ventas/catalogo" aria-label="Volver a ventas">
+            <i class="fa-solid fa-store"></i>
+        </a>
+    </div>
+</header>
+
+<main class="products-admin-page">
+    <p class="admin-alert success" th:if="${mensajeExito}" th:text="${mensajeExito}">Estado actualizado.</p>
+    <p class="admin-alert error" th:if="${mensajeError}" th:text="${mensajeError}">No se pudo actualizar.</p>
+
+    <section class="products-toolbar">
+        <label class="product-search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input id="adminOrderSearch" type="search" placeholder="Buscar por cliente, pedido o producto">
+        </label>
+
+        <a class="add-product-button admin-link-button" href="/admin/productos">
+            <i class="fa-solid fa-box-open"></i>
+            Gestionar productos
+        </a>
+    </section>
+
+    <section class="products-table-wrapper">
+        <table class="products-table orders-table">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Cliente</th>
+                <th>Telefono</th>
+                <th>Fecha</th>
+                <th>Productos</th>
+                <th>Total</th>
+                <th>Estado</th>
+                <th>Accion</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="pedido : ${pedidos}"
+                th:data-order-search="${#strings.toLowerCase('#' + pedido.idPedido() + ' ' + pedido.cliente() + ' ' + pedido.productos() + ' ' + pedido.estado())}">
+                <td th:text="${#numbers.formatInteger(pedido.idPedido(), 2)}">01</td>
+                <td th:text="${pedido.cliente()}">Cliente</td>
+                <td th:text="${pedido.telefono()}">999999999</td>
+                <td>
+                    <span th:text="${#temporals.format(pedido.fechaEmision(), 'dd/MM/yyyy')}">01/01/2026</span>
+                    <small th:text="${#temporals.format(pedido.hora(), 'HH:mm')}">10:00</small>
+                </td>
+                <td class="order-products" th:text="${pedido.productos()}">Productos</td>
+                <td th:text="${'S/ ' + #numbers.formatDecimal(pedido.total(), 1, 2)}">S/ 0.00</td>
+                <td>
+                    <form class="order-status-form"
+                          th:action="@{/admin/pedidos/{id}/estado(id=${pedido.idPedido()})}"
+                          method="post">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <select name="idEstado" th:aria-label="${'Estado pedido ' + pedido.idPedido()}">
+                            <option th:each="estado : ${estados}"
+                                    th:value="${estado.idEstado}"
+                                    th:text="${estado.nombre}"
+                                    th:selected="${estado.nombre == pedido.estado()}">PENDIENTE</option>
+                        </select>
+                    </form>
+                </td>
+                <td>
+                    <button class="save-status-button" type="button" data-save-order-state aria-label="Guardar estado">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                    </button>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(pedidos)}">
+                <td colspan="8" class="empty-table">No hay pedidos registrados.</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+
+</body>
+</html>

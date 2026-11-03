@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pedido registrado</title>
+    <link rel="stylesheet" href="/css/checkout.css">
+    <link rel="stylesheet" href="/css/admin-menu.css">
+    <link rel="stylesheet" href="/css/admin-tools.css">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="/js/admin-menu.js" defer></script>
+</head>
+<body>
+
+<header class="navbar">
+    <div class="logo">
+        <button th:if="${puedeAbrirPanelAdmin}" class="logo-button" type="button" data-admin-menu-toggle aria-label="Abrir modulos internos">
+            <img src="/img/payaso_ventas.png" alt="Logo">
+        </button>
+        <img th:unless="${puedeAbrirPanelAdmin}" src="/img/payaso_ventas.png" alt="Logo">
+    </div>
+
+    <div class="search-container">
+        <input type="text" placeholder="Que desea hoy?">
+    </div>
+
+    <div class="nav-icons">
+        <div class="account">
+            <i class="fa-regular fa-circle-user"></i>
+            <span th:text="${usuarioNombre}">Usuario</span>
+            <i class="fa-solid fa-chevron-down"></i>
+        </div>
+
+        <div class="admin-tools" th:if="${puedeAbrirPanelAdmin}">
+            <button class="admin-tools__button" type="button" aria-label="Opciones administrativas">
+                <i class="fa-solid fa-gear"></i>
+                <i class="fa-solid fa-chevron-down"></i>
+            </button>
+            <div class="admin-tools__menu">
+                <a href="/admin/productos">
+                    <i class="fa-solid fa-box-open"></i>
+                    Gestionar productos
+                </a>
+                <a href="/admin/pedidos">
+                    <i class="fa-solid fa-receipt"></i>
+                    Gestionar pedidos
+                </a>
+            </div>
+        </div>
+
+        <a class="cart" href="/ventas/carrito" aria-label="Carrito de compras">
+            <i class="fa-solid fa-cart-shopping"></i>
+        </a>
+    </div>
+</header>
+
+<div th:if="${puedeAbrirPanelAdmin}" class="admin-drawer" id="adminDrawer" aria-hidden="true">
+    <div class="admin-drawer__backdrop" data-admin-menu-backdrop></div>
+    <aside class="admin-drawer__panel" aria-label="Modulos internos">
+        <div class="admin-drawer__header">
+            <div>
+                <strong>El Trujillano</strong>
+                <span th:text="${cargoAdmin}">ADMIN</span>
+            </div>
+            <button class="admin-drawer__close" type="button" data-admin-menu-close aria-label="Cerrar">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <nav class="admin-drawer__nav">
+            <a th:each="modulo : ${modulosAdmin}" th:href="${modulo.url()}">
+                <i th:class="${'fa-solid ' + modulo.icono()}"></i>
+                <span>
+                    <span th:text="${modulo.nombre()}">Modulo</span>
+                    <small th:text="${modulo.descripcion()}">Descripcion</small>
+                </span>
+            </a>
+        </nav>
+    </aside>
+</div>
+
+<main class="confirmation-page">
+    <h1>
+        <span th:text="${tituloConfirmacion}">PAGO REGISTRADO</span>
+        <i class="fa-solid fa-check"></i>
+    </h1>
+    <p th:text="${mensajeConfirmacion}">
+        Su pedido fue registrado correctamente.
+    </p>
+    <a href="/ventas/mis-pedidos">Ver mis pedidos</a>
+</main>
+
+</body>
+</html>
