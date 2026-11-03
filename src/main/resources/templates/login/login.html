@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="/css/login.css">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="/js/login.js" defer></script>
+</head>
+<body>
+<div class="login-container">
+    <div class="logo">
+        <img src="/img/Eltrujillanologo.png" alt="Logo Empresa">
+    </div>
+
+    <h1>Bienvenido</h1>
+    <p class="subtitle">Ingrese sus credenciales para continuar</p>
+
+    <div class="error-message" aria-live="polite">
+        <span th:if="${param.error}">Usuario o contrasena incorrectos</span>
+    </div>
+
+    <form th:action="@{/login}" method="post">
+        <div class="input-group">
+            <input type="text"
+                   name="username"
+                   placeholder="Ingrese su usuario"
+                   autocomplete="username"
+                   required>
+        </div>
+
+        <div class="input-group password-group">
+            <input type="password"
+                   name="password"
+                   id="password"
+                   placeholder="Ingrese su contrasena"
+                   autocomplete="current-password"
+                   required>
+            <button class="password-toggle" type="button" aria-label="Mostrar contrasena">
+                <i class="fa-regular fa-eye"></i>
+            </button>
+        </div>
+
+        <a class="guest-link" href="/ventas/catalogo">Seguir como cliente</a>
+
+        <button type="submit">Iniciar sesion</button>
+    </form>
+
+    <div class="links">
+        <span>Has olvidado la contrasena?</span>
+        <a href="#">Recuperar</a>
+    </div>
+</div>
+</body>
+</html>

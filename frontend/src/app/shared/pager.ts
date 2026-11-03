@@ -1,0 +1,4 @@
+import { Component, input, output } from '@angular/core';
+import { Icon } from './icon';
+@Component({selector:'app-pager',imports:[Icon],template:`<div class="pagination"><span>{{total()===0?'Sin registros': 'Mostrando '+(page()*size()+1)+'–'+Math.min((page()+1)*size(),total())+' de '+total()+' registros'}}</span><div class="pages"><button class="page-button previous" aria-label="Página anterior" [disabled]="page()===0||busy()" (click)="changed.emit(page()-1)"><app-icon name="chevron"/></button><span class="page-current">{{page()+1}}</span><span class="page-of">de {{Math.max(1,pages())}}</span><button class="page-button" aria-label="Página siguiente" [disabled]="page()+1>=pages()||busy()" (click)="changed.emit(page()+1)"><app-icon name="chevron"/></button></div></div>`})
+export class Pager { readonly Math=Math;readonly total=input(0);readonly page=input(0);readonly size=input(10);readonly pages=input(0);readonly busy=input(false);readonly changed=output<number>();}

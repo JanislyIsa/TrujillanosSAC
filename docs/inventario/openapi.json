@@ -1,0 +1,3719 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Trujillanos SAC - Inventario",
+    "version": "1.0.0",
+    "description": "Backend de inventario RF25-RF56 segun los diagramas de analisis y secuencia. Sesion existente o HTTP Basic, con CSRF para escrituras. Horas America/Lima. Roles basados en cargo de empleado. Comprobante de movimiento persistido."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:9191"
+    }
+  ],
+  "security": [
+    {
+      "basicAuth": []
+    },
+    {
+      "sessionAuth": []
+    }
+  ],
+  "paths": {
+    "/api/v1/inventario/productos": {
+      "get": {
+        "summary": "Buscar y listar productos",
+        "description": "Acceso: almacenero o administrador. Orden por ID ascendente.",
+        "operationId": "get_productos",
+        "tags": [
+          "productos"
+        ],
+        "parameters": [
+          {
+            "name": "buscar",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "idAlmacen",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "estado",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "BAJO",
+                "NORMAL",
+                "SOBRESTOCK"
+              ]
+            }
+          },
+          {
+            "name": "pagina",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 0,
+              "default": 0
+            }
+          },
+          {
+            "name": "tamanio",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          {
+            "name": "activo",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            },
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginaItem"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Autenticacion requerida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permisos insuficientes o CSRF invalido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de stock, concurrencia o referencias",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Registrar productos",
+        "description": "Acceso: almacenero o administrador. El stock inicial positivo genera movimiento atomico.",
+        "operationId": "post_productos",
+        "tags": [
+          "productos"
+        ],
+        "parameters": [
+          {
+            "name": "X-XSRF-TOKEN",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Token de GET /csrf junto con su cookie/sesion"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Creado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Item"
+                }
+              }
+            },
+            "headers": {
+              "Location": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "URI del recurso creado"
+              }
+            }
+          },
+          "400": {
+            "description": "Datos invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Autenticacion requerida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permisos insuficientes o CSRF invalido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de stock, concurrencia o referencias",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductoRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventario/productos/{id}": {
+      "get": {
+        "summary": "Consultar detalle",
+        "description": "",
+        "operationId": "get_productos__id_",
+        "tags": [
+          "productos"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Item"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Autenticacion requerida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permisos insuficientes o CSRF invalido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de stock, concurrencia o referencias",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Modificar datos y limites",
+        "description": "El stock solo cambia mediante movimientos. No cambia almacen, unidad o presentacion de un registro existente.",
+        "operationId": "put_productos__id_",
+        "tags": [
+          "productos"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "X-XSRF-TOKEN",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Token de GET /csrf junto con su cookie/sesion"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Item"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Autenticacion requerida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permisos insuficientes o CSRF invalido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de stock, concurrencia o referencias",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductoRequest"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Inactivar registro conservando existencias e historial",
+        "description": "",
+        "operationId": "delete_productos__id_",
+        "tags": [
+          "productos"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "X-XSRF-TOKEN",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Token de GET /csrf junto con su cookie/sesion"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Operacion completada"
+          },
+          "400": {
+            "description": "Datos invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Autenticacion requerida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permisos insuficientes o CSRF invalido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de stock, concurrencia o referencias",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventario/insumos": {
+      "get": {
+        "summary": "Buscar y listar insumos",
+        "description": "Acceso: almacenero o administrador. Orden por ID ascendente.",
+        "operationId": "get_insumos",
+        "tags": [
+          "insumos"
+        ],
+        "parameters": [
+          {
+            "name": "buscar",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "idAlmacen",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "estado",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "BAJO",
+                "NORMAL",
+                "SOBRESTOCK"
+              ]
+            }
+          },
+          {
+            "name": "pagina",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 0,
+              "default": 0
+            }
+          },
+          {
+            "name": "tamanio",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          {
+            "name": "activo",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            },
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginaItem"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Autenticacion requerida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permisos insuficientes o CSRF invalido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de stock, concurrencia o referencias",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Registrar insumos",
+        "description": "Acceso: almacenero o administrador. El stock inicial positivo genera movimiento atomico.",
+        "operationId": "post_insumos",
+        "tags": [
+          "insumos"
+        ],
+        "parameters": [
+          {
+            "name": "X-XSRF-TOKEN",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Token de GET /csrf junto con su cookie/sesion"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Creado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Item"
+                }
+              }
+            },
+            "headers": {
+              "Location": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "URI del recurso creado"
+              }
+            }
+          },
+          "400": {
+            "description": "Datos invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Autenticacion requerida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permisos insuficientes o CSRF invalido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de stock, concurrencia o referencias",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InsumoRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventario/insumos/{id}": {
+      "get": {
+        "summary": "Consultar detalle",
+        "description": "",
+        "operationId": "get_insumos__id_",
+        "tags": [
+          "insumos"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Item"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Autenticacion requerida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permisos insuficientes o CSRF invalido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de stock, concurrencia o referencias",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Modificar datos y limites",
+        "description": "El stock solo cambia mediante movimientos. No cambia almacen, unidad o presentacion de un registro existente.",
+        "operationId": "put_insumos__id_",
+        "tags": [
+          "insumos"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "X-XSRF-TOKEN",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Token de GET /csrf junto con su cookie/sesion"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Item"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Autenticacion requerida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permisos insuficientes o CSRF invalido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de stock, concurrencia o referencias",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InsumoRequest"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Inactivar registro conservando existencias e historial",
+        "description": "",
+        "operationId": "delete_insumos__id_",
+        "tags": [
+          "insumos"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "X-XSRF-TOKEN",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Token de GET /csrf junto con su cookie/sesion"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Operacion completada"
+          },
+          "400": {
+            "description": "Datos invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Autenticacion requerida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permisos insuficientes o CSRF invalido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de stock, concurrencia o referencias",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventario/stock": {
+      "get": {
+        "summary": "Consultar cantidades y estado de stock",
+        "description": "Acceso: almacenero, jefe de compras o administrador. BAJO si stock < minimo; SOBRESTOCK si stock > limite.",
+        "operationId": "get_stock",
+        "tags": [
+          "stock"
+        ],
+        "parameters": [
+          {
+            "name": "tipoItem",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PRODUCTO",
+                "INSUMO"
+              ]
+            }
+          },
+          {
+            "name": "buscar",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "idAlmacen",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "estado",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "BAJO",
+                "NORMAL",
+                "SOBRESTOCK"
+              ]
+            }
+          },
+          {
+            "name": "pagina",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 0,
+              "default": 0
+            }
+          },
+          {
+            "name": "tamanio",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginaItem"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Autenticacion requerida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permisos insuficientes o CSRF invalido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de stock, concurrencia o referencias",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventario/movimientos": {
+      "get": {
+        "summary": "Consultar historial de movimientos",
+        "description": "Fechas inclusivas. Orden ID descendente. Saldos antiguos sin evidencia devuelven null. Acceso: inventario.",
+        "operationId": "get_movimientos",
+        "tags": [
+          "movimientos"
+        ],
+        "parameters": [
+          {
+            "name": "tipoItem",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PRODUCTO",
+                "INSUMO"
+              ]
+            }
+          },
+          {
+            "name": "idItem",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "tipoMovimiento",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "INGRESO",
+                "SALIDA"
+              ]
+            }
+          },
+          {
+            "name": "desde",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "hasta",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "idAlmacen",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "pagina",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 0,
+              "default": 0
+            }
+          },
+          {
+            "name": "tamanio",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginaMovimiento"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Autenticacion requerida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permisos insuficientes o CSRF invalido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de stock, concurrencia o referencias",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Registrar ingreso o salida y generar comprobante",
+        "description": "Una operacion contiene un item; almacen, fecha, hora y responsable los establece el servidor. Reintentos de POST pueden crear otra operacion.",
+        "operationId": "post_movimientos",
+        "tags": [
+          "movimientos"
+        ],
+        "parameters": [
+          {
+            "name": "X-XSRF-TOKEN",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Token de GET /csrf junto con su cookie/sesion"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Creado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Comprobante"
+                }
+              }
+            },
+            "headers": {
+              "Location": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "URI del recurso creado"
+              }
+            }
+          },
+          "400": {
+            "description": "Datos invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Autenticacion requerida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permisos insuficientes o CSRF invalido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de stock, concurrencia o referencias",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MovimientoRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventario/movimientos/{id}": {
+      "get": {
+        "summary": "Consultar comprobante persistido",
+        "description": "",
+        "operationId": "get_movimientos__id_",
+        "tags": [
+          "movimientos"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Comprobante"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Autenticacion requerida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permisos insuficientes o CSRF invalido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de stock, concurrencia o referencias",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventario/movimientos/{id}/comprobante": {
+      "get": {
+        "summary": "Consultar comprobante persistido",
+        "description": "",
+        "operationId": "get_movimientos__id__comprobante",
+        "tags": [
+          "movimientos"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Comprobante"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Autenticacion requerida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permisos insuficientes o CSRF invalido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de stock, concurrencia o referencias",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventario/alertas": {
+      "get": {
+        "summary": "Consultar alertas de stock",
+        "description": "Acceso: inventario o compras. La fecha original se conserva durante el episodio.",
+        "operationId": "get_alertas",
+        "tags": [
+          "alertas"
+        ],
+        "parameters": [
+          {
+            "name": "soloActivas",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true
+            }
+          },
+          {
+            "name": "pagina",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 0,
+              "default": 0
+            }
+          },
+          {
+            "name": "tamanio",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginaAlerta"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Autenticacion requerida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permisos insuficientes o CSRF invalido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de stock, concurrencia o referencias",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventario/alertas/monitorear": {
+      "post": {
+        "summary": "Revisar niveles y notificar al jefe de compras",
+        "description": "Acceso: inventario. Ademas se ejecuta cada 60 segundos por defecto.",
+        "operationId": "post_alertas_monitorear",
+        "tags": [
+          "alertas"
+        ],
+        "parameters": [
+          {
+            "name": "X-XSRF-TOKEN",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Token de GET /csrf junto con su cookie/sesion"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Operacion completada"
+          },
+          "400": {
+            "description": "Datos invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Autenticacion requerida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permisos insuficientes o CSRF invalido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de stock, concurrencia o referencias",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventario/notificaciones": {
+      "get": {
+        "summary": "Consultar notificaciones propias",
+        "description": "Acceso: compras; solo devuelve mensajes del empleado autenticado.",
+        "operationId": "get_notificaciones",
+        "tags": [
+          "notificaciones"
+        ],
+        "parameters": [
+          {
+            "name": "pagina",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 0,
+              "default": 0
+            }
+          },
+          {
+            "name": "tamanio",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginaNotificacion"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Autenticacion requerida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permisos insuficientes o CSRF invalido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de stock, concurrencia o referencias",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventario/notificaciones/{id}/leida": {
+      "patch": {
+        "summary": "Marcar notificacion propia como leida",
+        "description": "Idempotente; una notificacion ajena devuelve 404.",
+        "operationId": "patch_notificaciones__id__leida",
+        "tags": [
+          "notificaciones"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "X-XSRF-TOKEN",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Token de GET /csrf junto con su cookie/sesion"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Operacion completada"
+          },
+          "400": {
+            "description": "Datos invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Autenticacion requerida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permisos insuficientes o CSRF invalido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de stock, concurrencia o referencias",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventario/solicitudes-compra/faltantes": {
+      "get": {
+        "summary": "Identificar insumos faltantes",
+        "description": "Acceso: jefe de compras o administrador. Sugiere stockLimite - stock.",
+        "operationId": "get_solicitudes_compra_faltantes",
+        "tags": [
+          "solicitudes-compra"
+        ],
+        "parameters": [
+          {
+            "name": "pagina",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 0,
+              "default": 0
+            }
+          },
+          {
+            "name": "tamanio",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginaFaltante"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Autenticacion requerida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permisos insuficientes o CSRF invalido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de stock, concurrencia o referencias",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventario/solicitudes-compra": {
+      "get": {
+        "summary": "Listar solicitudes enviadas a compras",
+        "description": "Acceso: compras. Reutiliza SOLICITUD_COMPRA y DETALLE_SOLICITUD del modulo existente.",
+        "operationId": "get_solicitudes_compra",
+        "tags": [
+          "solicitudes-compra"
+        ],
+        "parameters": [
+          {
+            "name": "pagina",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 0,
+              "default": 0
+            }
+          },
+          {
+            "name": "tamanio",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginaSolicitud"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Autenticacion requerida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permisos insuficientes o CSRF invalido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de stock, concurrencia o referencias",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Registrar y enviar solicitud a compras",
+        "description": "Acceso: compras. Guarda cabecera Pendiente y todos los detalles en una transaccion; no admite insumos repetidos.",
+        "operationId": "post_solicitudes_compra",
+        "tags": [
+          "solicitudes-compra"
+        ],
+        "parameters": [
+          {
+            "name": "X-XSRF-TOKEN",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Token de GET /csrf junto con su cookie/sesion"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Creado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Solicitud"
+                }
+              }
+            },
+            "headers": {
+              "Location": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "URI del recurso creado"
+              }
+            }
+          },
+          "400": {
+            "description": "Datos invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Autenticacion requerida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permisos insuficientes o CSRF invalido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de stock, concurrencia o referencias",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SolicitudRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventario/solicitudes-compra/{id}": {
+      "get": {
+        "summary": "Consultar solicitud y detalles",
+        "description": "",
+        "operationId": "get_solicitudes_compra__id_",
+        "tags": [
+          "solicitudes-compra"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Solicitud"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Autenticacion requerida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permisos insuficientes o CSRF invalido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de stock, concurrencia o referencias",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventario/solicitudes-compra/automatica": {
+      "post": {
+        "summary": "Completar solicitud con todos los insumos faltantes",
+        "description": "Acceso: compras. Retorna 409 si no existen faltantes; maximo 100 lineas por solicitud.",
+        "operationId": "post_solicitudes_compra_automatica",
+        "tags": [
+          "solicitudes-compra"
+        ],
+        "parameters": [
+          {
+            "name": "X-XSRF-TOKEN",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Token de GET /csrf junto con su cookie/sesion"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Creado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Solicitud"
+                }
+              }
+            },
+            "headers": {
+              "Location": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "URI del recurso creado"
+              }
+            }
+          },
+          "400": {
+            "description": "Datos invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Autenticacion requerida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permisos insuficientes o CSRF invalido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de stock, concurrencia o referencias",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SolicitudAutomaticaRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventario/catalogos": {
+      "get": {
+        "summary": "Listar categorias, presentaciones, unidades y almacenes",
+        "description": "Acceso: inventario o compras.",
+        "operationId": "get_catalogos",
+        "tags": [
+          "catalogos"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Catalogos"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Autenticacion requerida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permisos insuficientes o CSRF invalido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de stock, concurrencia o referencias",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventario/csrf": {
+      "get": {
+        "summary": "Obtener token para operaciones de escritura",
+        "description": "",
+        "operationId": "get_csrf",
+        "tags": [
+          "csrf"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Csrf"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Autenticacion requerida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permisos insuficientes o CSRF invalido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de stock, concurrencia o referencias",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/v1/inventario/sesion": {
+      "get": {
+        "summary": "Consultar sesión actual y permisos",
+        "responses": {
+          "200": {
+            "description": "Sesión autenticada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Sesion"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión"
+          }
+        }
+      }
+    },
+    "/api/v1/inventario/sesion/login": {
+      "post": {
+        "summary": "Iniciar sesión con cookie HttpOnly",
+        "security": [],
+        "parameters": [
+          {
+            "name": "X-XSRF-TOKEN",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Sesión creada; consultar /csrf de nuevo tras login",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Sesion"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Credenciales incorrectas"
+          },
+          "403": {
+            "description": "Sin permiso o CSRF inválido"
+          }
+        }
+      }
+    },
+    "/api/v1/inventario/sesion/logout": {
+      "post": {
+        "summary": "Cerrar sesión e invalidar cookie",
+        "parameters": [
+          {
+            "name": "X-XSRF-TOKEN",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Sesión invalidada"
+          }
+        }
+      }
+    },
+    "/api/v1/inventario/proveedores": {
+      "get": {
+        "summary": "Opciones de proveedor para la solicitud",
+        "responses": {
+          "200": {
+            "description": "Acceso: compras",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Catalogo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventario/imagenes": {
+      "post": {
+        "summary": "Subir imagen JPG o PNG de hasta 2 MB",
+        "parameters": [
+          {
+            "name": "X-XSRF-TOKEN",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "archivo": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                },
+                "required": [
+                  "archivo"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Ruta para imagenRuta del producto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Imagen"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Archivo inválido"
+          },
+          "403": {
+            "description": "Acceso: inventario o CSRF inválido"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Item": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "tipoItem": {
+            "type": "string",
+            "enum": [
+              "PRODUCTO",
+              "INSUMO"
+            ]
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "descripcion": {
+            "type": "string",
+            "nullable": true
+          },
+          "precio": {
+            "type": "number",
+            "nullable": true
+          },
+          "stock": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "stockMinimo": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "stockLimite": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "estadoStock": {
+            "type": "string",
+            "enum": [
+              "BAJO",
+              "NORMAL",
+              "SOBRESTOCK"
+            ]
+          },
+          "idAlmacen": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "almacen": {
+            "type": "string"
+          },
+          "idCategoria": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "categoria": {
+            "type": "string",
+            "nullable": true
+          },
+          "idUnidad": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "unidad": {
+            "type": "string"
+          },
+          "imagenUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "activo": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "tipoItem",
+          "nombre",
+          "descripcion",
+          "precio",
+          "stock",
+          "stockMinimo",
+          "stockLimite",
+          "estadoStock",
+          "idAlmacen",
+          "almacen",
+          "idCategoria",
+          "categoria",
+          "idUnidad",
+          "unidad",
+          "imagenUrl",
+          "activo"
+        ]
+      },
+      "ProductoRequest": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "descripcion": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "precio": {
+            "type": "number",
+            "minimum": 0.01,
+            "maximum": 99999999.99,
+            "multipleOf": 0.01
+          },
+          "stock": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
+            "nullable": true,
+            "description": "En altas genera un ingreso inicial. En edicion omitir o enviar el saldo actual; otro valor devuelve 409."
+          },
+          "stockMinimo": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "stockLimite": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
+            "description": "Debe ser mayor o igual al minimo."
+          },
+          "idCategoria": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1
+          },
+          "idPresentacion": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1
+          },
+          "idAlmacen": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1
+          },
+          "imagenRuta": {
+            "type": "string",
+            "maxLength": 255,
+            "nullable": true
+          },
+          "activo": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "Opcional: al crear el valor por defecto es true; al editar conserva el actual si se omite."
+          }
+        },
+        "required": [
+          "nombre",
+          "descripcion",
+          "precio",
+          "stockMinimo",
+          "stockLimite",
+          "idCategoria",
+          "idPresentacion",
+          "idAlmacen"
+        ]
+      },
+      "InsumoRequest": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "stock": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
+            "nullable": true,
+            "description": "En altas genera un ingreso inicial. En edicion omitir o enviar el saldo actual; otro valor devuelve 409."
+          },
+          "stockMinimo": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "stockLimite": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
+            "description": "Debe ser mayor o igual al minimo."
+          },
+          "idUnidadMedida": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1
+          },
+          "idAlmacen": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1
+          },
+          "activo": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "Opcional: al crear el valor por defecto es true; al editar conserva el actual si se omite."
+          }
+        },
+        "required": [
+          "nombre",
+          "stockMinimo",
+          "stockLimite",
+          "idUnidadMedida",
+          "idAlmacen"
+        ]
+      },
+      "MovimientoRequest": {
+        "type": "object",
+        "properties": {
+          "tipoMovimiento": {
+            "type": "string",
+            "enum": [
+              "INGRESO",
+              "SALIDA"
+            ]
+          },
+          "tipoItem": {
+            "type": "string",
+            "enum": [
+              "PRODUCTO",
+              "INSUMO"
+            ]
+          },
+          "idItem": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1
+          },
+          "cantidad": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "motivo": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "tipoMovimiento",
+          "tipoItem",
+          "idItem",
+          "cantidad",
+          "motivo"
+        ]
+      },
+      "Movimiento": {
+        "type": "object",
+        "properties": {
+          "idMovimiento": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "codigoMovimiento": {
+            "type": "string"
+          },
+          "codigoComprobante": {
+            "type": "string"
+          },
+          "tipoMovimiento": {
+            "type": "string",
+            "enum": [
+              "Ingreso",
+              "Salida"
+            ]
+          },
+          "tipoItem": {
+            "type": "string",
+            "enum": [
+              "Producto",
+              "Insumo"
+            ]
+          },
+          "nombreItem": {
+            "type": "string"
+          },
+          "cantidad": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "unidad": {
+            "type": "string"
+          },
+          "stockAnterior": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "stockNuevo": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "fecha": {
+            "type": "string",
+            "format": "date"
+          },
+          "hora": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "almacen": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "idMovimiento",
+          "codigoMovimiento",
+          "codigoComprobante",
+          "tipoMovimiento",
+          "tipoItem",
+          "nombreItem",
+          "cantidad",
+          "unidad",
+          "stockAnterior",
+          "stockNuevo",
+          "fecha",
+          "hora",
+          "almacen"
+        ]
+      },
+      "Comprobante": {
+        "type": "object",
+        "properties": {
+          "movimiento": {
+            "$ref": "#/components/schemas/Movimiento"
+          },
+          "responsable": {
+            "type": "string",
+            "nullable": true
+          },
+          "motivo": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "movimiento",
+          "responsable",
+          "motivo"
+        ]
+      },
+      "Alerta": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "codigo": {
+            "type": "string"
+          },
+          "tipoItem": {
+            "type": "string",
+            "enum": [
+              "PRODUCTO",
+              "INSUMO"
+            ]
+          },
+          "idItem": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "tipoAlerta": {
+            "type": "string",
+            "enum": [
+              "BAJO",
+              "SOBRESTOCK"
+            ]
+          },
+          "descripcion": {
+            "type": "string"
+          },
+          "stockActual": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "stockMinimo": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "stockLimite": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "fechaHora": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "resueltaEn": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "codigo",
+          "tipoItem",
+          "idItem",
+          "tipoAlerta",
+          "descripcion",
+          "stockActual",
+          "stockMinimo",
+          "stockLimite",
+          "fechaHora",
+          "resueltaEn"
+        ]
+      },
+      "Notificacion": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "alerta": {
+            "$ref": "#/components/schemas/Alerta"
+          },
+          "creadaEn": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "leidaEn": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "alerta",
+          "creadaEn",
+          "leidaEn"
+        ]
+      },
+      "Faltante": {
+        "type": "object",
+        "properties": {
+          "idInsumo": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "stock": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "stockMinimo": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "stockLimite": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "cantidadSugerida": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "unidad": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "idInsumo",
+          "nombre",
+          "stock",
+          "stockMinimo",
+          "stockLimite",
+          "cantidadSugerida",
+          "unidad"
+        ]
+      },
+      "SolicitudLineaRequest": {
+        "type": "object",
+        "properties": {
+          "idInsumo": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1
+          },
+          "cantidad": {
+            "type": "number",
+            "minimum": 0.01,
+            "maximum": 99999999.99,
+            "multipleOf": 0.01
+          }
+        },
+        "required": [
+          "idInsumo",
+          "cantidad"
+        ]
+      },
+      "SolicitudRequest": {
+        "type": "object",
+        "properties": {
+          "idProveedor": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1
+          },
+          "detalles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SolicitudLineaRequest"
+            },
+            "minItems": 1,
+            "maxItems": 100
+          }
+        },
+        "required": [
+          "idProveedor",
+          "detalles"
+        ]
+      },
+      "SolicitudAutomaticaRequest": {
+        "type": "object",
+        "properties": {
+          "idProveedor": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "idProveedor"
+        ]
+      },
+      "Solicitud": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "codigo": {
+            "type": "string"
+          },
+          "fecha": {
+            "type": "string",
+            "format": "date"
+          },
+          "estado": {
+            "type": "string"
+          },
+          "idProveedor": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "idEmpleado": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "detalles": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "idInsumo": {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "nombre": {
+                  "type": "string"
+                },
+                "cantidad": {
+                  "type": "number"
+                },
+                "unidad": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "idInsumo",
+                "nombre",
+                "cantidad",
+                "unidad"
+              ]
+            }
+          }
+        },
+        "required": [
+          "id",
+          "codigo",
+          "fecha",
+          "estado",
+          "idProveedor",
+          "idEmpleado",
+          "detalles"
+        ]
+      },
+      "Catalogo": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "nombre": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "nombre"
+        ]
+      },
+      "Catalogos": {
+        "type": "object",
+        "properties": {
+          "categorias": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Catalogo"
+            }
+          },
+          "presentaciones": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Catalogo"
+            }
+          },
+          "unidadesMedida": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Catalogo"
+            }
+          },
+          "almacenes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Catalogo"
+            }
+          }
+        },
+        "required": [
+          "categorias",
+          "presentaciones",
+          "unidadesMedida",
+          "almacenes"
+        ]
+      },
+      "Csrf": {
+        "type": "object",
+        "properties": {
+          "headerName": {
+            "type": "string"
+          },
+          "token": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "headerName",
+          "token"
+        ]
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "estado": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "mensaje": {
+            "type": "string"
+          },
+          "ruta": {
+            "type": "string"
+          },
+          "fechaHora": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "errores": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "estado",
+          "mensaje",
+          "errores"
+        ]
+      },
+      "PaginaItem": {
+        "type": "object",
+        "properties": {
+          "contenido": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Item"
+            }
+          },
+          "pagina": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "tamanio": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalElementos": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalPaginas": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "required": [
+          "contenido",
+          "pagina",
+          "tamanio",
+          "totalElementos",
+          "totalPaginas"
+        ]
+      },
+      "PaginaMovimiento": {
+        "type": "object",
+        "properties": {
+          "contenido": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Movimiento"
+            }
+          },
+          "pagina": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "tamanio": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalElementos": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalPaginas": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "required": [
+          "contenido",
+          "pagina",
+          "tamanio",
+          "totalElementos",
+          "totalPaginas"
+        ]
+      },
+      "PaginaAlerta": {
+        "type": "object",
+        "properties": {
+          "contenido": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Alerta"
+            }
+          },
+          "pagina": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "tamanio": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalElementos": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalPaginas": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "required": [
+          "contenido",
+          "pagina",
+          "tamanio",
+          "totalElementos",
+          "totalPaginas"
+        ]
+      },
+      "PaginaNotificacion": {
+        "type": "object",
+        "properties": {
+          "contenido": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Notificacion"
+            }
+          },
+          "pagina": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "tamanio": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalElementos": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalPaginas": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "required": [
+          "contenido",
+          "pagina",
+          "tamanio",
+          "totalElementos",
+          "totalPaginas"
+        ]
+      },
+      "PaginaFaltante": {
+        "type": "object",
+        "properties": {
+          "contenido": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Faltante"
+            }
+          },
+          "pagina": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "tamanio": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalElementos": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalPaginas": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "required": [
+          "contenido",
+          "pagina",
+          "tamanio",
+          "totalElementos",
+          "totalPaginas"
+        ]
+      },
+      "PaginaSolicitud": {
+        "type": "object",
+        "properties": {
+          "contenido": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Solicitud"
+            }
+          },
+          "pagina": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "tamanio": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalElementos": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalPaginas": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "required": [
+          "contenido",
+          "pagina",
+          "tamanio",
+          "totalElementos",
+          "totalPaginas"
+        ]
+      },
+      "Sesion": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "cargo": {
+            "type": "string"
+          },
+          "inventario": {
+            "type": "boolean"
+          },
+          "compras": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "username",
+          "nombre",
+          "cargo",
+          "inventario",
+          "compras"
+        ]
+      },
+      "LoginRequest": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "maxLength": 20
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "maxLength": 255
+          }
+        },
+        "required": [
+          "username",
+          "password"
+        ]
+      },
+      "Imagen": {
+        "type": "object",
+        "properties": {
+          "ruta": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "ruta"
+        ]
+      }
+    },
+    "securitySchemes": {
+      "basicAuth": {
+        "type": "http",
+        "scheme": "basic"
+      },
+      "sessionAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "JSESSIONID"
+      }
+    }
+  }
+}

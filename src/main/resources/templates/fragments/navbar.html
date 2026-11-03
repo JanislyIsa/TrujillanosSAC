@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div th:fragment="navbar">
+
+    <header class="navbar">
+
+        <div class="logo">
+            <a th:href="@{/ventas/catalogo}">
+                <img src="/img/payaso_ventas.png" alt="Logo">
+            </a>
+        </div>
+
+        <div class="search-container">
+            <input type="text" placeholder="¿Qué desea hoy?">
+        </div>
+
+        <div class="nav-actions">
+
+            <div class="user-menu">
+                <i class="fa-regular fa-circle-user"></i>
+                <span>Usuario 1</span>
+                <i class="fa-solid fa-chevron-down"></i>
+            </div>
+
+            <a th:href="@{/ventas/carrito}" class="cart">
+                <i class="fa-solid fa-cart-shopping"></i>
+            </a>
+
+        </div>
+
+    </header>
+
+</div>
+</body>
+</html>

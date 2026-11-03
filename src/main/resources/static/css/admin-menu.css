@@ -1,0 +1,112 @@
+.logo{
+    display:flex;
+    align-items:center;
+}
+
+.logo img{
+    display:block;
+}
+
+.logo-button{
+    width:64px;
+    height:64px;
+    border:0;
+    background:transparent;
+    cursor:pointer;
+}
+
+.logo-button img{
+    width:60px;
+}
+
+.admin-drawer{
+    position:fixed;
+    inset:0;
+    display:none;
+    z-index:100;
+}
+
+.admin-drawer.is-open{
+    display:block;
+}
+
+.admin-drawer__backdrop{
+    position:absolute;
+    inset:0;
+    background:rgba(7,20,47,.38);
+}
+
+.admin-drawer__panel{
+    position:relative;
+    width:min(310px, 88vw);
+    min-height:100%;
+    padding:24px 18px;
+    background:#07142f;
+    color:#fff;
+    box-shadow:18px 0 38px rgba(7,20,47,.28);
+}
+
+.admin-drawer__header{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:16px;
+    margin-bottom:24px;
+}
+
+.admin-drawer__header strong{
+    display:block;
+    margin-bottom:4px;
+    font-size:20px;
+}
+
+.admin-drawer__header span{
+    color:#b9c8ef;
+    font-size:12px;
+    text-transform:uppercase;
+}
+
+.admin-drawer__close{
+    width:34px;
+    height:34px;
+    border:0;
+    border-radius:6px;
+    background:#16264d;
+    color:#fff;
+    cursor:pointer;
+}
+
+.admin-drawer__nav{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+}
+
+.admin-drawer__nav a{
+    min-height:54px;
+    padding:10px 12px;
+    display:grid;
+    grid-template-columns:28px 1fr;
+    gap:10px;
+    align-items:center;
+    border-radius:7px;
+    color:#edf3ff;
+    text-decoration:none;
+}
+
+.admin-drawer__nav a:hover{
+    background:#9eb5ff;
+    color:#07142f;
+}
+
+.admin-drawer__nav i{
+    font-size:18px;
+}
+
+.admin-drawer__nav small{
+    display:block;
+    margin-top:2px;
+    color:inherit;
+    opacity:.72;
+    font-size:11px;
+}

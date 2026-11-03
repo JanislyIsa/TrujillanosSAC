@@ -1,0 +1,66 @@
+<app-dialog [title]="titulo()" [subtitle]="modo()==='detail'?'Información completa del registro en inventario.':modo()==='delete'?'Confirma la eliminación del registro seleccionado.':esEdicion()?'Modifica los datos necesarios del registro seleccionado.':'Ingresa los datos para registrar un nuevo '+sustantivo()+' en el inventario.'" [size]="modo()==='detail'?'large':modo()==='delete'?'small':'medium'" [busy]="busy()" (closed)="cerrar()">
+@if(error()){<div class="notice error" role="alert">{{error()}}</div>}
+@if(loading()){<div class="loading-row"><span class="spinner"></span>Cargando opciones…</div>}
+@if(modo()==='create'||modo()==='edit'){
+<form id="item-form" [formGroup]="form" (ngSubmit)="guardar()">
+  <div class="form-grid">
+    <div class="form-column">
+      <label>CÓDIGO DEL {{sustantivo().toUpperCase()}}<input [value]="item()?codigo(item()!):'Se asigna al guardar'" readonly></label>
+      <label>NOMBRE DEL {{sustantivo().toUpperCase()}}<input formControlName="nombre" [placeholder]="esProducto()?'Ej. Tetin POP':'Ej. Azúcar refinada'" maxlength="100">@if(campo('nombre')){<span class="field-error">{{campo('nombre')}}</span>}</label>
+      <div class="field-row">
+        <label>TIPO<input [value]="esProducto()?'Producto':'Insumo'" readonly></label>
+        @if(esProducto()){<label>CATEGORÍA<select formControlName="idCategoria"><option [ngValue]="0">Seleccionar</option>@for(op of opciones().categorias;track op.id){<option [ngValue]="op.id">{{op.nombre}}</option>}</select>@if(campo('idCategoria')){<span class="field-error">{{campo('idCategoria')}}</span>}</label>}
+        @else{<label>ESTADO<select formControlName="activo"><option [ngValue]="true">Activo</option><option [ngValue]="false">Inactivo</option></select></label>}
+      </div>
+      <div class="field-row">
+        <label>UNIDAD DE STOCK<select formControlName="idUnidad" [attr.disabled]="esEdicion()?'disabled':null"><option [ngValue]="0">Seleccionar</option>@for(op of (esProducto()?opciones().presentaciones:opciones().unidadesMedida);track op.id){<option [ngValue]="op.id">{{op.nombre}}</option>}</select>@if(campo('idUnidad')){<span class="field-error">{{campo('idUnidad')}}</span>}</label>
+        @if(esProducto()){<label>ESTADO<select formControlName="activo"><option [ngValue]="true">Activo</option><option [ngValue]="false">Inactivo</option></select></label>}
+      </div>
+      <label>ALMACÉN<select formControlName="idAlmacen" [attr.disabled]="esEdicion()?'disabled':null"><option [ngValue]="0">Seleccionar almacén</option>@for(op of opciones().almacenes;track op.id){<option [ngValue]="op.id">{{op.nombre}}</option>}</select>@if(campo('idAlmacen')){<span class="field-error">{{campo('idAlmacen')}}</span>}</label>
+      @if(esProducto()){<label>PRECIO DE VENTA (S/)<input type="number" min=".01" step=".01" max="99999999.99" formControlName="precio">@if(campo('precio')){<span class="field-error">{{campo('precio')}}</span>}</label>}
+    </div>
+    <div class="form-column">
+      <div class="stock-fields">
+        <label>{{esEdicion()?'STOCK ACTUAL':'STOCK INICIAL'}}<input type="number" min="0" step="1" formControlName="stock" [readOnly]="esEdicion()">@if(campo('stock')){<span class="field-error">{{campo('stock')}}</span>}</label>
+        <label>MÍNIMO<input type="number" min="0" step="1" formControlName="stockMinimo">@if(campo('stockMinimo')){<span class="field-error">{{campo('stockMinimo')}}</span>}</label>
+        <label>LÍMITE<input type="number" min="0" step="1" formControlName="stockLimite">@if(campo('stockLimite')){<span class="field-error">{{campo('stockLimite')}}</span>}</label>
+      </div>
+      @if(esEdicion()){<small class="field-help">Registra los ingresos y salidas desde Movimientos para actualizar las existencias.</small>}
+      @if(esProducto()){
+        <label>DESCRIPCIÓN<textarea formControlName="descripcion" rows="4" maxlength="255" placeholder="Describe el producto y su presentación"></textarea>@if(campo('descripcion')){<span class="field-error">{{campo('descripcion')}}</span>}</label>
+        <label>IMAGEN DEL PRODUCTO<span class="upload-box">
+          @if(preview()){<img [src]="preview()" alt="Vista previa del producto">}
+          <span>@if(!preview()){<app-icon class="upload-icon" name="upload"/>}<strong>{{preview()?'Cambiar imagen':'Cargar imagen del producto'}}</strong><small>Formatos JPG, PNG. Máx. 2 MB.</small></span>
+          <input class="visually-hidden" type="file" accept="image/jpeg,image/png" aria-label="Seleccionar imagen del producto" (change)="imagen($event)">
+        </span></label>
+      }
+      @if(!esProducto()){<div class="notice">Configura un mínimo para detectar faltantes y un límite para identificar sobrestock.</div>}
+    </div>
+  </div>
+</form>
+}
+@if(modo()==='detail'&&item();as i){
+<div class="detail-grid">
+  <aside><div class="detail-photo"><figure>@if(i.imagenUrl){<img [src]="i.imagenUrl" [alt]="i.nombre">}@else{<div class="thumb-placeholder"><app-icon name="box"/></div>}<figcaption><small>IMAGEN DE REFERENCIA</small>{{i.nombre}}</figcaption></figure></div>
+  <div class="detail-stock"><span>ESTADO DE STOCK</span><strong>{{i.stock|numero}}</strong><small>{{i.unidad}} disponibles</small><p style="margin-top:10px"><span [class]="'badge '+(i.estadoStock==='BAJO'?'low':i.estadoStock==='SOBRESTOCK'?'over':'normal')">{{estadoLabel(i.estadoStock)}}</span></p></div></aside>
+  <div class="detail-fields"><div class="field-row"><div><span class="detail-label">CÓDIGO</span><div class="detail-value code">{{codigo(i)}}</div></div><div><span class="detail-label">ESTADO</span><div class="detail-value" style="background:#effbf4;border-color:#e1f6e8"><span [class]="'badge dot '+(!i.activo?'inactive':'')">{{i.activo?'Activo':'Inactivo'}}</span></div></div></div>
+  <div><span class="detail-label">NOMBRE</span><div class="detail-value">{{i.nombre}}</div></div>
+  <div class="field-row"><div><span class="detail-label">{{esProducto()?'CATEGORÍA':'TIPO'}}</span><p style="font-size:13px">{{i.categoria??'Insumo'}}</p></div>@if(esProducto()){<div><span class="detail-label">PRECIO DE VENTA</span><p style="font-size:13px">S/ {{i.precio|numero}}</p></div>}</div>
+  @if(i.descripcion){<div><span class="detail-label">DESCRIPCIÓN</span><p class="description">{{i.descripcion}}</p></div>}
+  <div class="definition-grid"><div><dt>ALMACÉN</dt><dd>{{i.almacen}}</dd></div><div><dt>UNIDAD DE STOCK</dt><dd>{{i.unidad}}</dd></div></div>
+  <div class="definition-grid detail-divider"><div><dt>STOCK MÍNIMO</dt><dd style="color:#b8292f;font-weight:650">{{i.stockMinimo|numero}} {{i.unidad}}</dd></div><div><dt>STOCK LÍMITE</dt><dd><strong>{{i.stockLimite|numero}} {{i.unidad}}</strong></dd></div></div>
+  </div>
+</div>
+}
+@if(modo()==='delete'&&item();as i){
+  <div class="delete-heading"><span class="warning-icon"><app-icon name="alert"/></span></div>
+  <div class="delete-message"><strong>¿Deseas eliminar {{esProducto()?'el producto':'el insumo'}} {{i.nombre}}?</strong><p>El registro quedará inactivo. Sus existencias y movimientos se conservarán para mantener el historial.</p></div>
+  <dl class="definition-grid soft"><div><dt>CÓDIGO</dt><dd class="code">{{codigo(i)}}</dd></div><div><dt>NOMBRE</dt><dd>{{i.nombre}}</dd></div><div><dt>TIPO</dt><dd>{{esProducto()?'Producto':'Insumo'}}</dd></div><div><dt>{{esProducto()?'CATEGORÍA':'UNIDAD'}}</dt><dd>{{i.categoria??i.unidad}}</dd></div><div><dt>STOCK ACTUAL</dt><dd>{{i.stock|numero}} {{i.unidad}}</dd></div><div><dt>ALMACÉN</dt><dd>{{i.almacen}}</dd></div><div><dt>ESTADO ACTUAL</dt><dd><span [class]="'badge '+(!i.activo?'inactive':'')">{{i.activo?'ACTIVO':'INACTIVO'}}</span></dd></div></dl>
+}
+<div dialog-footer>
+@if(modo()!=='detail'){<button class="button secondary" type="button" [disabled]="busy()" (click)="cerrar()">Cancelar</button>}
+@if(modo()==='create'||modo()==='edit'){<button class="button primary" type="submit" form="item-form" [disabled]="busy()||loading()">{{busy()?'Guardando…':esEdicion()?'Guardar cambios':'Guardar '+sustantivo()}}</button>}
+@if(modo()==='delete'){<button class="button danger" type="button" [disabled]="busy()" (click)="eliminar()">{{busy()?'Eliminando…':'Eliminar '+sustantivo()}}</button>}
+@if(modo()==='detail'){<button class="button secondary" type="button" (click)="cerrar()">Cerrar</button>}
+</div>
+</app-dialog>

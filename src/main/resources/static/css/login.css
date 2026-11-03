@@ -1,0 +1,148 @@
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Segoe UI',sans-serif;
+}
+
+body{
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:#dcdcdc;
+}
+
+.login-container{
+    width:100%;
+    max-width:460px;
+    padding:30px;
+    text-align:center;
+}
+
+.logo img{
+    width:150px;
+    margin-bottom:25px;
+}
+
+h1{
+    font-size:1.75rem;
+    color:#222;
+    margin-bottom:10px;
+    font-weight:500;
+}
+
+.subtitle{
+    color:#222;
+    margin-bottom:35px;
+}
+
+.error-message{
+    min-height:22px;
+    margin-bottom:8px;
+    color:#dc3545;
+    font-size:14px;
+    font-weight:500;
+}
+
+.input-group{
+    margin-bottom:18px;
+}
+
+.input-group input{
+    width:100%;
+    height:55px;
+    border:none;
+    border-radius:20px;
+    padding:0 20px;
+    background:#fff;
+    outline:none;
+    font-size:18px;
+    color:#222;
+}
+
+.input-group input::placeholder{
+    color:#ededed;
+}
+
+.password-group{
+    position:relative;
+}
+
+.password-toggle{
+    position:absolute;
+    right:20px;
+    top:50%;
+    transform:translateY(-50%);
+    width:auto;
+    height:auto;
+    border:0;
+    border-radius:0;
+    padding:0;
+    background:transparent;
+    cursor:pointer;
+    color:#111;
+    font-size:22px;
+}
+
+form > button{
+    width:100%;
+    height:55px;
+    border:none;
+    border-radius:20px;
+    background:#2f36e8;
+    color:white;
+    font-size:16px;
+    font-weight:600;
+    cursor:pointer;
+    transition:.3s;
+}
+
+form > button:hover{
+    background:#252cd0;
+}
+
+.guest-link{
+    display:block;
+    width:max-content;
+    margin:0 auto 22px;
+    color:#2f36e8;
+    font-size:15px;
+    font-weight:600;
+    text-decoration:none;
+}
+
+.guest-link:hover{
+    text-decoration:underline;
+}
+
+.links{
+    margin-top:55px;
+    display:flex;
+    justify-content:space-between;
+    gap:20px;
+    font-size:18px;
+}
+
+.links a{
+    color:#2f36e8;
+    text-decoration:none;
+    font-weight:600;
+}
+
+.links a:hover{
+    text-decoration:underline;
+}
+
+@media (max-width:520px){
+    .login-container{
+        max-width:100%;
+        padding:24px;
+    }
+
+    .links{
+        flex-direction:column;
+        margin-top:35px;
+        font-size:15px;
+    }
+}

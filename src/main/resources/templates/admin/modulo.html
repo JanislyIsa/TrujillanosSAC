@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${'Admin - ' + moduloActual}">Admin</title>
+    <link rel="stylesheet" href="/css/admin.css">
+    <link rel="stylesheet" href="/css/admin-dashboard.css">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+<aside class="admin-sidebar">
+    <div class="brand">El Trujillano<small>MANUFACTURING ERP</small></div>
+
+    <nav>
+        <a th:each="modulo : ${modulosAdmin}"
+           th:href="${modulo.url()}"
+           th:classappend="${modulo.url() == ('/admin/' + moduloActual)} ? 'is-active'">
+            <i th:class="${'fa-solid ' + modulo.icono()}"></i>
+            <span th:text="${modulo.nombre()}">Modulo</span>
+        </a>
+    </nav>
+
+    <a class="back-store" href="/ventas/catalogo">
+        <i class="fa-solid fa-store"></i>
+        Volver a ventas
+    </a>
+    <div class="dashboard-user"><span class="dashboard-avatar" th:text="${#strings.substring(usuarioNombre,0,1)}">A</span><div><strong th:text="${usuarioNombre}">admin</strong><small th:text="${cargoAdmin}">Administrador</small></div></div>
+</aside>
+
+<main class="admin-content">
+    <header>
+        <span class="dashboard-breadcrumb">Módulos <span>/</span> <strong th:text="${#strings.capitalize(moduloActual)}">Dashboard</strong></span>
+        <form th:action="@{/logout}" method="post"><button class="dashboard-logout" type="submit">Salir ↗</button></form>
+    </header>
+
+    <section class="module-panel">
+        <p class="eyebrow">GESTIÓN OPERATIVA</p>
+        <h1 th:text="${moduloActual == 'dashboard' ? 'Panel de módulos' : #strings.capitalize(moduloActual)}">Panel de módulos</h1>
+        <p>Bienvenido, <strong th:text="${usuarioNombre}">admin</strong>. Selecciona un módulo para continuar.</p>
+    </section>
+    <section class="dashboard-grid" aria-label="Módulos disponibles">
+        <a class="dashboard-card" th:each="modulo : ${modulosAdmin}" th:if="${modulo.url() != '/admin/dashboard'}" th:href="${modulo.url()}">
+            <span class="dashboard-card-icon" aria-hidden="true"><i th:class="${'fa-solid ' + modulo.icono()}"></i></span>
+            <h2 th:text="${modulo.nombre()}">Inventario</h2>
+            <p th:text="${modulo.descripcion()}">Gestionar módulo</p>
+            <span class="dashboard-card-action">Abrir módulo <span aria-hidden="true">→</span></span>
+        </a>
+    </section>
+</main>
+</body>
+</html>

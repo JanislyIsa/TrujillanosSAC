@@ -1,0 +1,25 @@
+<aside class="sidebar" [class.mobile-open]="menuAbierto()">
+  <a class="brand" routerLink="/inventario/stock" (click)="cerrarMenu()"><strong>El Trujillano</strong><span>MANUFACTURING ERP</span></a>
+  <nav aria-label="Navegación principal">
+    <div class="nav-section"><span class="nav-heading">GESTIÓN OPERATIVA</span><a class="nav-link external" href="/admin/dashboard"><app-icon name="box"/><span>Panel de módulos</span></a></div>
+    <div class="nav-section"><span class="nav-heading">INVENTARIO</span>
+      @if(auth.sesion()?.inventario){
+        <a class="nav-link" routerLink="/inventario/catalogo" routerLinkActive="active" (click)="cerrarMenu()"><app-icon name="box"/><span>Gestión de productos<br>e insumos</span></a>
+      }
+      <a class="nav-link" routerLink="/inventario/stock" routerLinkActive="active" (click)="cerrarMenu()"><app-icon name="stock"/><span>Control de stock</span></a>
+      @if(auth.sesion()?.inventario){
+        <a class="nav-link" routerLink="/inventario/movimientos" routerLinkActive="active" (click)="cerrarMenu()"><app-icon name="movement"/><span>Movimientos de<br>inventario</span></a>
+      }
+      <a class="nav-link" routerLink="/inventario/alertas" routerLinkActive="active" (click)="cerrarMenu()"><app-icon name="alert"/><span>Alertas</span></a>
+    </div>
+    @if(auth.sesion()?.compras){
+      <div class="nav-section"><span class="nav-heading">REPOSICIÓN</span><a class="nav-link" routerLink="/inventario/solicitudes" routerLinkActive="active" (click)="cerrarMenu()"><app-icon name="file"/><span>Solicitud de compra</span></a></div>
+    }
+  </nav>
+  <div class="sidebar-footer"><div class="user-avatar">{{auth.sesion()?.nombre?.charAt(0)}}</div><div class="user-info"><strong>{{auth.sesion()?.nombre}}</strong><small>{{auth.sesion()?.cargo?.replaceAll('_',' ')}}</small></div></div>
+</aside>
+@if(menuAbierto()){<button class="menu-scrim" aria-label="Cerrar menú" (click)="cerrarMenu()"></button>}
+<div class="workspace">
+  <header class="topbar"><div class="breadcrumb"><button class="icon-button menu-toggle" aria-label="Abrir menú" (click)="menuAbierto.set(!menuAbierto())"><app-icon name="menu"/></button><a href="/admin/dashboard">Módulos</a><app-icon name="chevron"/><span>Inventario</span></div><button class="logout" [disabled]="saliendo()" (click)="salir()"><app-icon name="logout"/><span>{{saliendo()?'Saliendo…':'Salir'}}</span></button></header>
+  <main class="page-content">@if(error()){<div class="notice error" role="alert">{{error()}}</div>}<router-outlet/></main>
+</div>
