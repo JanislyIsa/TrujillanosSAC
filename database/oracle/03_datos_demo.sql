@@ -2,6 +2,10 @@
 -- Usuarios web: admin, almacenero, compras, ventas, proveedor, cliente.
 -- Clave de desarrollo para todos: Inventario2026! (BCrypt, nunca texto plano en USUARIO).
 -- La clave Oracle de ELTRUJILLANO es independiente. No usar estas cuentas en produccion.
+SELECT USERNAME FROM USUARIO;
+UPDATE METODO_PAGO SET CODIGO = 'YAPE' WHERE ID_METODO = 2;
+UPDATE METODO_PAGO SET NOMBRE = 'Tarjeta' WHERE CODIGO = 'TARJETA';
+COMMIT;
 DECLARE
     v_usuarios NUMBER;
     v_hash CONSTANT VARCHAR2(255) := '$2a$10$3/NVR6v..z5czP94hioZa.UA4aOT7gr26y3FuLEGUOdtaODg4cwGG';

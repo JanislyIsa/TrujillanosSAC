@@ -7,7 +7,7 @@ import jakarta.validation.constraints.PositiveOrZero;
 import lombok.*;
 import java.math.BigDecimal;
 
-@Entity
+@Entity(name = "ComprasDetalleOrdenCompra")
 @Table(name = "DETALLE_ORDEN_COMPRA")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class DetalleOrdenCompra {

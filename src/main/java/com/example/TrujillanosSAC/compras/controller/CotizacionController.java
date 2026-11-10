@@ -1,9 +1,9 @@
 package com.example.TrujillanosSAC.compras.controller;
 
-import com.example.TrujillanosSAC.Model.Proveedor;
-import com.example.TrujillanosSAC.Model.Usuario;
-import com.example.TrujillanosSAC.Repository.ProveedorRepository;
-import com.example.TrujillanosSAC.Repository.UsuarioRepository;
+import com.example.TrujillanosSAC.usuarios.model.Proveedor;
+import com.example.TrujillanosSAC.usuarios.model.Usuario;
+import com.example.TrujillanosSAC.usuarios.repository.ProveedorRepository;
+import com.example.TrujillanosSAC.usuarios.repository.UsuarioRepository;
 import com.example.TrujillanosSAC.compras.dto.CotizacionRequestDTO;
 import com.example.TrujillanosSAC.compras.dto.CotizacionResponseDTO;
 import com.example.TrujillanosSAC.compras.service.service.CotizacionService;

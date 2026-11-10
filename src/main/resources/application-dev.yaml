@@ -1,0 +1,26 @@
+server:
+  port: 8080
+spring:
+  datasource:
+    url: jdbc:oracle:thin:@54.167.207.41:1521/orcl
+    username: trujillano
+    password: 123456
+  jpa:
+    database-platform: org.hibernate.dialect.OracleDialect
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  flyway:
+    enabled: true
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    # Swagger lee la cookie XSRF-TOKEN y la envia en X-XSRF-TOKEN (necesario para POST/PUT/PATCH)
+    csrf:
+      enabled: true
+
+  api-docs:
+    enabled: true

@@ -1,15 +1,15 @@
 package com.example.TrujillanosSAC.Config;
 
-import com.example.TrujillanosSAC.Model.Persona;
-import com.example.TrujillanosSAC.Model.Proveedor;
-import com.example.TrujillanosSAC.Model.Rol;
-import com.example.TrujillanosSAC.Model.TipoDocumento;
-import com.example.TrujillanosSAC.Model.Usuario;
-import com.example.TrujillanosSAC.Repository.PersonaRepository;
-import com.example.TrujillanosSAC.Repository.ProveedorRepository;
-import com.example.TrujillanosSAC.Repository.RolRepository;
-import com.example.TrujillanosSAC.Repository.TipoDocumentoRepository;
-import com.example.TrujillanosSAC.Repository.UsuarioRepository;
+import com.example.TrujillanosSAC.usuarios.model.Persona;
+import com.example.TrujillanosSAC.usuarios.model.Proveedor;
+import com.example.TrujillanosSAC.usuarios.model.Rol;
+import com.example.TrujillanosSAC.usuarios.model.TipoDocumento;
+import com.example.TrujillanosSAC.usuarios.model.Usuario;
+import com.example.TrujillanosSAC.usuarios.repository.PersonaRepository;
+import com.example.TrujillanosSAC.usuarios.repository.ProveedorRepository;
+import com.example.TrujillanosSAC.usuarios.repository.RolRepository;
+import com.example.TrujillanosSAC.usuarios.repository.TipoDocumentoRepository;
+import com.example.TrujillanosSAC.usuarios.repository.UsuarioRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

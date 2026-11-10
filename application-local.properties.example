@@ -3,3 +3,9 @@
 spring.datasource.url=${DB_URL:jdbc:oracle:thin:@//localhost:1522/FREEPDB1}
 spring.datasource.username=${DB_USERNAME:eltrujillano_app}
 spring.datasource.password=${DB_PASSWORD:CAMBIA_ESTA_CLAVE}
+
+# JWT de la API de ventas. VALOR DE EJEMPLO: genera el tuyo y no lo subas a Git.
+#   Linux/Mac:  openssl rand -base64 32
+#   PowerShell: [Convert]::ToBase64String((1..32 | ForEach-Object { Get-Random -Maximum 256 }))
+seguridad.jwt.secreto=${JWT_SECRET:ZWplbXBsby1zb2xvLXBhcmEtZGVzYXJyb2xsby1uby11c2FyLWVuLXByb2R1Y2Npb24=}
+seguridad.jwt.expiracion-minutos=${JWT_EXPIRACION_MINUTOS:60}

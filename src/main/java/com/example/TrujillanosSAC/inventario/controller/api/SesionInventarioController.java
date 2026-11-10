@@ -1,6 +1,6 @@
 package com.example.TrujillanosSAC.inventario.controller.api;
 
-import com.example.TrujillanosSAC.Repository.UsuarioRepository;
+import com.example.TrujillanosSAC.usuarios.repository.UsuarioRepository;
 import com.example.TrujillanosSAC.Service.AdminAccessService;
 import com.example.TrujillanosSAC.inventario.exception.InventarioException;
 import jakarta.servlet.http.*;

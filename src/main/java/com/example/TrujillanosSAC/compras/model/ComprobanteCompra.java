@@ -7,7 +7,7 @@ import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-@Entity
+@Entity(name = "ComprasComprobanteCompra")
 @Table(name = "COMPROBANTE_COMPRA")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class ComprobanteCompra {

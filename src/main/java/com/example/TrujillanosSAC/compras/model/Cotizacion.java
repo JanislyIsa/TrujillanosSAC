@@ -1,6 +1,6 @@
 package com.example.TrujillanosSAC.compras.model;
 
-import com.example.TrujillanosSAC.Model.Proveedor;
+import com.example.TrujillanosSAC.usuarios.model.Proveedor;
 import com.example.TrujillanosSAC.inventario.model.SolicitudCompra;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -10,7 +10,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-@Entity
+@Entity(name = "ComprasCotizacion")
 @Table(name = "COTIZACION")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Cotizacion {
