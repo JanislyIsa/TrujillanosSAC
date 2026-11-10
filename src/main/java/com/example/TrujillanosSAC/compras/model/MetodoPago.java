@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
-@Entity
+@Entity(name = "ComprasMetodoPago")
 @Table(name = "METODO_PAGO")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class MetodoPago {

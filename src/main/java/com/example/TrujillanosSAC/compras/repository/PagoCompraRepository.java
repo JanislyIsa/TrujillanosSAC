@@ -4,6 +4,7 @@ import com.example.TrujillanosSAC.compras.model.PagoCompra;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
+@org.springframework.stereotype.Repository("comprasPagoCompraRepository")
 public interface PagoCompraRepository extends JpaRepository<PagoCompra, Long> {
     List<PagoCompra> findByComprobanteCompraIdComprobante(Long comprobanteId);
 }

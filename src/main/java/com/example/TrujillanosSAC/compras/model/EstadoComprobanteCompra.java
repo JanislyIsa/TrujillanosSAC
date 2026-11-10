@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
-@Entity
+@Entity(name = "ComprasEstadoComprobanteCompra")
 @Table(name = "ESTADO_COMPROBANTE_COMPRA")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class EstadoComprobanteCompra {

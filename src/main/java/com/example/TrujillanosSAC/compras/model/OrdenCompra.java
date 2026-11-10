@@ -8,7 +8,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-@Entity
+@Entity(name = "ComprasOrdenCompra")
 @Table(name = "ORDEN_COMPRA")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class OrdenCompra {

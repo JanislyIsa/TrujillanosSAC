@@ -2,8 +2,11 @@ package com.example.TrujillanosSAC.inventario;
 
 import com.example.TrujillanosSAC.Model.*;
 import com.example.TrujillanosSAC.Repository.*;
-import com.example.TrujillanosSAC.Service.PedidoService;
-import com.example.TrujillanosSAC.Dto.*;
+import com.example.TrujillanosSAC.exception.ReglaNegocioException;
+import com.example.TrujillanosSAC.ventas.dto.request.DetallePedidoRequestDTO;
+import com.example.TrujillanosSAC.ventas.dto.request.PedidoRequestDTO;
+import com.example.TrujillanosSAC.ventas.service.ActorVenta;
+import com.example.TrujillanosSAC.ventas.service.PedidoService;
 import com.example.TrujillanosSAC.inventario.dto.InventarioDtos.*;
 import com.example.TrujillanosSAC.inventario.exception.InventarioException;
 import com.example.TrujillanosSAC.inventario.model.*;
@@ -13,6 +16,7 @@ import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -27,6 +31,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@ActiveProfiles("test")
 @SpringBootTest @AutoConfigureMockMvc @Transactional
 class InventarioIntegrationTests {
     @Autowired EntityManager em;
@@ -71,7 +76,13 @@ class InventarioIntegrationTests {
             Persona pc=persona("Cliente");
             em.persist(Cliente.builder().persona(pc).fechaRegistro(LocalDate.now()).build());
             em.persist(Usuario.builder().username(clienteUser).password("hash-test").persona(pc).build());
-            em.persist(EstadoPedido.builder().nombre("Pendiente").build());
+            for (String codigo : List.of("PENDIENTE","CANCELADO")) {
+                if (em.createQuery("select count(e) from VentaEstadoPedido e where e.codigo=:c",Long.class)
+                        .setParameter("c",codigo).getSingleResult()==0) {
+                    var estado=new com.example.TrujillanosSAC.ventas.model.EstadoPedido();
+                    estado.setCodigo(codigo); estado.setNombre(codigo); em.persist(estado);
+                }
+            }
             productoId=catalogo.crearProducto(producto(10,5,20,"Caramelo"),almacenUser).id();
             insumoId=catalogo.crearInsumo(new InsumoRequest("Azucar",3,5,20,unidadId,almacenId),almacenUser).id();
             em.flush();
@@ -184,12 +195,13 @@ class InventarioIntegrationTests {
         assertThatThrownBy(() -> PaginaResponse.de(items,0,101)).isInstanceOf(IllegalArgumentException.class);
     }
     @Test void ventasAgrupanDuplicadosYRegistranLaSalida() {
-        Long pedido=pedidos.registrarPedido(clienteUser,new CheckoutRequest("Efectivo",List.of(
-                new CheckoutItemRequest(productoId,2),new CheckoutItemRequest(productoId,3))));
+        var pedido=pedidos.crear(new PedidoRequestDTO(List.of(
+                new DetallePedidoRequestDTO(productoId,2),new DetallePedidoRequestDTO(productoId,3))),
+                new ActorVenta(clienteUser,false));
         assertThat(catalogo.obtener(TipoItem.PRODUCTO,productoId).stock()).isEqualTo(5);
         assertThat(movimientos.listar(TipoItem.PRODUCTO,productoId,TipoMovimiento.SALIDA,null,null,null))
                 .hasSize(1).allSatisfy(m -> assertThat(m.cantidad()).isEqualTo(5));
-        assertThat(pedido).isNotNull();
+        assertThat(pedido.detalles()).hasSize(1);
     }
     @Test void apiValidaJsonAutenticacionPermisosYCrsf() throws Exception {
         mvc.perform(get("/api/v1/inventario/productos")).andExpect(status().isUnauthorized());
@@ -226,13 +238,12 @@ class InventarioIntegrationTests {
                 .contentType("application/json").content(cuerpo.replace("\"cantidad\":2","\"cantidad\":99")))
                 .andExpect(status().isConflict()).andExpect(jsonPath("$.mensaje").value("La salida supera el stock disponible"));
     }
-    @Test void cancelarDosVecesDevuelveStockUnaSolaVez() throws Exception {
-        Long pedido=pedidos.registrarPedido(clienteUser,new CheckoutRequest("Efectivo",List.of(new CheckoutItemRequest(productoId,4))));
-        EstadoPedido cancelado=EstadoPedido.builder().nombre("Cancelado").build(); em.persist(cancelado); em.flush();
-        for (int n=0;n<2;n++) {
-            mvc.perform(post("/admin/pedidos/"+pedido+"/estado").with(user(almacenUser).roles("EMPLEADO")).with(csrf())
-                    .param("idEstado",cancelado.getIdEstado().toString())).andExpect(status().is3xxRedirection());
-        }
+    @Test void cancelarDosVecesDevuelveStockUnaSolaVez() {
+        var cliente=new ActorVenta(clienteUser,false);
+        var pedido=pedidos.crear(new PedidoRequestDTO(List.of(new DetallePedidoRequestDTO(productoId,4))),cliente);
+        assertThat(catalogo.obtener(TipoItem.PRODUCTO,productoId).stock()).isEqualTo(6);
+        pedidos.cancelar(pedido.idPedido(),cliente);
+        assertThatThrownBy(() -> pedidos.cancelar(pedido.idPedido(),cliente)).isInstanceOf(ReglaNegocioException.class);
         assertThat(catalogo.obtener(TipoItem.PRODUCTO,productoId).stock()).isEqualTo(10);
         assertThat(movimientos.listar(TipoItem.PRODUCTO,productoId,TipoMovimiento.INGRESO,null,null,null)).hasSize(2);
     }

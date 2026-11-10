@@ -1,0 +1,59 @@
+spring:
+  application:
+    name: TrujillanosSAC
+  profiles:
+    default: dev
+  datasource:
+    driver-class-name: oracle.jdbc.OracleDriver
+  jpa:
+    database-platform: org.hibernate.dialect.OracleDialect
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          fetch_size: 100
+  thymeleaf:
+    check-template-location: false
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+server:
+  port: ${SERVER_PORT:9191}
+
+inventario:
+  monitor:
+    habilitado: true
+    intervalo-ms: 60000
+    inicio-ms: 60000
+  cors:
+    origenes: "${INVENTARIO_CORS_ORIGENES:http://localhost:4200,http://localhost:5173,http://localhost:3000}"
+
+app:
+  seed:
+    habilitado: ${APP_SEED_HABILITADO:false}
+
+seguridad:
+  jwt:
+    # Base64, minimo 32 bytes. Nunca en Git: solo como variable de entorno.
+    # Si falta: en prod la app no arranca; en dev/test se usa uno aleatorio (los tokens no sobreviven a un reinicio).
+    secreto: ${JWT_SECRET:}
+    expiracion-minutos: ${JWT_EXPIRACION_MINUTOS:60}
+
+ventas:
+  cors:
+    # Origenes del frontend Angular (trujillano-frontend), separados por coma
+    origenes: ${VENTAS_CORS_ORIGENES:http://localhost:4200}
+  pago:
+    # "simulada" (por defecto, no cobra nada) o "culqi" (cobro real; requiere CULQI_LLAVE_SECRETA)
+    pasarela: ${VENTAS_PASARELA:simulada}
+  culqi:
+    llave-secreta: ${CULQI_LLAVE_SECRETA:}
+  pedido:
+    expiracion:
+      # Un pedido sin pagar se cancela pasado este tiempo y su stock vuelve al inventario
+      minutos: ${VENTAS_PEDIDO_EXPIRACION_MINUTOS:30}
+      revision-ms: 60000

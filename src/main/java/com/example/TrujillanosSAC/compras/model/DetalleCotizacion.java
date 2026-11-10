@@ -8,7 +8,7 @@ import jakarta.validation.constraints.PositiveOrZero;
 import lombok.*;
 import java.math.BigDecimal;
 
-@Entity
+@Entity(name = "ComprasDetalleCotizacion")
 @Table(name = "DETALLE_COTIZACION")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class DetalleCotizacion {

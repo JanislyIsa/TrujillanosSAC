@@ -10,7 +10,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-@Entity
+@Entity(name = "ComprasCotizacion")
 @Table(name = "COTIZACION")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Cotizacion {

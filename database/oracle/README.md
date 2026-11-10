@@ -41,9 +41,11 @@ SELECT USER FROM DUAL;
 SELECT COUNT(*) FROM USER_TABLES;
 ```
 
-Para la instalación nueva debe ser `ELTRUJILLANO` y cero tablas. Ejecuta en orden:
+Para la instalación nueva debe ser `ELTRUJILLANO` y cero tablas. Si es una base de desarrollo que quieres recrear, ejecuta antes `limpiar_esquema.sql` con ese mismo usuario: borra todas sus tablas y datos.
 
-1. `01_tablas.sql`: 38 tablas, claves primarias, claves foráneas, restricciones e índices.
+Ejecuta en orden:
+
+1. `01_tablas.sql`: 41 tablas, claves primarias, claves foráneas, restricciones e índices.
 2. `02_catalogos.sql`: documentos, roles, cargos, categorías, presentaciones, unidades, estados y métodos de pago.
 3. `03_datos_demo.sql`: datos ficticios de desarrollo; es opcional.
 4. `04_verificar.sql`: diagnóstico de esquema, accesos, existencias, comprobantes y solicitudes.
