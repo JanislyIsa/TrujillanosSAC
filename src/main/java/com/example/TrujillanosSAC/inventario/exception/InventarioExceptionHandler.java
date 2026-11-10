@@ -4,6 +4,8 @@ import com.example.TrujillanosSAC.inventario.dto.InventarioDtos.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.dao.*;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.*;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -13,6 +15,7 @@ import java.time.*;
 import java.util.*;
 
 @RestControllerAdvice(basePackages = "com.example.TrujillanosSAC.inventario.controller.api")
+@Order(Ordered.HIGHEST_PRECEDENCE)
 public class InventarioExceptionHandler {
     private final Clock clock;
     public InventarioExceptionHandler(Clock inventarioClock) { this.clock = inventarioClock; }
