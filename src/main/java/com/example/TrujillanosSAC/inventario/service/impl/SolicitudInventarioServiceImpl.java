@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.*;
 import java.util.*;
+import com.example.TrujillanosSAC.usuarios.repository.*;
 
 @Service @RequiredArgsConstructor
 @Transactional(readOnly = true)

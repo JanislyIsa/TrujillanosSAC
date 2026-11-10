@@ -1,6 +1,6 @@
 package com.example.TrujillanosSAC.inventario.service.impl;
 
-import com.example.TrujillanosSAC.Model.Empleado;
+import com.example.TrujillanosSAC.usuarios.model.Empleado;
 import com.example.TrujillanosSAC.Repository.*;
 import com.example.TrujillanosSAC.inventario.dto.InventarioDtos.*;
 import com.example.TrujillanosSAC.inventario.exception.InventarioException;
@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.text.Normalizer;
 import java.time.*;
 import java.util.*;
+import com.example.TrujillanosSAC.usuarios.repository.*;
 
 @Service @RequiredArgsConstructor
 @Transactional(readOnly = true)

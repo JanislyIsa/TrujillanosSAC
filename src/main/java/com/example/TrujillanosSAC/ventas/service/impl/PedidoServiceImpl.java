@@ -1,7 +1,7 @@
 package com.example.TrujillanosSAC.ventas.service.impl;
 
-import com.example.TrujillanosSAC.Model.Cliente;
-import com.example.TrujillanosSAC.Repository.ClienteRepository;
+import com.example.TrujillanosSAC.usuarios.model.Cliente;
+import com.example.TrujillanosSAC.usuarios.repository.ClienteRepository;
 import com.example.TrujillanosSAC.exception.RecursosNoEncontradosException;
 import com.example.TrujillanosSAC.exception.ReglaNegocioException;
 import com.example.TrujillanosSAC.inventario.dto.InventarioDtos.MovimientoRequest;

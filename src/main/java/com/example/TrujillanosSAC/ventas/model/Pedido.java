@@ -1,6 +1,6 @@
 package com.example.TrujillanosSAC.ventas.model;
 
-import com.example.TrujillanosSAC.Model.Cliente;
+import com.example.TrujillanosSAC.usuarios.model.Cliente;
 import com.example.TrujillanosSAC.ventas.model.codigo.EstadoPedidoCodigo;
 import jakarta.persistence.*;
 import lombok.Getter;

@@ -1,7 +1,7 @@
 package com.example.TrujillanosSAC.auth;
 
-import com.example.TrujillanosSAC.Model.Persona;
-import com.example.TrujillanosSAC.Repository.UsuarioRepository;
+import com.example.TrujillanosSAC.usuarios.model.Persona;
+import com.example.TrujillanosSAC.usuarios.repository.UsuarioRepository;
 import com.example.TrujillanosSAC.auth.dto.LoginRequestDTO;
 import com.example.TrujillanosSAC.auth.dto.LoginResponseDTO;
 import org.slf4j.Logger;

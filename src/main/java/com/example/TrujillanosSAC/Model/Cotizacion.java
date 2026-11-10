@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import com.example.TrujillanosSAC.usuarios.model.*;
 
 @Entity
 @Table(name = "COTIZACION")

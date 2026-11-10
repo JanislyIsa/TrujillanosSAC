@@ -30,6 +30,8 @@ import static org.assertj.core.api.Assertions.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import com.example.TrujillanosSAC.usuarios.model.*;
+import com.example.TrujillanosSAC.usuarios.repository.*;
 
 @ActiveProfiles("test")
 @SpringBootTest @AutoConfigureMockMvc @Transactional

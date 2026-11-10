@@ -1,6 +1,6 @@
 package com.example.TrujillanosSAC.ventas.service.impl;
 
-import com.example.TrujillanosSAC.Repository.UsuarioRepository;
+import com.example.TrujillanosSAC.usuarios.repository.UsuarioRepository;
 import com.example.TrujillanosSAC.exception.RecursosNoEncontradosException;
 import com.example.TrujillanosSAC.ventas.model.Pedido;
 import com.example.TrujillanosSAC.ventas.service.ActorVenta;

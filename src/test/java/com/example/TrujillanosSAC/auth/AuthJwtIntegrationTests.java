@@ -1,11 +1,11 @@
 package com.example.TrujillanosSAC.auth;
 
-import com.example.TrujillanosSAC.Model.Cliente;
-import com.example.TrujillanosSAC.Model.Persona;
-import com.example.TrujillanosSAC.Model.Rol;
-import com.example.TrujillanosSAC.Model.TipoDocumento;
-import com.example.TrujillanosSAC.Model.Usuario;
-import com.example.TrujillanosSAC.Repository.RolRepository;
+import com.example.TrujillanosSAC.usuarios.model.Cliente;
+import com.example.TrujillanosSAC.usuarios.model.Persona;
+import com.example.TrujillanosSAC.usuarios.model.Rol;
+import com.example.TrujillanosSAC.usuarios.model.TipoDocumento;
+import com.example.TrujillanosSAC.usuarios.model.Usuario;
+import com.example.TrujillanosSAC.usuarios.repository.RolRepository;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

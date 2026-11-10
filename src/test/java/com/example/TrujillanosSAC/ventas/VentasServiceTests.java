@@ -1,9 +1,9 @@
 package com.example.TrujillanosSAC.ventas;
 
-import com.example.TrujillanosSAC.Model.Cliente;
-import com.example.TrujillanosSAC.Model.Persona;
-import com.example.TrujillanosSAC.Model.TipoDocumento;
-import com.example.TrujillanosSAC.Repository.ClienteRepository;
+import com.example.TrujillanosSAC.usuarios.model.Cliente;
+import com.example.TrujillanosSAC.usuarios.model.Persona;
+import com.example.TrujillanosSAC.usuarios.model.TipoDocumento;
+import com.example.TrujillanosSAC.usuarios.repository.ClienteRepository;
 import com.example.TrujillanosSAC.exception.ReglaNegocioException;
 import com.example.TrujillanosSAC.inventario.model.Producto;
 import com.example.TrujillanosSAC.inventario.model.TipoMovimiento;

@@ -17,6 +17,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Stream;
+import com.example.TrujillanosSAC.usuarios.model.*;
 
 /** Vista previa aislada: solo está en el classpath de pruebas; nunca en el JAR de producción. */
 public class InventarioPreviewApplication {
