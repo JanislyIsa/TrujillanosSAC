@@ -2,6 +2,7 @@ package com.example.TrujillanosSAC.auth;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +16,7 @@ import java.util.TreeSet;
 public final class PermisosPorRol {
 
     private static final Map<String, Set<Permiso>> PERMISOS = Map.of(
+            "ADMIN", Collections.unmodifiableSet(EnumSet.allOf(Permiso.class)),
             "CLIENTE", EnumSet.of(
                     Permiso.PEDIDO_CREAR,
                     Permiso.PEDIDO_VER_PROPIOS,
@@ -28,7 +30,16 @@ public final class PermisosPorRol {
                     Permiso.PAGO_VER_TODOS,
                     Permiso.COMPROBANTE_EMITIR,
                     Permiso.COMPROBANTE_VER_TODOS,
-                    Permiso.CATALOGO_EDITAR));
+                    Permiso.CATALOGO_EDITAR,
+                    Permiso.COMPRAS_COTIZACIONES_VER_TODAS,
+                    Permiso.COMPRAS_COTIZACIONES_GESTIONAR,
+                    Permiso.COMPRAS_ORDENES_GESTIONAR,
+                    Permiso.COMPRAS_COMPROBANTES_VER,
+                    Permiso.COMPRAS_PAGOS_GESTIONAR),
+            "PROVEEDOR", EnumSet.of(
+                    Permiso.COMPRAS_COTIZACIONES_CREAR,
+                    Permiso.COMPRAS_COTIZACIONES_VER_PROPIAS,
+                    Permiso.COMPRAS_COMPROBANTES_CREAR));
 
     private PermisosPorRol() {
     }

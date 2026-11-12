@@ -35,7 +35,7 @@ public class ComprobanteCompraController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('PROVEEDOR')")
+    @PreAuthorize("hasAuthority('COMPRAS_COMPROBANTES_CREAR')")
     public ResponseEntity<ComprobanteCompraResponseDTO> enviar(@Valid @RequestBody ComprobanteCompraRequestDTO request,
                                                                Principal principal) {
         Usuario usuario = usuarioRepository.findByUsernameConRolesYPersona(principal.getName())
@@ -50,13 +50,13 @@ public class ComprobanteCompraController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('EMPLEADO')")
+    @PreAuthorize("hasAuthority('COMPRAS_COMPROBANTES_VER')")
     public ResponseEntity<List<ComprobanteCompraResponseDTO>> listar() {
         return ResponseEntity.ok((List<ComprobanteCompraResponseDTO>) comprobanteService.readAll());
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('EMPLEADO')")
+    @PreAuthorize("hasAuthority('COMPRAS_COMPROBANTES_VER')")
     public ResponseEntity<ComprobanteCompraResponseDTO> buscar(@PathVariable @Positive Long id) {
         return ResponseEntity.ok(comprobanteService.read(id));
     }
