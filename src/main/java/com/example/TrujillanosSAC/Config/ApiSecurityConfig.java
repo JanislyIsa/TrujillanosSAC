@@ -1,4 +1,4 @@
-package com.example.TrujillanosSAC.ventas.config;
+package com.example.TrujillanosSAC.Config;
 
 import com.example.TrujillanosSAC.auth.JwtAuthenticationFilter;
 import com.example.TrujillanosSAC.auth.JwtService;
@@ -21,40 +21,36 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Seguridad de la API REST para el frontend Angular (trujillano-frontend): /api/v1/auth/** y /api/v1/ventas/**.
- * <p>
- * Sin sesión (STATELESS) y sin CSRF: cada petición trae "Authorization: Bearer &lt;token&gt;", que se obtiene en
- * POST /api/v1/auth/login. Los 401 y 403 se responden en JSON. No afecta a inventario (InventarioSecurityConfig,
- * sesión + CSRF) ni a las páginas Thymeleaf (SecurityConfig).
- */
+/** Shared stateless JWT security chain for the Ventas and Compras REST APIs. */
 @Configuration
-public class VentasSecurityConfig {
-
+public class ApiSecurityConfig {
     @Bean
     @Order(2)
-    public SecurityFilterChain ventasApiSecurity(HttpSecurity http, JwtService jwtService,
+    public SecurityFilterChain apiSecurity(HttpSecurity http, JwtService jwtService,
             UserDetailsService userDetailsService,
-            @Value("${ventas.cors.origenes:http://localhost:4200}") String origenes) throws Exception {
+            @Value("${api.cors.origenes:http://localhost:4200}") String origenes) throws Exception {
         CorsConfiguration cors = new CorsConfiguration();
-        cors.setAllowedOrigins(Arrays.stream(origenes.split(",")).map(String::trim).filter(s -> !s.isEmpty()).toList());
+        cors.setAllowedOrigins(Arrays.stream(origenes.split(","))
+                .map(String::trim).filter(origin -> !origin.isEmpty()).toList());
         cors.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         cors.setAllowedHeaders(List.of("Content-Type", "Authorization"));
         cors.setMaxAge(3600L);
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/api/v1/auth/**", cors);
         source.registerCorsConfiguration("/api/v1/ventas/**", cors);
+        source.registerCorsConfiguration("/api/v1/compras/**", cors);
 
-        http.securityMatcher("/api/v1/auth/**", "/api/v1/ventas/**")
-                .cors(c -> c.configurationSource(source))
+        http.securityMatcher("/api/v1/auth/**", "/api/v1/ventas/**", "/api/v1/compras/**")
+                .cors(config -> config.configurationSource(source))
                 .csrf(AbstractHttpConfigurer::disable)
                 .logout(AbstractHttpConfigurer::disable)
-                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(a -> a
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll()
                         .anyRequest().authenticated())
-                .exceptionHandling(e -> e
+                .exceptionHandling(errors -> errors
                         .authenticationEntryPoint(new RestAuthenticationEntryPoint())
                         .accessDeniedHandler(new RestAccessDeniedHandler()))
                 .addFilterBefore(new JwtAuthenticationFilter(jwtService, userDetailsService),

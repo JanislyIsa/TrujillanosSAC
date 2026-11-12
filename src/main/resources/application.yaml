@@ -43,10 +43,12 @@ seguridad:
     secreto: ${JWT_SECRET:}
     expiracion-minutos: ${JWT_EXPIRACION_MINUTOS:60}
 
-ventas:
+api:
   cors:
-    # Origenes del frontend Angular (trujillano-frontend), separados por coma
-    origenes: ${VENTAS_CORS_ORIGENES:http://localhost:4200}
+    # Orígenes permitidos para las APIs JWT consumidas por Angular.
+    origenes: ${API_CORS_ORIGENES:http://localhost:4200}
+
+ventas:
   pago:
     # "simulada" (por defecto, no cobra nada) o "culqi" (cobro real; requiere CULQI_LLAVE_SECRETA)
     pasarela: ${VENTAS_PASARELA:simulada}

@@ -10,6 +10,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -58,8 +60,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // y, si al usuario le quitan un rol o lo eliminan, el cambio aplica de inmediato.
                 UserDetails usuario = userDetailsService.loadUserByUsername(username);
                 if (usuario.isEnabled()) {
+                    java.util.List<GrantedAuthority> authorities = new java.util.ArrayList<>();
+                    authorities.addAll(usuario.getAuthorities());
+                    var roles = usuario.getAuthorities().stream()
+                            .map(authority -> authority.getAuthority())
+                            .filter(authority -> authority.startsWith("ROLE_"))
+                            .map(authority -> authority.substring("ROLE_".length()))
+                            .toList();
+                    PermisosPorRol.permisos(roles).stream()
+                            .map(SimpleGrantedAuthority::new).forEach(authorities::add);
                     var autenticacion = UsernamePasswordAuthenticationToken.authenticated(
-                            usuario, null, usuario.getAuthorities());
+                            usuario, null, authorities);
                     autenticacion.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContext contexto = SecurityContextHolder.createEmptyContext();
                     contexto.setAuthentication(autenticacion);

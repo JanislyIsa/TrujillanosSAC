@@ -35,7 +35,7 @@ public class CotizacionController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('PROVEEDOR')")
+    @PreAuthorize("hasAuthority('COMPRAS_COTIZACIONES_CREAR')")
     public ResponseEntity<CotizacionResponseDTO> enviar(@Valid @RequestBody CotizacionRequestDTO request,
                                                         Principal principal) {
         Long proveedorId = proveedorActual(principal).getIdPersona();
@@ -46,43 +46,43 @@ public class CotizacionController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('EMPLEADO')")
+    @PreAuthorize("hasAuthority('COMPRAS_COTIZACIONES_VER_TODAS')")
     public ResponseEntity<List<CotizacionResponseDTO>> listar() {
         return ResponseEntity.ok((List<CotizacionResponseDTO>) cotizacionService.readAll());
     }
 
     @GetMapping("/mias")
-    @PreAuthorize("hasRole('PROVEEDOR')")
+    @PreAuthorize("hasAuthority('COMPRAS_COTIZACIONES_VER_PROPIAS')")
     public ResponseEntity<List<CotizacionResponseDTO>> listarMias(Principal principal) {
         return ResponseEntity.ok(cotizacionService.listarPorProveedor(proveedorActual(principal).getIdPersona()));
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('EMPLEADO')")
+    @PreAuthorize("hasAuthority('COMPRAS_COTIZACIONES_VER_TODAS')")
     public ResponseEntity<CotizacionResponseDTO> buscar(@PathVariable @Positive Long id) {
         return ResponseEntity.ok(cotizacionService.read(id));
     }
 
     @GetMapping("/solicitud/{solicitudId}")
-    @PreAuthorize("hasRole('EMPLEADO')")
+    @PreAuthorize("hasAuthority('COMPRAS_COTIZACIONES_VER_TODAS')")
     public ResponseEntity<List<CotizacionResponseDTO>> listarPorSolicitud(@PathVariable @Positive Long solicitudId) {
         return ResponseEntity.ok(cotizacionService.listarPorSolicitud(solicitudId));
     }
 
     @PatchMapping("/{id}/aceptar")
-    @PreAuthorize("hasRole('EMPLEADO')")
+    @PreAuthorize("hasAuthority('COMPRAS_COTIZACIONES_GESTIONAR')")
     public ResponseEntity<CotizacionResponseDTO> aceptar(@PathVariable @Positive Long id) {
         return ResponseEntity.ok(cotizacionService.aceptar(id));
     }
 
     @PatchMapping("/{id}/rechazar")
-    @PreAuthorize("hasRole('EMPLEADO')")
+    @PreAuthorize("hasAuthority('COMPRAS_COTIZACIONES_GESTIONAR')")
     public ResponseEntity<CotizacionResponseDTO> rechazar(@PathVariable @Positive Long id) {
         return ResponseEntity.ok(cotizacionService.rechazar(id));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('EMPLEADO')")
+    @PreAuthorize("hasAuthority('COMPRAS_COTIZACIONES_GESTIONAR')")
     public ResponseEntity<Void> eliminar(@PathVariable @Positive Long id) {
         cotizacionService.delete(id);
         return ResponseEntity.noContent().build();

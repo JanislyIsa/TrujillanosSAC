@@ -15,7 +15,7 @@ import java.util.List;
 @RestController
 @Validated
 @RequestMapping("/api/v1/compras/ordenes")
-@PreAuthorize("hasRole('EMPLEADO')")
+@PreAuthorize("hasAuthority('COMPRAS_ORDENES_GESTIONAR')")
 public class OrdenCompraController {
     private final OrdenCompraService ordenCompraService;
 
