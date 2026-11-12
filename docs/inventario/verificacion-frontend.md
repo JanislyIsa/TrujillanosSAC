@@ -1,4 +1,4 @@
-# Verificación del frontend de inventario
+# Verificación histórica del frontend de inventario
 
 Fecha: 3 de noviembre de 2026.
 
@@ -34,4 +34,4 @@ Los registros usados en estos flujos pertenecen a una base H2 de vista previa. N
 
 ![Registro de producto en móvil](capturas/registro-movil.jpg)
 
-Para ejecutar el sistema con Oracle, aplicar V1 y V2 una sola vez en orden y configurar la conexión según `frontend/README.md` y `docs/inventario/README.md`.
+La compilación integrada descrita en este informe corresponde a la estructura anterior y ya no se usa. Actualmente el frontend se ejecuta desde el repositorio independiente `TrujillanosSAC-Frontend`; para iniciar la versión actual, seguir las instrucciones de `README.md` y `docs/inventario/README.md`.

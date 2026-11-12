@@ -11,5 +11,11 @@ public record CotizacionRequestDTO(
         @NotNull @Positive Long solicitudId,
         @NotNull @Positive Long proveedorId,
         @NotNull LocalDate fechaEntrega,
-        @NotEmpty @Valid List<DetalleCotizacionRequestDTO> detalles
-) {}
+        @NotEmpty @Valid List<DetalleCotizacionRequestDTO> detalles,
+        @jakarta.validation.constraints.Size(max = 500) String descripcion
+) {
+    public CotizacionRequestDTO(Long solicitudId, Long proveedorId, LocalDate fechaEntrega,
+                                List<DetalleCotizacionRequestDTO> detalles) {
+        this(solicitudId, proveedorId, fechaEntrega, detalles, null);
+    }
+}

@@ -13,5 +13,6 @@ public record CotizacionResponseDTO(
         Long proveedorId,
         String proveedorNombre,
         BigDecimal monto,
-        List<DetalleCotizacionResponseDTO> detalles
+        List<DetalleCotizacionResponseDTO> detalles,
+        String descripcion
 ) {}

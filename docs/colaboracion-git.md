@@ -1,8 +1,8 @@
 # Trabajo compartido con Git y GitHub
 
-Propuesta para el equipo: un repositorio con backend, frontend, scripts Oracle y documentación; una rama principal `main`, una rama `inventario-suarez-quezada` y ramas de trabajo para las demás funcionalidades.
+El backend y el frontend son dos repositorios separados. Este repositorio contiene Spring Boot, API REST, scripts Oracle y documentación; `TrujillanosSAC-Frontend` contiene Angular y se conecta al backend mediante sus API REST.
 
-El repositorio local se creó en `TrujillanosSAC-master`. Incluye el backend en la raíz y una copia del código Angular en `frontend/`, con su integración ajustada a esa ubicación. La carpeta externa `TrujillanosSAC-Frontend` se conserva, pero para el trabajo compartido debe editarse y versionarse la copia `frontend/` de este repositorio.
+La carpeta `frontend/` que llegó a existir dentro del backend era una copia accidental y se retiró. No se integra ni se compila Angular desde este repositorio.
 
 No existe un historial anterior: `main` comienza con documentación y configuración Git; `inventario-suarez-quezada` incorpora la versión actual completa. Incluye también el código heredado de compras, ventas y seguridad necesario para ejecutarla. No se presenta esa importación como si fuera un diff exclusivo de inventario frente a una base anterior inexistente.
 

@@ -1,6 +1,5 @@
 package com.example.TrujillanosSAC.inventario.service.impl;
 
-import com.example.TrujillanosSAC.Repository.*;
 import com.example.TrujillanosSAC.inventario.dto.InventarioDtos.*;
 import com.example.TrujillanosSAC.inventario.exception.InventarioException;
 import com.example.TrujillanosSAC.inventario.model.*;

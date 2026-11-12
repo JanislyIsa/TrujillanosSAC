@@ -40,7 +40,7 @@ public class CotizacionController {
                                                         Principal principal) {
         Long proveedorId = proveedorActual(principal).getIdPersona();
         CotizacionRequestDTO delProveedor = new CotizacionRequestDTO(
-                request.solicitudId(), proveedorId, request.fechaEntrega(), request.detalles());
+                request.solicitudId(), proveedorId, request.fechaEntrega(), request.detalles(), request.descripcion());
         CotizacionResponseDTO response = cotizacionService.create(delProveedor);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

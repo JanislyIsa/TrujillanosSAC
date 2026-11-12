@@ -80,6 +80,7 @@ public class CotizacionServiceImpl implements CotizacionService {
         Cotizacion cotizacion = new Cotizacion();
         cotizacion.setFechaCot(LocalDate.now());
         cotizacion.setFechaEntrega(request.fechaEntrega());
+        cotizacion.setDescripcion(request.descripcion() == null ? null : request.descripcion().trim());
         cotizacion.setProveedor(proveedor);
         cotizacion.setSolicitudCompra(solicitud);
         cotizacion.setEstadoCotizacion(estado("Pendiente"));

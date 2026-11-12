@@ -2,7 +2,7 @@
 
 3 de noviembre de 2026.
 
-El código Angular está ahora en `C:/Users/jatni/Downloads/TrujillanosSAC-Frontend`, como proyecto hermano del backend. Su compilación se integra en `src/main/resources/static/inventario-app`.
+En la fecha de esta revisión, Angular estaba en el proyecto hermano `TrujillanosSAC-Frontend` y se probó una compilación integrada. Esa integración fue retirada después: el frontend se ejecuta como proyecto independiente y este repositorio queda como backend/API.
 
 Se corrigió `scripts/integrar-backend.mjs` del frontend: la ruta anterior, después de mover la carpeta, apuntaba a `Downloads/src` en lugar del backend. Se ampliaron las rutas del proxy de desarrollo para dirigir `/admin`, `/ventas`, `/proveedor`, `/login` y `/logout` al backend, además de `/api`, `/img` y `/uploads`.
 
@@ -22,4 +22,4 @@ Esta comprobación del recorrido usa H2; no constituye una prueba de las credenc
 
 ![Inventario](stock-revisado.png)
 
-Para desarrollo separado: iniciar el backend en 9191 y ejecutar `npm start` en `C:/Users/jatni/Downloads/TrujillanosSAC-Frontend` (4200). Para la versión integrada: ejecutar `npm run build:backend` desde esa carpeta y reiniciar Spring. La vista previa H2 puede abrirse en `http://127.0.0.1:9192/admin/dashboard`, después de iniciar sesión como `demo` / `DemoInventario1!`.
+Configuración actual: iniciar el backend en `localhost:8080` y Angular con `npm start` desde `TrujillanosSAC-Frontend` en `localhost:4200`. Ya no se genera ni se sirve una versión integrada de Angular desde Spring. La vista previa H2 descrita arriba corresponde a la revisión histórica.

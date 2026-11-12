@@ -8,4 +8,5 @@ import java.util.List;
 public interface CotizacionRepository extends JpaRepository<Cotizacion, Long> {
     List<Cotizacion> findBySolicitudCompraIdSolicitud(Long solicitudId);
     List<Cotizacion> findByProveedorIdPersona(Long proveedorId);
+    boolean existsBySolicitudCompraIdSolicitudAndProveedorIdPersona(Long solicitudId, Long proveedorId);
 }

@@ -8,5 +8,6 @@ public record ComprobanteCompraResponseDTO(
         LocalDate fechaEmision,
         BigDecimal monto,
         String estado,
-        Long ordenCompraId
+        Long ordenCompraId,
+        String numeroFactura
 ) {}
