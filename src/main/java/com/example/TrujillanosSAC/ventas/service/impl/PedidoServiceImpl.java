@@ -18,10 +18,14 @@ import com.example.TrujillanosSAC.ventas.model.DetallePedido;
 import com.example.TrujillanosSAC.ventas.model.Pedido;
 import com.example.TrujillanosSAC.ventas.model.codigo.EstadoPedidoCodigo;
 import com.example.TrujillanosSAC.ventas.repository.PedidoRepository;
-import com.example.TrujillanosSAC.ventas.service.ActorVenta;
-import com.example.TrujillanosSAC.ventas.service.EstadoPedidoService;
-import com.example.TrujillanosSAC.ventas.service.PedidoService;
+import com.example.TrujillanosSAC.ventas.security.ActorVenta;
+import com.example.TrujillanosSAC.ventas.service.service.EstadoPedidoService;
+import com.example.TrujillanosSAC.ventas.service.service.PedidoService;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Sort;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,6 +39,14 @@ import java.util.TreeMap;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class PedidoServiceImpl implements PedidoService {
+
+    private static final Logger log = LoggerFactory.getLogger(PedidoServiceImpl.class);
+
+    /** Lista blanca: nombre que usa la API -> atributo de la entidad. Nada más se puede usar para ordenar. */
+    private static final Map<String, String> CAMPOS_ORDENABLES = Map.of(
+            "fecha", "fechaRegistro",
+            "total", "total",
+            "id", "idPedido");
 
     private final PedidoRepository pedidos;
     private final ProductoRepository productos;
@@ -51,35 +63,40 @@ public class PedidoServiceImpl implements PedidoService {
 
         // Si un producto viene dos veces se suman sus cantidades. El TreeMap los ordena por id:
         // así dos pedidos simultáneos bloquean los productos en el mismo orden y no se traban entre sí.
-        Map<Long, Integer> cantidades = new TreeMap<>();
+        // Se suman como long para que cantidades enormes no desborden: igual las rechaza el control de stock.
+        Map<Long, Long> cantidades = new TreeMap<>();
         for (DetallePedidoRequestDTO item : request.detalles()) {
-            cantidades.merge(item.productoId(), item.cantidad(), Math::addExact);
+            cantidades.merge(item.productoId(), item.cantidad().longValue(), Long::sum);
         }
 
         Pedido pedido = new Pedido();
         pedido.setCliente(cliente);
         pedido.setEstado(estados.porCodigo(EstadoPedidoCodigo.PENDIENTE));
-        pedido.setFechaRegistro(LocalDateTime.now());
         BigDecimal total = BigDecimal.ZERO;
-        for (Map.Entry<Long, Integer> item : cantidades.entrySet()) {
+        for (Map.Entry<Long, Long> item : cantidades.entrySet()) {
             Producto producto = productos.findByIdForUpdate(item.getKey()).orElseThrow(() ->
                     new RecursosNoEncontradosException("Producto no encontrado: " + item.getKey()));
             if (!Boolean.TRUE.equals(producto.getActivo())) {
                 throw new ReglaNegocioException("Producto inactivo: " + producto.getNombre());
             }
             if (producto.getStock() < item.getValue()) {
-                throw new ReglaNegocioException("Stock insuficiente: " + producto.getNombre());
+                throw new ReglaNegocioException("Stock insuficiente para " + producto.getNombre()
+                        + ". Disponible: " + producto.getStock() + ", solicitado: " + item.getValue());
             }
+            int cantidad = Math.toIntExact(item.getValue()); // ya se sabe que no supera el stock
             DetallePedido detalle = new DetallePedido();
             detalle.setProducto(producto);
-            detalle.setCantidad(item.getValue());
+            detalle.setCantidad(cantidad);
+            // El precio sale del producto en la base, nunca del JSON del cliente.
             detalle.setPrecioUnitario(producto.getPrecio());
-            detalle.setSubtotal(producto.getPrecio().multiply(BigDecimal.valueOf(item.getValue())));
+            detalle.setSubtotal(producto.getPrecio().multiply(BigDecimal.valueOf(cantidad)));
             pedido.agregarDetalle(detalle);
             total = total.add(detalle.getSubtotal());
         }
         pedido.setTotal(total);
         pedidos.save(pedido);
+        log.info("Pedido registrado. pedidoId={}, clienteId={}, productos={}",
+                pedido.getIdPedido(), cliente.getIdPersona(), pedido.getDetalles().size());
 
         // El stock se reserva al crear el pedido. Se descuenta con un movimiento de inventario para que
         // quede en el kárdex y se actualicen las alertas de stock.
@@ -89,10 +106,32 @@ public class PedidoServiceImpl implements PedidoService {
 
     @Override
     public List<PedidoResponseDTO> listar(ActorVenta actor) {
+        long inicio = System.currentTimeMillis();
+        log.info("Listado de pedidos solicitado. empleado={}", actor.empleado());
         List<Pedido> lista = actor.empleado()
                 ? pedidos.listarCompletos()
                 : pedidos.listarCompletosPorCliente(acceso.idPersona(actor));
+        log.info("Listado de pedidos resuelto. filas={}, duracionMs={}", lista.size(), System.currentTimeMillis() - inicio);
         return lista.stream().map(VentaMapper::pedido).toList();
+    }
+
+    @Override
+    public List<PedidoResponseDTO> buscar(Long clienteId, EstadoPedidoCodigo estado, LocalDateTime desde,
+                                          LocalDateTime hasta, String ordenarPor, String direccion, ActorVenta actor) {
+        long inicio = System.currentTimeMillis();
+        // Regla del negocio: el cliente solo ve lo suyo, aunque mande otro clienteId en la URL.
+        Long cliente = actor.empleado() ? clienteId : acceso.idPersona(actor);
+        log.info("Búsqueda de pedidos solicitada. clienteId={}, estado={}, desde={}, hasta={}, ordenarPor={}, direccion={}",
+                cliente, estado, desde, hasta, ordenarPor, direccion);
+        validarRango(desde, hasta);
+        Sort sort = construirSort(ordenarPor, direccion);
+
+        List<PedidoResponseDTO> resultado = pedidos
+                .buscar(cliente, estado == null ? null : estado.name(), desde, hasta, sort)
+                .stream().map(VentaMapper::pedido).toList();
+        log.info("Búsqueda de pedidos resuelta. filas={}, duracionMs={}",
+                resultado.size(), System.currentTimeMillis() - inicio);
+        return resultado;
     }
 
     @Override
@@ -106,8 +145,11 @@ public class PedidoServiceImpl implements PedidoService {
     @Override
     @Transactional
     public PedidoResponseDTO cancelar(Long id, ActorVenta actor) {
+        // Regla del negocio: solo un empleado cancela (el controller ya lo exige; aquí se refuerza).
+        if (!actor.empleado()) {
+            throw new AccessDeniedException("Solo un empleado puede cancelar pedidos");
+        }
         Pedido pedido = bloquear(id);
-        acceso.verificarPedido(pedido, actor);
         if (!pedido.estaEn(EstadoPedidoCodigo.PENDIENTE)) {
             // Un pedido pagado necesitaría una devolución del dinero, que todavía no está implementada.
             throw new ReglaNegocioException("Solo se puede cancelar un pedido pendiente de pago");
@@ -153,6 +195,22 @@ public class PedidoServiceImpl implements PedidoService {
             movimientos.registrar(new MovimientoRequest(tipo, TipoItem.PRODUCTO,
                     detalle.getProducto().getIdProducto(), detalle.getCantidad(),
                     motivo + pedido.getIdPedido()), responsable);
+        }
+    }
+
+    private static Sort construirSort(String campo, String direccion) {
+        String atributo = CAMPOS_ORDENABLES.get(campo);
+        if (atributo == null) {
+            throw new ReglaNegocioException("No se puede ordenar por '" + campo
+                    + "'. Campos permitidos: " + String.join(", ", CAMPOS_ORDENABLES.keySet()));
+        }
+        Sort.Direction dir = "asc".equalsIgnoreCase(direccion) ? Sort.Direction.ASC : Sort.Direction.DESC;
+        return Sort.by(dir, atributo);
+    }
+
+    static void validarRango(LocalDateTime desde, LocalDateTime hasta) {
+        if (desde != null && hasta != null && desde.isAfter(hasta)) {
+            throw new ReglaNegocioException("La fecha 'desde' no puede ser posterior a 'hasta'");
         }
     }
 

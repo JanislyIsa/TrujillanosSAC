@@ -14,7 +14,8 @@ public final class VentaMapper {
 
     public static DetallePedidoResponseDTO detalle(DetallePedido d) {
         return new DetallePedidoResponseDTO(d.getIdDetalle(), d.getProducto().getIdProducto(),
-                d.getProducto().getNombre(), d.getCantidad(), d.getPrecioUnitario(), d.getSubtotal());
+                d.getProducto().getNombre(), d.getProducto().getPresentacion().getNombre(), d.getCantidad(),
+                d.getPrecioUnitario(), d.getSubtotal());
     }
 
     public static PedidoResponseDTO pedido(Pedido p) {

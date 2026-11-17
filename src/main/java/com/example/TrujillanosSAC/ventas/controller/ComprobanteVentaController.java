@@ -2,8 +2,8 @@ package com.example.TrujillanosSAC.ventas.controller;
 
 import com.example.TrujillanosSAC.ventas.dto.request.ComprobanteVentaRequestDTO;
 import com.example.TrujillanosSAC.ventas.dto.response.ComprobanteVentaResponseDTO;
-import com.example.TrujillanosSAC.ventas.service.ActorVenta;
-import com.example.TrujillanosSAC.ventas.service.ComprobanteVentaService;
+import com.example.TrujillanosSAC.ventas.security.ActorVenta;
+import com.example.TrujillanosSAC.ventas.service.service.ComprobanteVentaService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +31,12 @@ public class ComprobanteVentaController {
     @PreAuthorize("hasRole('EMPLEADO')")
     public List<ComprobanteVentaResponseDTO> listar() {
         return service.listar();
+    }
+
+    /** Comprobante de un pedido (404 si aún no se emitió). */
+    @GetMapping("/pedido/{pedidoId}")
+    public ComprobanteVentaResponseDTO obtenerPorPedido(@PathVariable("pedidoId") @Positive Long pedidoId) {
+        return service.obtenerPorPedido(pedidoId, ActorVenta.actual());
     }
 
     @GetMapping("/{id}")

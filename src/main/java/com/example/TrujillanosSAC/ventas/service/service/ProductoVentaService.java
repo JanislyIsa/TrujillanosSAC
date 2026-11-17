@@ -1,4 +1,4 @@
-package com.example.TrujillanosSAC.ventas.service;
+package com.example.TrujillanosSAC.ventas.service.service;
 
 import com.example.TrujillanosSAC.ventas.dto.response.ProductoVentaResponseDTO;
 

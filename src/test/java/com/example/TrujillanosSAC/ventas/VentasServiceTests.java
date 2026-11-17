@@ -10,14 +10,17 @@ import com.example.TrujillanosSAC.inventario.model.TipoMovimiento;
 import com.example.TrujillanosSAC.inventario.repository.ProductoRepository;
 import com.example.TrujillanosSAC.inventario.service.MovimientoInventarioService;
 import com.example.TrujillanosSAC.ventas.dto.request.*;
+import com.example.TrujillanosSAC.ventas.dto.reporte.*;
+import org.springframework.data.domain.Sort;
 import com.example.TrujillanosSAC.ventas.model.*;
 import com.example.TrujillanosSAC.ventas.model.codigo.*;
 import com.example.TrujillanosSAC.ventas.repository.*;
-import com.example.TrujillanosSAC.ventas.service.*;
+import com.example.TrujillanosSAC.ventas.security.ActorVenta;
+import com.example.TrujillanosSAC.ventas.service.service.*;
 import com.example.TrujillanosSAC.ventas.service.facturacion.SinFacturacionElectronica;
 import com.example.TrujillanosSAC.ventas.service.impl.*;
+import com.example.TrujillanosSAC.ventas.model.codigo.MetodoPagoCodigo;
 import com.example.TrujillanosSAC.ventas.service.pasarela.PasarelaPago;
-import com.example.TrujillanosSAC.ventas.service.pasarela.PasarelaSimulada;
 import com.example.TrujillanosSAC.ventas.service.pasarela.ResultadoCobro;
 import com.example.TrujillanosSAC.ventas.service.pasarela.SolicitudCobro;
 import org.junit.jupiter.api.BeforeEach;
@@ -179,12 +182,20 @@ class VentasServiceTests {
         Pedido pedido = pedido(50L, EstadoPedidoCodigo.PENDIENTE, cliente("DNI", "12345678"));
         var service = pedidoService();
 
-        assertThat(service.cancelar(50L, clienteActor).estado().codigo()).isEqualTo("CANCELADO");
-        assertThatThrownBy(() -> service.cancelar(50L, clienteActor)).isInstanceOf(ReglaNegocioException.class);
+        assertThat(service.cancelar(50L, empleadoActor).estado().codigo()).isEqualTo("CANCELADO");
+        assertThatThrownBy(() -> service.cancelar(50L, empleadoActor)).isInstanceOf(ReglaNegocioException.class);
 
-        verify(acceso, times(2)).verificarPedido(pedido, clienteActor);
         verify(movimientos, times(1)).registrar(argThat(m -> m.tipoMovimiento() == TipoMovimiento.INGRESO
-                && m.cantidad() == 3), eq("cliente"));
+                && m.cantidad() == 3), eq("empleado"));
+        assertThat(pedido.getEstado().getCodigo()).isEqualTo("CANCELADO");
+    }
+
+    @Test
+    void elClienteNoPuedeCancelarSuPedido() {
+        pedido(50L, EstadoPedidoCodigo.PENDIENTE, cliente("DNI", "12345678"));
+        assertThatThrownBy(() -> pedidoService().cancelar(50L, clienteActor))
+                .isInstanceOf(org.springframework.security.access.AccessDeniedException.class);
+        verifyNoInteractions(movimientos);
     }
 
     @Test
@@ -231,8 +242,8 @@ class VentasServiceTests {
     @Test
     void pagoConYapeQuedaRegistradoComoYape() {
         Pedido pedido = pedido(50L, EstadoPedidoCodigo.PENDIENTE, cliente("DNI", "12345678"));
-        var pago = pagoService(new PasarelaSimulada())
-                .pagarConCulqi(new PagoCulqiRequestDTO(50L, "tkn_yape_123", "ana@example.test"), clienteActor);
+        var pago = pagoService(s -> ResultadoCobro.aprobado("chr_test_yape", "Venta exitosa", MetodoPagoCodigo.YAPE))
+                .pagarConCulqi(new PagoCulqiRequestDTO(50L, "ype_test_123", "ana@example.test"), clienteActor);
         assertThat(pago.estado().codigo()).isEqualTo("APROBADO");
         assertThat(pago.metodoPago().codigo()).isEqualTo("YAPE");
         assertThat(pedido.estaEn(EstadoPedidoCodigo.PAGADO)).isTrue();
@@ -241,8 +252,8 @@ class VentasServiceTests {
     @Test
     void pagoRechazadoDejaElPedidoPendienteParaReintentar() {
         Pedido pedido = pedido(50L, EstadoPedidoCodigo.PENDIENTE, cliente("DNI", "12345678"));
-        var pago = pagoService(new PasarelaSimulada())
-                .pagarConCulqi(new PagoCulqiRequestDTO(50L, "tkn_rechazo", "ana@example.test"), clienteActor);
+        var pago = pagoService(s -> ResultadoCobro.rechazado("Tarjeta rechazada"))
+                .pagarConCulqi(new PagoCulqiRequestDTO(50L, "tkn_test_rechazo", "ana@example.test"), clienteActor);
         assertThat(pago.estado().codigo()).isEqualTo("RECHAZADO");
         assertThat(pago.mensaje()).isNotBlank();
         assertThat(pedido.estaEn(EstadoPedidoCodigo.PENDIENTE)).isTrue();
@@ -304,5 +315,58 @@ class VentasServiceTests {
         assertThatThrownBy(() -> service.emitir(new ComprobanteVentaRequestDTO(51L, TipoComprobanteCodigo.BOLETA), empleadoActor))
                 .isInstanceOf(ReglaNegocioException.class).hasMessageContaining("pagado");
         verify(comprobantes, never()).saveAndFlush(any());
+    }
+
+    // ---------- Consultas y reportes (Sesión 5) ----------
+
+    @Test
+    void clienteSoloBuscaSusPedidosAunqueMandeOtroClienteId() {
+        when(pedidos.buscar(any(), any(), any(), any(), any())).thenReturn(List.of());
+
+        var resultado = pedidoService().buscar(99L, EstadoPedidoCodigo.PAGADO, null, null, "total", "asc", clienteActor);
+
+        assertThat(resultado).isEmpty();
+        verify(pedidos).buscar(eq(1L), eq("PAGADO"), isNull(), isNull(), eq(Sort.by(Sort.Direction.ASC, "total")));
+    }
+
+    @Test
+    void empleadoBuscaPorCualquierClienteYPorDefectoOrdenaPorFechaDesc() {
+        when(pedidos.buscar(any(), any(), any(), any(), any())).thenReturn(List.of());
+        pedidoService().buscar(3L, null, null, null, "fecha", "desc", empleadoActor);
+        verify(pedidos).buscar(eq(3L), isNull(), isNull(), isNull(), eq(Sort.by(Sort.Direction.DESC, "fechaRegistro")));
+    }
+
+    @Test
+    void busquedaRechazaOrdenNoPermitidoYRangoInvertido() {
+        var hoy = LocalDateTime.now();
+        assertThatThrownBy(() -> pedidoService().buscar(null, null, null, null, "cliente.dni", "asc", empleadoActor))
+                .isInstanceOf(ReglaNegocioException.class).hasMessageContaining("cliente.dni");
+        assertThatThrownBy(() -> pedidoService().buscar(null, null, hoy, hoy.minusDays(1), "fecha", "desc", empleadoActor))
+                .isInstanceOf(ReglaNegocioException.class).hasMessageContaining("desde");
+        verify(pedidos, never()).buscar(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void reportesSoloCuentanPedidosPagadosYRespetanElTop() {
+        when(pedidos.reporteProductosMasVendidos(any(), any(), any())).thenReturn(List.of(
+                new ProductoMasVendidoDTO(1L, "A", 10L, new BigDecimal("10.00")),
+                new ProductoMasVendidoDTO(2L, "B", 5L, new BigDecimal("5.00")),
+                new ProductoMasVendidoDTO(3L, "C", 1L, new BigDecimal("1.00"))));
+        var reportes = new ReporteServiceImpl(pedidos);
+
+        reportes.ventasPorCategoria(null, null);
+        assertThat(reportes.productosMasVendidos(null, null, 2)).hasSize(2);
+
+        verify(pedidos).reportePorCategoria(argThat(estados -> estados.containsAll(List.of("PAGADO", "LISTO_PARA_RECOJO", "ENTREGADO"))
+                && !estados.contains("PENDIENTE") && !estados.contains("CANCELADO")), isNull(), isNull());
+    }
+
+    @Test
+    void cantidadMuyGrandeSeRechazaPorStockNoPorDesborde() {
+        when(productos.findByIdForUpdate(10L)).thenReturn(Optional.of(producto(10L, 5, "12.50")));
+        var request = new PedidoRequestDTO(List.of(
+                new DetallePedidoRequestDTO(10L, Integer.MAX_VALUE), new DetallePedidoRequestDTO(10L, Integer.MAX_VALUE)));
+        assertThatThrownBy(() -> pedidoService().crear(request, clienteActor))
+                .isInstanceOf(ReglaNegocioException.class).hasMessageContaining("Stock insuficiente");
     }
 }

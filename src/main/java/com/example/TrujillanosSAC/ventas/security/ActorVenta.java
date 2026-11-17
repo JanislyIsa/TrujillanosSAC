@@ -1,4 +1,4 @@
-package com.example.TrujillanosSAC.ventas.service;
+package com.example.TrujillanosSAC.ventas.security;
 
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.core.Authentication;

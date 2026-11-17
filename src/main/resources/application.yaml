@@ -47,13 +47,11 @@ ventas:
   cors:
     # Origenes del frontend Angular (trujillano-frontend), separados por coma
     origenes: ${VENTAS_CORS_ORIGENES:http://localhost:4200}
-  pago:
-    # "simulada" (por defecto, no cobra nada) o "culqi" (cobro real; requiere CULQI_LLAVE_SECRETA)
-    pasarela: ${VENTAS_PASARELA:simulada}
   culqi:
+    # Llave secreta sk_test_... / sk_live_... de Culqi. Solo por variable de entorno, nunca en Git.
     llave-secreta: ${CULQI_LLAVE_SECRETA:}
   pedido:
     expiracion:
       # Un pedido sin pagar se cancela pasado este tiempo y su stock vuelve al inventario
-      minutos: ${VENTAS_PEDIDO_EXPIRACION_MINUTOS:30}
+      minutos: 30
       revision-ms: 60000

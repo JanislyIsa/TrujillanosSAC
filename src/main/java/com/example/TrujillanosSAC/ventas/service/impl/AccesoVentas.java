@@ -3,7 +3,7 @@ package com.example.TrujillanosSAC.ventas.service.impl;
 import com.example.TrujillanosSAC.usuarios.repository.UsuarioRepository;
 import com.example.TrujillanosSAC.exception.RecursosNoEncontradosException;
 import com.example.TrujillanosSAC.ventas.model.Pedido;
-import com.example.TrujillanosSAC.ventas.service.ActorVenta;
+import com.example.TrujillanosSAC.ventas.security.ActorVenta;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Component;

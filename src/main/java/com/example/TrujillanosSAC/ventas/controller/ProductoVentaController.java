@@ -1,7 +1,7 @@
 package com.example.TrujillanosSAC.ventas.controller;
 
 import com.example.TrujillanosSAC.ventas.dto.response.ProductoVentaResponseDTO;
-import com.example.TrujillanosSAC.ventas.service.ProductoVentaService;
+import com.example.TrujillanosSAC.ventas.service.service.ProductoVentaService;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,7 +15,7 @@ import java.util.List;
 /** Catálogo de golosinas para el cliente: solo lectura, solo productos que se pueden pedir. */
 @RestController("ventasProductoVentaController")
 @RequestMapping("/api/v1/ventas/productos")
-@PreAuthorize("hasAnyRole('EMPLEADO','CLIENTE')")
+@PreAuthorize("permitAll()")
 @RequiredArgsConstructor
 public class ProductoVentaController {
 

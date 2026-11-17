@@ -2,8 +2,8 @@ package com.example.TrujillanosSAC.ventas.controller;
 
 import com.example.TrujillanosSAC.ventas.dto.request.PagoCulqiRequestDTO;
 import com.example.TrujillanosSAC.ventas.dto.response.PagoResponseDTO;
-import com.example.TrujillanosSAC.ventas.service.ActorVenta;
-import com.example.TrujillanosSAC.ventas.service.PagoService;
+import com.example.TrujillanosSAC.ventas.security.ActorVenta;
+import com.example.TrujillanosSAC.ventas.service.service.PagoService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;

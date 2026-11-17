@@ -5,8 +5,8 @@ import com.example.TrujillanosSAC.Repository.*;
 import com.example.TrujillanosSAC.exception.ReglaNegocioException;
 import com.example.TrujillanosSAC.ventas.dto.request.DetallePedidoRequestDTO;
 import com.example.TrujillanosSAC.ventas.dto.request.PedidoRequestDTO;
-import com.example.TrujillanosSAC.ventas.service.ActorVenta;
-import com.example.TrujillanosSAC.ventas.service.PedidoService;
+import com.example.TrujillanosSAC.ventas.security.ActorVenta;
+import com.example.TrujillanosSAC.ventas.service.service.PedidoService;
 import com.example.TrujillanosSAC.inventario.dto.InventarioDtos.*;
 import com.example.TrujillanosSAC.inventario.exception.InventarioException;
 import com.example.TrujillanosSAC.inventario.model.*;
@@ -244,8 +244,9 @@ class InventarioIntegrationTests {
         var cliente=new ActorVenta(clienteUser,false);
         var pedido=pedidos.crear(new PedidoRequestDTO(List.of(new DetallePedidoRequestDTO(productoId,4))),cliente);
         assertThat(catalogo.obtener(TipoItem.PRODUCTO,productoId).stock()).isEqualTo(6);
-        pedidos.cancelar(pedido.idPedido(),cliente);
-        assertThatThrownBy(() -> pedidos.cancelar(pedido.idPedido(),cliente)).isInstanceOf(ReglaNegocioException.class);
+        var empleado=new ActorVenta(jefeUser,true);
+        pedidos.cancelar(pedido.idPedido(),empleado);
+        assertThatThrownBy(() -> pedidos.cancelar(pedido.idPedido(),empleado)).isInstanceOf(ReglaNegocioException.class);
         assertThat(catalogo.obtener(TipoItem.PRODUCTO,productoId).stock()).isEqualTo(10);
         assertThat(movimientos.listar(TipoItem.PRODUCTO,productoId,TipoMovimiento.INGRESO,null,null,null)).hasSize(2);
     }

@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.time.LocalDateTime;
 
@@ -44,6 +45,16 @@ public class VentasExceptionHandler {
     @ExceptionHandler(HandlerMethodValidationException.class)
     public ResponseEntity<ErrorResponseDTO> parametros(HandlerMethodValidationException ex, HttpServletRequest request) {
         return respuesta(HttpStatus.BAD_REQUEST, "Parámetros inválidos", request);
+    }
+
+    /**
+     * Un parámetro que no se puede convertir: fecha que no es ISO (desde=01-09-2026)
+     * o un estado que no existe (estado=ANULADA). Responde 400 con el formato de error del proyecto.
+     */
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponseDTO> tipoParametro(MethodArgumentTypeMismatchException ex, HttpServletRequest request) {
+        return respuesta(HttpStatus.BAD_REQUEST, "El parámetro '" + ex.getName() + "' tiene un formato inválido: "
+                + ex.getValue(), request);
     }
 
     private static ResponseEntity<ErrorResponseDTO> respuesta(HttpStatus status, String mensaje, HttpServletRequest request) {

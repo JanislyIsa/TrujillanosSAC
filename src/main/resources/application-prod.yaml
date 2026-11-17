@@ -17,6 +17,8 @@ springdoc:
 
 logging:
   level:
+    # Produccion: solo hitos (info) de los modulos; nada de debug
+    com.example.TrujillanosSAC: info
     org.hibernate.SQL: warn
     org.hibernate.orm.jdbc.bind: warn
   file:

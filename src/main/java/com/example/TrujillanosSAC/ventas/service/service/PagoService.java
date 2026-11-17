@@ -1,5 +1,6 @@
-package com.example.TrujillanosSAC.ventas.service;
+package com.example.TrujillanosSAC.ventas.service.service;
 
+import com.example.TrujillanosSAC.ventas.security.ActorVenta;
 import com.example.TrujillanosSAC.ventas.dto.request.PagoCulqiRequestDTO;
 import com.example.TrujillanosSAC.ventas.dto.response.PagoResponseDTO;
 

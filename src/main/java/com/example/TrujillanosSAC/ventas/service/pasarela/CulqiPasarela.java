@@ -4,7 +4,6 @@ import com.example.TrujillanosSAC.ventas.model.codigo.MetodoPagoCodigo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -28,20 +27,23 @@ import java.util.Map;
  * Pendiente: los cargos que Culqi manda a autenticación 3DS se tratan como no aprobados.
  */
 @Component
-@ConditionalOnProperty(name = "ventas.pago.pasarela", havingValue = "culqi")
 public class CulqiPasarela implements PasarelaPago {
 
     private static final Logger log = LoggerFactory.getLogger(CulqiPasarela.class);
     private static final ParameterizedTypeReference<Map<String, Object>> MAPA = new ParameterizedTypeReference<>() {
     };
 
+    /** null si falta CULQI_LLAVE_SECRETA: el backend arranca igual, pero los cobros responden error. */
     private final RestClient http;
 
     public CulqiPasarela(@Value("${ventas.culqi.url:https://api.culqi.com/v2}") String url,
                          @Value("${ventas.culqi.llave-secreta:}") String llaveSecreta,
                          @Value("${ventas.culqi.timeout-segundos:30}") long timeoutSegundos) {
         if (llaveSecreta.isBlank()) {
-            throw new IllegalStateException("Configure la variable CULQI_LLAVE_SECRETA para usar Culqi");
+            // No se detiene el arranque: así el resto del sistema (inventario, usuarios) funciona sin la llave.
+            log.error("CULQI_LLAVE_SECRETA no está configurada: los pagos con Culqi fallarán hasta que se defina");
+            this.http = null;
+            return;
         }
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(Duration.ofSeconds(10));
@@ -55,6 +57,9 @@ public class CulqiPasarela implements PasarelaPago {
 
     @Override
     public ResultadoCobro cobrar(SolicitudCobro solicitud) {
+        if (http == null) {
+            return ResultadoCobro.error("Los pagos no están disponibles: falta configurar Culqi en el servidor");
+        }
         Map<String, Object> cuerpo = Map.of(
                 "amount", solicitud.montoCentimos(),
                 "currency_code", solicitud.moneda(),

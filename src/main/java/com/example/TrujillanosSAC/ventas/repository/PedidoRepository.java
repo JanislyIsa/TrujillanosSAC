@@ -1,7 +1,10 @@
 package com.example.TrujillanosSAC.ventas.repository;
 
+import com.example.TrujillanosSAC.ventas.dto.reporte.ProductoMasVendidoDTO;
+import com.example.TrujillanosSAC.ventas.dto.reporte.VentaPorCategoriaDTO;
 import com.example.TrujillanosSAC.ventas.model.Pedido;
 import jakarta.persistence.LockModeType;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
@@ -9,6 +12,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -50,4 +54,65 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
 
     @Query("select p.idPedido from VentaPedido p where p.estado.codigo = :codigo and p.fechaRegistro < :limite")
     List<Long> idsPorEstadoRegistradosAntesDe(@Param("codigo") String codigo, @Param("limite") LocalDateTime limite);
+
+    // ---------- Consultas (Sesión 5) ----------
+
+    /**
+     * Búsqueda con filtros opcionales: si un parámetro llega nulo, su condición se cumple sola y el filtro
+     * "desaparece". Un solo método cubre todas las combinaciones. El orden llega como Sort (lista blanca en el service).
+     */
+    @Query("""
+            select distinct p from VentaPedido p
+            join fetch p.estado e
+            left join fetch p.detalles d
+            left join fetch d.producto
+            where (:clienteId is null or p.cliente.idPersona = :clienteId)
+              and (:estado is null or e.codigo = :estado)
+              and (:desde is null or p.fechaRegistro >= :desde)
+              and (:hasta is null or p.fechaRegistro <= :hasta)
+            """)
+    List<Pedido> buscar(@Param("clienteId") Long clienteId,
+                        @Param("estado") String estado,
+                        @Param("desde") LocalDateTime desde,
+                        @Param("hasta") LocalDateTime hasta,
+                        Sort sort);
+
+    // ---------- Reportes (Sesión 5) ----------
+    // Solo cuentan los pedidos que llegaron a pagarse (:estados). Un pedido PENDIENTE o CANCELADO no es una venta:
+    // si se quitara ese filtro, los montos parecerían correctos pero estarían inflados.
+
+    @Query("""
+            select new com.example.TrujillanosSAC.ventas.dto.reporte.VentaPorCategoriaDTO(
+                c.idCategoria, c.nombre, sum(d.cantidad), sum(d.subtotal))
+            from VentaDetallePedido d
+            join d.producto pr
+            join pr.categoria c
+            join d.pedido p
+            join p.estado e
+            where e.codigo in :estados
+              and (:desde is null or p.fechaRegistro >= :desde)
+              and (:hasta is null or p.fechaRegistro <= :hasta)
+            group by c.idCategoria, c.nombre
+            order by sum(d.subtotal) desc
+            """)
+    List<VentaPorCategoriaDTO> reportePorCategoria(@Param("estados") Collection<String> estados,
+                                                   @Param("desde") LocalDateTime desde,
+                                                   @Param("hasta") LocalDateTime hasta);
+
+    @Query("""
+            select new com.example.TrujillanosSAC.ventas.dto.reporte.ProductoMasVendidoDTO(
+                pr.idProducto, pr.nombre, sum(d.cantidad), sum(d.subtotal))
+            from VentaDetallePedido d
+            join d.producto pr
+            join d.pedido p
+            join p.estado e
+            where e.codigo in :estados
+              and (:desde is null or p.fechaRegistro >= :desde)
+              and (:hasta is null or p.fechaRegistro <= :hasta)
+            group by pr.idProducto, pr.nombre
+            order by sum(d.cantidad) desc, sum(d.subtotal) desc
+            """)
+    List<ProductoMasVendidoDTO> reporteProductosMasVendidos(@Param("estados") Collection<String> estados,
+                                                            @Param("desde") LocalDateTime desde,
+                                                            @Param("hasta") LocalDateTime hasta);
 }

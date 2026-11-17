@@ -16,9 +16,9 @@ import com.example.TrujillanosSAC.ventas.model.codigo.TipoComprobanteCodigo;
 import com.example.TrujillanosSAC.ventas.repository.ComprobanteVentaRepository;
 import com.example.TrujillanosSAC.ventas.repository.PedidoRepository;
 import com.example.TrujillanosSAC.ventas.repository.TipoComprobanteVentaRepository;
-import com.example.TrujillanosSAC.ventas.service.ActorVenta;
-import com.example.TrujillanosSAC.ventas.service.ComprobanteVentaService;
-import com.example.TrujillanosSAC.ventas.service.EstadoComprobanteVentaService;
+import com.example.TrujillanosSAC.ventas.security.ActorVenta;
+import com.example.TrujillanosSAC.ventas.service.service.ComprobanteVentaService;
+import com.example.TrujillanosSAC.ventas.service.service.EstadoComprobanteVentaService;
 import com.example.TrujillanosSAC.ventas.service.facturacion.FacturacionElectronica;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -85,6 +85,14 @@ public class ComprobanteVentaServiceImpl implements ComprobanteVentaService {
     public ComprobanteVentaResponseDTO obtener(Long id, ActorVenta actor) {
         ComprobanteVenta comprobante = comprobantes.findById(id)
                 .orElseThrow(() -> new RecursosNoEncontradosException("Comprobante no encontrado"));
+        acceso.verificarPedido(comprobante.getPedido(), actor);
+        return VentaMapper.comprobante(comprobante);
+    }
+
+    @Override
+    public ComprobanteVentaResponseDTO obtenerPorPedido(Long pedidoId, ActorVenta actor) {
+        ComprobanteVenta comprobante = comprobantes.findByPedido_IdPedido(pedidoId)
+                .orElseThrow(() -> new RecursosNoEncontradosException("El pedido todavía no tiene comprobante"));
         acceso.verificarPedido(comprobante.getPedido(), actor);
         return VentaMapper.comprobante(comprobante);
     }

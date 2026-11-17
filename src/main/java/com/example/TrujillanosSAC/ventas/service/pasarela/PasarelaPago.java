@@ -1,8 +1,7 @@
 package com.example.TrujillanosSAC.ventas.service.pasarela;
 
 /**
- * Cobro con tarjeta. Hay dos implementaciones y se elige con la propiedad ventas.pago.pasarela:
- * "culqi" ({@link CulqiPasarela}) o "simulada" ({@link PasarelaSimulada}, la de por defecto).
+ * Cobro con tarjeta o Yape. La implementación es {@link CulqiPasarela}.
  */
 public interface PasarelaPago {
     ResultadoCobro cobrar(SolicitudCobro solicitud);

@@ -11,10 +11,10 @@ import com.example.TrujillanosSAC.ventas.dto.response.CatalogoResponseDTO;
 import com.example.TrujillanosSAC.ventas.dto.response.PedidoResponseDTO;
 import com.example.TrujillanosSAC.ventas.exception.VentasExceptionHandler;
 import com.example.TrujillanosSAC.ventas.model.codigo.EstadoPedidoCodigo;
-import com.example.TrujillanosSAC.ventas.service.ActorVenta;
-import com.example.TrujillanosSAC.ventas.service.MetodoPagoService;
-import com.example.TrujillanosSAC.ventas.service.PagoService;
-import com.example.TrujillanosSAC.ventas.service.PedidoService;
+import com.example.TrujillanosSAC.ventas.security.ActorVenta;
+import com.example.TrujillanosSAC.ventas.service.service.MetodoPagoService;
+import com.example.TrujillanosSAC.ventas.service.service.PagoService;
+import com.example.TrujillanosSAC.ventas.service.service.PedidoService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -181,5 +181,45 @@ class VentasControllerTests {
     void noExponeBorradoDePedidos() throws Exception {
         mvc.perform(delete("/api/v1/ventas/pedidos/1")).andExpect(status().isMethodNotAllowed());
         verifyNoInteractions(pedidos);
+    }
+
+    @Test
+    void soloElEmpleadoCancelaPedidos() throws Exception {
+        autenticar("ROLE_CLIENTE");
+        mvc.perform(post("/api/v1/ventas/pedidos/5/cancelar")).andExpect(status().isForbidden());
+        verifyNoInteractions(pedidos);
+
+        autenticar("ROLE_EMPLEADO");
+        mvc.perform(post("/api/v1/ventas/pedidos/5/cancelar")).andExpect(status().isOk());
+        verify(pedidos).cancelar(5L, new ActorVenta("test", true));
+    }
+
+    // ---------- Búsqueda (Sesión 5) ----------
+
+    @Test
+    void busquedaSinCoincidenciasResponde200ConArregloVacio() throws Exception {
+        when(pedidos.buscar(any(), any(), any(), any(), any(), any(), any())).thenReturn(List.of());
+        mvc.perform(get("/api/v1/ventas/pedidos/buscar").param("estado", "CANCELADO")
+                        .param("desde", "2026-11-01T00:00:00").param("hasta", "2026-11-30T23:59:59"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$").isEmpty());
+        verify(pedidos).buscar(isNull(), eq(EstadoPedidoCodigo.CANCELADO), any(), any(), eq("fecha"), eq("desc"),
+                eq(new ActorVenta("test", true)));
+    }
+
+    @Test
+    void fechaMalFormadaOEstadoInexistenteResponden400() throws Exception {
+        mvc.perform(get("/api/v1/ventas/pedidos/buscar").param("desde", "01-09-2026"))
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.status").value(400));
+        mvc.perform(get("/api/v1/ventas/pedidos/buscar").param("estado", "ANULADA"))
+                .andExpect(status().isBadRequest());
+        verifyNoInteractions(pedidos);
+    }
+
+    @Test
+    void ordenamientoNoPermitidoResponde409() throws Exception {
+        when(pedidos.buscar(any(), any(), any(), any(), eq("cliente.dni"), any(), any()))
+                .thenThrow(new ReglaNegocioException("No se puede ordenar por 'cliente.dni'"));
+        mvc.perform(get("/api/v1/ventas/pedidos/buscar").param("ordenarPor", "cliente.dni"))
+                .andExpect(status().isConflict());
     }
 }

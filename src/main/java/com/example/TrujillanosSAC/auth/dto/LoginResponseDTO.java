@@ -9,6 +9,10 @@ public record LoginResponseDTO(
         long expiraEnSegundos,
         String username,
         String nombreCompleto,
+        /** Correo del cliente; null si no tiene (por ejemplo empleados o clientes creados por un empleado). */
+        String correo,
+        /** Número de documento (DNI, RUC o CE) de la persona; el comprobante lo muestra. */
+        String numeroDocumento,
         List<String> roles,
         List<String> permisos) {
 }

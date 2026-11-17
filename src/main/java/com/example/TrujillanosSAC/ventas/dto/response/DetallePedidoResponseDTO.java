@@ -6,6 +6,7 @@ public record DetallePedidoResponseDTO(
         Long idDetalle,
         Long productoId,
         String nombreProducto,
+        String presentacion,
         Integer cantidad,
         BigDecimal precioUnitario,
         BigDecimal subtotal

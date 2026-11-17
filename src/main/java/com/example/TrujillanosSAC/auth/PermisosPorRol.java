@@ -18,7 +18,6 @@ public final class PermisosPorRol {
             "CLIENTE", EnumSet.of(
                     Permiso.PEDIDO_CREAR,
                     Permiso.PEDIDO_VER_PROPIOS,
-                    Permiso.PEDIDO_CANCELAR,
                     Permiso.PAGO_REALIZAR,
                     Permiso.COMPROBANTE_EMITIR),
             "EMPLEADO", EnumSet.of(

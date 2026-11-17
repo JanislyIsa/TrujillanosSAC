@@ -9,8 +9,8 @@ import java.util.List;
 
 /** El cliente del pedido es siempre el usuario que inició sesión. */
 public record PedidoRequestDTO(
-        @NotEmpty
-        @Size(max = 50)
-        List<@NotNull @Valid DetallePedidoRequestDTO> detalles
+        @NotEmpty(message = "El pedido debe contener al menos un producto")
+        @Size(max = 50, message = "El pedido no puede tener más de 50 productos distintos")
+        List<@NotNull(message = "El detalle no puede ser nulo") @Valid DetallePedidoRequestDTO> detalles
 ) {
 }
