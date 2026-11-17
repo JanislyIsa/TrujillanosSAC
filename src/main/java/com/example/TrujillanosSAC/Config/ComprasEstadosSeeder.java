@@ -1,13 +1,13 @@
 package com.example.TrujillanosSAC.Config;
 
-import com.example.TrujillanosSAC.Model.EstadoCotizacion;
-import com.example.TrujillanosSAC.Model.EstadoComprobanteCompra;
+import com.example.TrujillanosSAC.compras.model.EstadoCotizacion;
+import com.example.TrujillanosSAC.compras.model.EstadoComprobanteCompra;
 import com.example.TrujillanosSAC.inventario.model.EstadoSolicitudCompra;
-import com.example.TrujillanosSAC.Model.MetodoPago;
-import com.example.TrujillanosSAC.Repository.EstadoComprobanteCompraRepository;
-import com.example.TrujillanosSAC.Repository.EstadoCotizacionRepository;
+import com.example.TrujillanosSAC.compras.model.MetodoPago;
+import com.example.TrujillanosSAC.compras.repository.EstadoComprobanteCompraRepository;
+import com.example.TrujillanosSAC.compras.repository.EstadoCotizacionRepository;
 import com.example.TrujillanosSAC.inventario.repository.EstadoSolicitudCompraRepository;
-import com.example.TrujillanosSAC.Repository.MetodoPagoRepository;
+import com.example.TrujillanosSAC.compras.repository.MetodoPagoRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

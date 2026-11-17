@@ -21,6 +21,12 @@ public class ComprobanteCompra {
     @NotNull @PositiveOrZero @Column(name = "MONTO", precision = 12, scale = 2, nullable = false)
     private BigDecimal monto;
 
+    @Column(name = "NUMERO_FACTURA", length = 50)
+    private String numeroFactura;
+
+    @Lob @Basic(fetch = FetchType.LAZY) @Column(name = "ARCHIVO_FACTURA")
+    private byte[] archivoFactura;
+
     @NotNull @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "ID_ESTADO", nullable = false)
     private EstadoComprobanteCompra estadoComprobanteCompra;

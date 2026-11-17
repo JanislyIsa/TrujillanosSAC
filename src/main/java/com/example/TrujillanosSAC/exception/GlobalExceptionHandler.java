@@ -16,65 +16,40 @@ import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/** Shared REST error mapping for application modules. Module-specific advice can take precedence. */
 @RestControllerAdvice
 @Order(Ordered.LOWEST_PRECEDENCE)
 public class GlobalExceptionHandler {
-
     @ExceptionHandler(RecursosNoEncontradosException.class)
-    public ResponseEntity<ErrorResponseDTO> recursoNoEncontrado(
-            RecursosNoEncontradosException ex, HttpServletRequest request) {
-        return respuesta(HttpStatus.NOT_FOUND, "Not Found", ex.getMessage(), request, null);
+    public ResponseEntity<ErrorResponseDTO> notFound(RecursosNoEncontradosException ex, HttpServletRequest request) {
+        return body(HttpStatus.NOT_FOUND, "Not Found", ex.getMessage(), request, null);
     }
-
     @ExceptionHandler(ReglaNegocioException.class)
-    public ResponseEntity<ErrorResponseDTO> reglaDeNegocio(
-            ReglaNegocioException ex, HttpServletRequest request) {
-        return respuesta(HttpStatus.CONFLICT, "Conflict", ex.getMessage(), request, null);
+    public ResponseEntity<ErrorResponseDTO> businessRule(ReglaNegocioException ex, HttpServletRequest request) {
+        return body(HttpStatus.CONFLICT, "Conflict", ex.getMessage(), request, null);
     }
-
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponseDTO> validacionRequest(
-            MethodArgumentNotValidException ex, HttpServletRequest request) {
-        Map<String, String> errores = new LinkedHashMap<>();
-        ex.getBindingResult().getFieldErrors().forEach(error ->
-                errores.put(error.getField(), error.getDefaultMessage()));
-        return respuesta(HttpStatus.BAD_REQUEST, "Bad Request",
-                "Existen errores de validación", request, errores);
+    public ResponseEntity<ErrorResponseDTO> invalidBody(MethodArgumentNotValidException ex, HttpServletRequest request) {
+        Map<String,String> errors=new LinkedHashMap<>();
+        ex.getBindingResult().getFieldErrors().forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
+        return body(HttpStatus.BAD_REQUEST, "Bad Request", "Existen errores de validación", request, errors);
     }
-
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<ErrorResponseDTO> validacionParametros(
-            ConstraintViolationException ex, HttpServletRequest request) {
-        Map<String, String> errores = new LinkedHashMap<>();
-        ex.getConstraintViolations().forEach(violation -> {
-            String path = violation.getPropertyPath().toString();
-            errores.put(path.substring(path.lastIndexOf('.') + 1), violation.getMessage());
-        });
-        return respuesta(HttpStatus.BAD_REQUEST, "Bad Request",
-                "Existen errores de validación", request, errores);
+    public ResponseEntity<ErrorResponseDTO> invalidParameter(ConstraintViolationException ex, HttpServletRequest request) {
+        Map<String,String> errors=new LinkedHashMap<>();
+        ex.getConstraintViolations().forEach(v -> { String path=v.getPropertyPath().toString(); errors.put(path.substring(path.lastIndexOf('.')+1),v.getMessage()); });
+        return body(HttpStatus.BAD_REQUEST, "Bad Request", "Existen errores de validación", request, errors);
     }
-
     @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<ErrorResponseDTO> noAutenticado(
-            AuthenticationException ex, HttpServletRequest request) {
-        return respuesta(HttpStatus.UNAUTHORIZED, "Unauthorized",
-                "Se requiere autenticación válida", request, null);
+    public ResponseEntity<ErrorResponseDTO> unauthenticated(AuthenticationException ex, HttpServletRequest request) {
+        return body(HttpStatus.UNAUTHORIZED, "Unauthorized", "Se requiere autenticación válida", request, null);
     }
-
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ErrorResponseDTO> accesoDenegado(
-            AccessDeniedException ex, HttpServletRequest request) {
-        return respuesta(HttpStatus.FORBIDDEN, "Forbidden",
-                "No tiene permisos para realizar esta operación", request, null);
+    public ResponseEntity<ErrorResponseDTO> forbidden(AccessDeniedException ex, HttpServletRequest request) {
+        return body(HttpStatus.FORBIDDEN, "Forbidden", "No tiene permisos para realizar esta operación", request, null);
     }
-
-    private ResponseEntity<ErrorResponseDTO> respuesta(
-            HttpStatus status, String error, String message,
-            HttpServletRequest request, Map<String, String> validationErrors) {
-        ErrorResponseDTO body = new ErrorResponseDTO(
-                LocalDateTime.now(), status.value(), error, message,
-                request.getRequestURI(), validationErrors);
-        return ResponseEntity.status(status).body(body);
+    private ResponseEntity<ErrorResponseDTO> body(HttpStatus status, String error, String message,
+                                                   HttpServletRequest request, Map<String,String> validationErrors) {
+        return ResponseEntity.status(status).body(new ErrorResponseDTO(LocalDateTime.now(), status.value(), error,
+                message, request.getRequestURI(), validationErrors));
     }
 }

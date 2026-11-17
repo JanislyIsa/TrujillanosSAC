@@ -27,6 +27,9 @@ public class Cotizacion {
     @NotNull @Column(name = "MONTO", precision = 12, scale = 2, nullable = false)
     private BigDecimal monto;
 
+    @Column(name = "DESCRIPCION", length = 500)
+    private String descripcion;
+
     @NotNull @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "ID_ESTADO", nullable = false)
     private EstadoCotizacion estadoCotizacion;

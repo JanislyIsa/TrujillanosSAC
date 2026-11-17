@@ -10,6 +10,6 @@ public class ComprobanteCompraMapper {
         return new ComprobanteCompraResponseDTO(
                 comprobante.getIdComprobante(), comprobante.getFechaEmision(), comprobante.getMonto(),
                 comprobante.getEstadoComprobanteCompra().getNombre(),
-                comprobante.getOrdenCompra().getIdOrdenCompra());
+                comprobante.getOrdenCompra().getIdOrdenCompra(), comprobante.getNumeroFactura());
     }
 }

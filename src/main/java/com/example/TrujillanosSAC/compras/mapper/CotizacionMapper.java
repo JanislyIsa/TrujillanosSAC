@@ -21,6 +21,6 @@ public class CotizacionMapper {
                 cotizacion.getEstadoCotizacion().getNombre(),
                 cotizacion.getSolicitudCompra().getIdSolicitud(), proveedor.getIdPersona(),
                 proveedorNombre, cotizacion.getMonto(), cotizacion.getDetalles().stream()
-                .map(detalleMapper::toResponse).toList());
+                .map(detalleMapper::toResponse).toList(), cotizacion.getDescripcion());
     }
 }

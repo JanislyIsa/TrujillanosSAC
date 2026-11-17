@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 
-/** Login y registro de clientes de la API (JWT). Públicos: los permite VentasSecurityConfig. */
+/** Login y registro de clientes de la API (JWT). Públicos: los permite ApiSecurityConfig. */
 @RestController
 @RequestMapping("/api/v1/auth")
 public class AuthController {

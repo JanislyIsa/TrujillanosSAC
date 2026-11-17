@@ -1,6 +1,6 @@
 package com.example.TrujillanosSAC.auth;
 
-/** Acciones de la API de ventas. El frontend las usa para mostrar u ocultar opciones. */
+/** Authorities de negocio para los módulos REST. El backend las aplica y el frontend puede mostrar opciones. */
 public enum Permiso {
     PEDIDO_CREAR,
     PEDIDO_VER_PROPIOS,
@@ -11,5 +11,13 @@ public enum Permiso {
     PAGO_VER_TODOS,
     COMPROBANTE_EMITIR,
     COMPROBANTE_VER_TODOS,
-    CATALOGO_EDITAR
+    CATALOGO_EDITAR,
+    COMPRAS_COTIZACIONES_CREAR,
+    COMPRAS_COTIZACIONES_VER_PROPIAS,
+    COMPRAS_COTIZACIONES_VER_TODAS,
+    COMPRAS_COTIZACIONES_GESTIONAR,
+    COMPRAS_ORDENES_GESTIONAR,
+    COMPRAS_COMPROBANTES_CREAR,
+    COMPRAS_COMPROBANTES_VER,
+    COMPRAS_PAGOS_GESTIONAR
 }

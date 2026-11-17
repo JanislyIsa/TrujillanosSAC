@@ -24,11 +24,9 @@ Requisitos: JDK 21 o superior, Node compatible con Angular 22 (se verificó con 
 
 1. Preparar usuario, tablas y datos con [la guía Oracle](database/oracle/README.md). Cada integrante usa su propia base o una instancia compartida acordada por el equipo.
 2. Copiar `application-local.properties.example` a `application-local.properties` en la raíz y completar las credenciales. Ese archivo personal no se sube a Git.
-3. Desde `frontend`, ejecutar `npm ci` y `npm run build:backend` para integrar Angular en Spring.
-4. Desde la raíz, ejecutar `./mvnw.cmd spring-boot:run` en Windows y abrir `http://localhost:9191/login`.
+3. Iniciar Spring desde la raíz con `./mvnw.cmd spring-boot:run` en Windows. El perfil local escucha en `http://localhost:8080`.
+4. En el repositorio independiente `TrujillanosSAC-Frontend`, ejecutar `npm ci` y `npm start`. Abrir `http://localhost:4200`; el proxy de Angular conecta con el backend.
 
-En desarrollo separado, iniciar Spring en 9191 y ejecutar `npm start` desde `frontend` para Angular en `http://localhost:4200`. El login general se sirve desde el backend a través del proxy.
+Validación: `./mvnw.cmd test` en la raíz del backend; `npm run check` y `npm run build` en el repositorio `TrujillanosSAC-Frontend`.
 
-Validación: `./mvnw.cmd test` en la raíz; `npm run check` y `npm run build:backend` en `frontend`. Las últimas comprobaciones de código previas a esta importación aprobaron 21 pruebas de backend y la compilación Angular.
-
-Los bundles integrados están incluidos para poder abrir inventario al arrancar Spring; el código editable está en `frontend/src`. Los cambios de esquema se entregan como nuevas migraciones. No volver a ejecutar la instalación inicial sobre una base con datos.
+El backend expone las API REST y el frontend Angular se ejecuta y versiona por separado. Los cambios de esquema se entregan como nuevas migraciones. No volver a ejecutar la instalación inicial sobre una base con datos.

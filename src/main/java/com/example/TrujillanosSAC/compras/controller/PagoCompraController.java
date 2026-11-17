@@ -15,7 +15,7 @@ import java.util.List;
 @RestController
 @Validated
 @RequestMapping("/api/v1/compras/pagos")
-@PreAuthorize("hasRole('EMPLEADO')")
+@PreAuthorize("hasAuthority('COMPRAS_PAGOS_GESTIONAR')")
 public class PagoCompraController {
     private final PagoCompraService pagoCompraService;
 

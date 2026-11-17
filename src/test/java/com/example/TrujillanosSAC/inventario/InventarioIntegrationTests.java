@@ -1,7 +1,7 @@
 package com.example.TrujillanosSAC.inventario;
 
-import com.example.TrujillanosSAC.Model.*;
-import com.example.TrujillanosSAC.Repository.*;
+import com.example.TrujillanosSAC.usuarios.model.*;
+import com.example.TrujillanosSAC.usuarios.repository.*;
 import com.example.TrujillanosSAC.exception.ReglaNegocioException;
 import com.example.TrujillanosSAC.ventas.dto.request.DetallePedidoRequestDTO;
 import com.example.TrujillanosSAC.ventas.dto.request.PedidoRequestDTO;

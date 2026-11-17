@@ -28,7 +28,7 @@ En Swagger: hacer login, copiar el `token` y pegarlo en **Authorize → jwt** (s
 |---|---|
 | `JWT_SECRET` | Secreto Base64 de mínimo 32 bytes (`openssl rand -base64 32`). Obligatorio en `prod` |
 | `JWT_EXPIRACION_MINUTOS` | Duración del token (60) |
-| `VENTAS_CORS_ORIGENES` | Orígenes permitidos del frontend (`http://localhost:4200`) |
+| `API_CORS_ORIGENES` | Orígenes permitidos del frontend (`http://localhost:4200`) |
 
 ## Flujo de una venta
 
