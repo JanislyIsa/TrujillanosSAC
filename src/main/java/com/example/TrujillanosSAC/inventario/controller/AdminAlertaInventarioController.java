@@ -2,7 +2,7 @@ package com.example.TrujillanosSAC.inventario.controller;
 import com.example.TrujillanosSAC.inventario.dto.InventarioDtos.*;
 import com.example.TrujillanosSAC.inventario.model.*;
 import com.example.TrujillanosSAC.inventario.repository.*;
-import com.example.TrujillanosSAC.inventario.service.*;
+import com.example.TrujillanosSAC.inventario.service.service.*;
 import com.example.TrujillanosSAC.inventario.dto.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;

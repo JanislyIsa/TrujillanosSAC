@@ -1,4 +1,4 @@
-package com.example.TrujillanosSAC.inventario.controller.api;
+package com.example.TrujillanosSAC.inventario.controller;
 
 import com.example.TrujillanosSAC.Repository.UsuarioRepository;
 import com.example.TrujillanosSAC.Service.AdminAccessService;

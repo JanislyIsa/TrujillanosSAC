@@ -1,4 +1,4 @@
-package com.example.TrujillanosSAC.inventario.service;
+package com.example.TrujillanosSAC.inventario.service.service;
 
 import com.example.TrujillanosSAC.inventario.model.Producto;
 

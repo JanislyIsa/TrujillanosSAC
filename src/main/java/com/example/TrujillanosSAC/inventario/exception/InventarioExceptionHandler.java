@@ -12,7 +12,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import java.time.*;
 import java.util.*;
 
-@RestControllerAdvice(basePackages = "com.example.TrujillanosSAC.inventario.controller.api")
+@RestControllerAdvice(basePackages = "com.example.TrujillanosSAC.inventario.controller")
 public class InventarioExceptionHandler {
     private final Clock clock;
     public InventarioExceptionHandler(Clock inventarioClock) { this.clock = inventarioClock; }

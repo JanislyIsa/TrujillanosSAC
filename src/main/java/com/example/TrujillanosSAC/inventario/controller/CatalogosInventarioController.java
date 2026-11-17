@@ -1,4 +1,4 @@
-package com.example.TrujillanosSAC.inventario.controller.api;
+package com.example.TrujillanosSAC.inventario.controller;
 import com.example.TrujillanosSAC.inventario.dto.InventarioDtos.CatalogoResponse;
 import com.example.TrujillanosSAC.inventario.repository.*;
 import lombok.RequiredArgsConstructor;

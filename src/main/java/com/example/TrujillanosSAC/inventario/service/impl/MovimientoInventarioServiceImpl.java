@@ -5,7 +5,7 @@ import com.example.TrujillanosSAC.inventario.dto.MovimientoInventarioDto;
 import com.example.TrujillanosSAC.inventario.exception.InventarioException;
 import com.example.TrujillanosSAC.inventario.model.*;
 import com.example.TrujillanosSAC.inventario.repository.*;
-import com.example.TrujillanosSAC.inventario.service.*;
+import com.example.TrujillanosSAC.inventario.service.service.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -105,9 +105,10 @@ public class MovimientoInventarioServiceImpl implements MovimientoInventarioServ
     public ComprobanteResponse comprobante(Long id) {
         ComprobanteMovimiento comprobante = comprobantes.findById(id)
                 .orElseThrow(() -> InventarioException.noEncontrado("Comprobante del movimiento"));
-        MovimientoInventarioDto dto = listar(null,null,null,null,null,null).stream()
-                .filter(d -> id.equals(d.idMovimiento())).findFirst()
-                .orElseThrow(() -> InventarioException.noEncontrado("Detalle del movimiento"));
+        MovimientoInventarioDto dto = detallesProducto.findByIdMovimiento(id)
+                .map(this::mapear)
+                .orElseGet(() -> detallesInsumo.findByIdMovimiento(id).map(this::mapear)
+                        .orElseThrow(() -> InventarioException.noEncontrado("Detalle del movimiento")));
         var guardado = new MovimientoInventarioDto(dto.idMovimiento(),dto.codigoMovimiento(),
                 comprobante.getCodigo(),dto.tipoMovimiento(),dto.tipoItem(),dto.nombreItem(),
                 dto.cantidad(),dto.unidad(),dto.stockAnterior(),dto.stockNuevo(),dto.fecha(),dto.hora(),dto.almacen());
