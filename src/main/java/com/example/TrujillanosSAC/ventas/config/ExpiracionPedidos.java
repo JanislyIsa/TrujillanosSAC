@@ -1,6 +1,6 @@
 package com.example.TrujillanosSAC.ventas.config;
 
-import com.example.TrujillanosSAC.ventas.service.PedidoService;
+import com.example.TrujillanosSAC.ventas.service.service.PedidoService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,7 +15,6 @@ import java.time.LocalDateTime;
  * esta tarea cancela el pedido y devuelve el stock, para que no quede retenido para siempre.
  */
 @Component
-@ConditionalOnProperty(name = "ventas.pedido.expiracion.habilitado", havingValue = "true", matchIfMissing = true)
 public class ExpiracionPedidos {
 
     private static final Logger log = LoggerFactory.getLogger(ExpiracionPedidos.class);
@@ -24,7 +23,8 @@ public class ExpiracionPedidos {
     private final long minutos;
 
     public ExpiracionPedidos(PedidoService pedidos,
-                             @Value("${ventas.pedido.expiracion.minutos:30}") long minutos) {
+                             @Value("${ventas.pedido.expiracion.minutos:30}")
+                             long minutos) {
         this.pedidos = pedidos;
         this.minutos = minutos;
     }

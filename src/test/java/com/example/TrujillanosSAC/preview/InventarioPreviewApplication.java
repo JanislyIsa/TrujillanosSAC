@@ -1,7 +1,7 @@
 package com.example.TrujillanosSAC.preview;
 
 import com.example.TrujillanosSAC.TrujillanosSacApplication;
-import com.example.TrujillanosSAC.Model.*;
+import com.example.TrujillanosSAC.usuarios.model.*;
 import com.example.TrujillanosSAC.inventario.dto.InventarioDtos.*;
 import com.example.TrujillanosSAC.inventario.model.*;
 import com.example.TrujillanosSAC.inventario.service.CatalogoInventarioService;

@@ -4,7 +4,7 @@ import com.example.TrujillanosSAC.exception.RecursosNoEncontradosException;
 import com.example.TrujillanosSAC.inventario.model.Producto;
 import com.example.TrujillanosSAC.ventas.dto.response.ProductoVentaResponseDTO;
 import com.example.TrujillanosSAC.ventas.repository.ProductoVentaRepository;
-import com.example.TrujillanosSAC.ventas.service.ProductoVentaService;
+import com.example.TrujillanosSAC.ventas.service.service.ProductoVentaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

@@ -28,7 +28,7 @@ En Swagger: hacer login, copiar el `token` y pegarlo en **Authorize → jwt** (s
 |---|---|
 | `JWT_SECRET` | Secreto Base64 de mínimo 32 bytes (`openssl rand -base64 32`). Obligatorio en `prod` |
 | `JWT_EXPIRACION_MINUTOS` | Duración del token (60) |
-| `VENTAS_CORS_ORIGENES` | Orígenes permitidos del frontend (`http://localhost:4200`) |
+| `API_CORS_ORIGENES` | Orígenes permitidos del frontend (`http://localhost:4200`) |
 
 ## Flujo de una venta
 
@@ -45,37 +45,89 @@ En Swagger: hacer login, copiar el `token` y pegarlo en **Authorize → jwt** (s
 4. **Entrega** (empleado) — `PATCH /pedidos/{id}/estado` `{ "estado": "LISTO_PARA_RECOJO" | "ENTREGADO" }`
 
 Otros: `GET /pedidos` (empleado: todos; cliente: los suyos), `GET /pedidos/{id}`,
-`POST /pedidos/{id}/cancelar` (solo pendientes), `GET /pagos?pedidoId=`, `GET /comprobantes/{id}`.
+`POST /pedidos/{id}/cancelar` (solo empleado y solo pendientes), `GET /pagos?pedidoId=`, `GET /comprobantes/{id}`.
 
 Catálogos (`/estados-pedido`, `/estados-pago`, `/metodos-pago`, `/tipos-comprobante`, `/estados-comprobante`):
 `GET` para cualquier usuario con sesión y `PUT /{id}` `{ "nombre" }` (renombrar) para empleados.
 Los registros los crea el sistema y el `codigo` no cambia nunca: es lo que usa el programa.
 
 El empleado solo administra: ve todos los pedidos y pagos, avanza la entrega y puede cancelar pendientes.
+El cliente no cancela: si no paga, el pedido vence solo a los 30 minutos y el stock vuelve.
+
+## Consultas y reportes
+
+**Búsqueda** — `GET /pedidos/buscar` (empleado y cliente). Todos los filtros son opcionales y combinables:
+
+| Parámetro | Tipo | Por defecto | Ejemplo | Si falta |
+|---|---|---|---|---|
+| `clienteId` | Long | — | `3` | No filtra por cliente. Un cliente siempre ve solo los suyos (se ignora este valor) |
+| `estado` | código de `EstadoPedidoCodigo` | — | `PAGADO` | No filtra por estado |
+| `desde` / `hasta` | fecha ISO | — | `2026-11-01T00:00:00` | No limita el rango |
+| `ordenarPor` | `fecha`, `total` o `id` | `fecha` | `total` | Ordena por fecha |
+| `direccion` | `asc` o `desc` | `desc` | `asc` | Descendente |
+
+Respuestas: sin coincidencias **200 con `[]`** (nunca 404); `ordenarPor` no permitido o `desde` posterior a `hasta`
+**409**; fecha que no es ISO o estado inexistente **400**.
+
+**Reportes** (solo empleado), con rango de fechas opcional `desde` / `hasta`:
+- `GET /reportes/ventas-por-categoria` → `[{ categoriaId, categoriaNombre, unidadesVendidas, montoTotal }]`
+- `GET /reportes/productos-mas-vendidos?top=10` → `[{ productoId, productoNombre, unidadesVendidas, montoTotal }]`
+
+Solo cuentan como venta los pedidos `PAGADO`, `LISTO_PARA_RECOJO` y `ENTREGADO` (`EstadoPedidoCodigo.vendidos()`):
+un pedido `PENDIENTE` o `CANCELADO` no se cobró y no debe sumar. Los reportes están bajo `/api/v1/ventas/reportes`
+(no en `/api/v1/reportes`) para usar la misma seguridad JWT y el mismo CORS del módulo.
+
+**Trazabilidad**: `PedidoServiceImpl` y `ReporteServiceImpl` registran, al inicio y al final de cada consulta,
+los parámetros, el número de filas y `duracionMs`. Solo identificadores: nunca nombres, documentos ni lo que compró
+una persona. En `dev` el nivel es `debug`; en `prod`, `info`.
+
+## Estructura del paquete `ventas`
+
+```
+ventas/
+├── config/            seguridad JWT + CORS, seeders, tarea de expiración
+├── controller/        PedidoController, PagoController, ComprobanteVentaController, ReporteController, catálogos
+├── dto/request/       PedidoRequestDTO, DetallePedidoRequestDTO, ...
+├── dto/response/      PedidoResponseDTO, DetallePedidoResponseDTO, ...
+├── dto/reporte/       VentaPorCategoriaDTO, ProductoMasVendidoDTO (record)
+├── exception/         VentasExceptionHandler (lo propio de ventas; lo demás va al GlobalExceptionHandler)
+├── mapper/            VentaMapper (entidad -> DTO)
+├── model/             Pedido (cabecera), DetallePedido (detalle), Pago, ComprobanteVenta, catálogos
+├── repository/        PedidoRepository (búsqueda + reportes), ...
+├── security/          ActorVenta (quién hace la operación)
+└── service/
+    ├── generic/       CatalogoService (contrato común de los catálogos, como CrudService)
+    ├── service/       interfaces: PedidoService, PagoService, ReporteService, EstadoPedidoService, ...
+    ├── impl/          implementaciones: PedidoServiceImpl, ReporteServiceImpl, CatalogoServiceImpl, ...
+    ├── pasarela/      Culqi
+    └── facturacion/   SUNAT (pendiente)
+```
+
+Equivalencias con el ejemplo de clase (PharmaBackend): `Venta` = `Pedido`, `DetalleVenta` = `DetallePedido`,
+estado inicial `REGISTRADA` = `PENDIENTE`, `ANULADA` = `CANCELADO` (`POST /pedidos/{id}/cancelar`, 409 si ya no
+está pendiente). Diferencia del negocio: en clase los reportes excluyen `ANULADA`; aquí, como el cobro es en línea,
+solo cuentan los pedidos ya pagados.
 
 ## Estados del pedido
 
 ```
 PENDIENTE ──pago──▶ PROCESANDO_PAGO ──aprobado──▶ PAGADO ──▶ LISTO_PARA_RECOJO ──▶ ENTREGADO
     │                      └──rechazado/error──▶ PENDIENTE
-    └──cancelar / vence──▶ CANCELADO (devuelve stock)
+    └──vence / cancela un empleado──▶ CANCELADO (devuelve stock)
 ```
 
 ## Configuración (`application.yaml`)
 
 | Variable de entorno | Para qué |
 |---|---|
-| `VENTAS_PASARELA` | `simulada` (por defecto, no cobra) o `culqi` |
 | `CULQI_LLAVE_SECRETA` | Llave `sk_test_...` o `sk_live_...`. Nunca en el código ni en Git |
 | `VENTAS_PEDIDO_EXPIRACION_MINUTOS` | Minutos para pagar antes de que el pedido se cancele (30) |
 
-En modo simulado, un token que contenga `rechazo` simula un rechazo, uno con `error` una caída y uno con `yape`
-un pago con Yape (cualquier otro se registra como tarjeta).
 
 ## Culqi Checkout en Angular (solo tarjeta y Yape)
 
 Mientras no exista el frontend, `docs/ventas/prueba-culqi.html` abre el checkout real con la llave `pk_test_...`
-y muestra el token de Culqi para pegarlo en Swagger (`POST /pagos/culqi`, con `VENTAS_PASARELA=culqi`).
+y muestra el token de Culqi para pegarlo en Swagger (`POST /pagos/culqi`).
 Abrirla desde IntelliJ (clic derecho → Open In → Browser) para que se sirva por `http://localhost`.
 
 Datos de prueba (solo con llaves `pk_test`/`sk_test`, no mueven dinero real;

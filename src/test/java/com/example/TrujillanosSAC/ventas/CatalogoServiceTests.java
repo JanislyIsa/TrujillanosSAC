@@ -6,7 +6,8 @@ import com.example.TrujillanosSAC.ventas.dto.request.CatalogoRequestDTO;
 import com.example.TrujillanosSAC.ventas.model.EstadoPedido;
 import com.example.TrujillanosSAC.ventas.model.codigo.EstadoPedidoCodigo;
 import com.example.TrujillanosSAC.ventas.repository.EstadoPedidoRepository;
-import com.example.TrujillanosSAC.ventas.service.EstadoPedidoService;
+import com.example.TrujillanosSAC.ventas.service.impl.EstadoPedidoServiceImpl;
+import com.example.TrujillanosSAC.ventas.service.service.EstadoPedidoService;
 import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
@@ -15,11 +16,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
-/** Prueba la base genérica de catálogos usando EstadoPedidoService como ejemplo. */
+/** Prueba la base genérica de catálogos usando EstadoPedidoServiceImpl como ejemplo. */
 class CatalogoServiceTests {
 
     private final EstadoPedidoRepository repository = mock(EstadoPedidoRepository.class);
-    private final EstadoPedidoService service = new EstadoPedidoService(repository);
+    private final EstadoPedidoService service = new EstadoPedidoServiceImpl(repository);
 
     private static EstadoPedido estado(Long id, String codigo, String nombre) {
         EstadoPedido e = new EstadoPedido();

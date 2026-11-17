@@ -1,4 +1,4 @@
-package com.example.TrujillanosSAC.ventas.service;
+package com.example.TrujillanosSAC.ventas.service.impl;
 
 import com.example.TrujillanosSAC.exception.RecursosNoEncontradosException;
 import com.example.TrujillanosSAC.exception.ReglaNegocioException;
@@ -8,6 +8,7 @@ import com.example.TrujillanosSAC.ventas.mapper.VentaMapper;
 import com.example.TrujillanosSAC.ventas.model.Catalogo;
 import com.example.TrujillanosSAC.ventas.model.codigo.CodigoCatalogo;
 import com.example.TrujillanosSAC.ventas.repository.CatalogoRepository;
+import com.example.TrujillanosSAC.ventas.service.generic.CatalogoService;
 import org.springframework.data.domain.Sort;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,30 +18,33 @@ import java.util.Optional;
 
 /**
  * Lógica común de los 5 catálogos de ventas. Cada catálogo es una subclase de pocas líneas
- * (por ejemplo {@link EstadoPedidoService}). Los registros los crea el sistema (seeder o script SQL)
+ * (por ejemplo {@link EstadoPedidoServiceImpl}). Los registros los crea el sistema (seeder o script SQL)
  * porque el programa depende de sus códigos; por eso solo se pueden consultar y renombrar.
  */
-public abstract class CatalogoService<E extends Catalogo> {
+public abstract class CatalogoServiceImpl<E extends Catalogo> implements CatalogoService<E> {
 
     private final CatalogoRepository<E> repository;
     private final String nombreCatalogo;
 
-    protected CatalogoService(CatalogoRepository<E> repository, String nombreCatalogo) {
+    protected CatalogoServiceImpl(CatalogoRepository<E> repository, String nombreCatalogo) {
         this.repository = repository;
         this.nombreCatalogo = nombreCatalogo;
     }
 
+    @Override
     @Transactional(readOnly = true)
     public List<CatalogoResponseDTO> listar() {
         return repository.findAll(Sort.by("id")).stream().map(VentaMapper::catalogo).toList();
     }
 
+    @Override
     @Transactional(readOnly = true)
     public CatalogoResponseDTO obtener(Long id) {
         return VentaMapper.catalogo(buscar(id));
     }
 
     /** Para los demás servicios: busca el registro que el programa necesita por su código. */
+    @Override
     @Transactional(readOnly = true)
     public E porCodigo(CodigoCatalogo codigo) {
         return buscarPorCodigo(codigo).orElseThrow(() -> new ReglaNegocioException(
@@ -48,12 +52,14 @@ public abstract class CatalogoService<E extends Catalogo> {
     }
 
     /** Igual que porCodigo, pero sin lanzar error si falta (lanzarlo marcaría la transacción para deshacerse). */
+    @Override
     @Transactional(readOnly = true)
     public Optional<E> buscarPorCodigo(CodigoCatalogo codigo) {
         return repository.findByCodigo(codigo.name());
     }
 
     /** Cambia solo el nombre visible; el código queda igual para que el programa lo siga encontrando. */
+    @Override
     @Transactional
     public CatalogoResponseDTO actualizar(Long id, CatalogoRequestDTO request) {
         E entidad = buscar(id);

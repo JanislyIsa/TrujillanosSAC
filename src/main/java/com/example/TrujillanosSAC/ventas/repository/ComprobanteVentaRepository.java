@@ -13,6 +13,8 @@ public interface ComprobanteVentaRepository extends JpaRepository<ComprobanteVen
 
     boolean existsByPedido_IdPedido(Long pedidoId);
 
+    Optional<ComprobanteVenta> findByPedido_IdPedido(Long pedidoId);
+
     // NUMERO tiene ceros a la izquierda ("00000012"), así que ordenarlo como texto da el mismo orden que como número.
     Optional<ComprobanteVenta> findTopBySerieOrderByNumeroDesc(String serie);
 

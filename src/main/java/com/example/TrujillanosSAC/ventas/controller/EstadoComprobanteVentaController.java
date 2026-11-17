@@ -1,7 +1,7 @@
 package com.example.TrujillanosSAC.ventas.controller;
 
 import com.example.TrujillanosSAC.ventas.model.EstadoComprobanteVenta;
-import com.example.TrujillanosSAC.ventas.service.EstadoComprobanteVentaService;
+import com.example.TrujillanosSAC.ventas.service.service.EstadoComprobanteVentaService;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 

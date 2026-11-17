@@ -24,3 +24,8 @@ springdoc:
 
   api-docs:
     enabled: true
+
+# Desarrollo: trazas detalladas de los servicios (parametros, filas y duracion de cada consulta)
+logging:
+  level:
+    com.example.TrujillanosSAC: debug

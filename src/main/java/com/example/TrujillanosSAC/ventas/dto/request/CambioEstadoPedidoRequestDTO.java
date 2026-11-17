@@ -4,6 +4,7 @@ import com.example.TrujillanosSAC.ventas.model.codigo.EstadoPedidoCodigo;
 import jakarta.validation.constraints.NotNull;
 
 public record CambioEstadoPedidoRequestDTO(
-        @NotNull EstadoPedidoCodigo estado
+        @NotNull
+        EstadoPedidoCodigo estado
 ) {
 }

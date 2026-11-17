@@ -26,7 +26,7 @@ import java.io.IOException;
  * Lee "Authorization: Bearer &lt;token&gt;", lo valida y autentica al usuario. Basado en el de sysventas.
  * <p>
  * No es un @Component a propósito: se crea solo dentro de la cadena de seguridad de la API
- * (VentasSecurityConfig). Como bean, Spring lo registraría también para inventario y las páginas Thymeleaf.
+ * (ApiSecurityConfig). Como bean, Spring lo registraría también para inventario y las páginas Thymeleaf.
  */
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 

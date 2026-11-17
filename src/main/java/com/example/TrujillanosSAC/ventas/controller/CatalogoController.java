@@ -3,7 +3,7 @@ package com.example.TrujillanosSAC.ventas.controller;
 import com.example.TrujillanosSAC.ventas.dto.request.CatalogoRequestDTO;
 import com.example.TrujillanosSAC.ventas.dto.response.CatalogoResponseDTO;
 import com.example.TrujillanosSAC.ventas.model.Catalogo;
-import com.example.TrujillanosSAC.ventas.service.CatalogoService;
+import com.example.TrujillanosSAC.ventas.service.generic.CatalogoService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import org.springframework.security.access.prepost.PreAuthorize;

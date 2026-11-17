@@ -2,6 +2,7 @@ package com.example.TrujillanosSAC.auth;
 
 import com.example.TrujillanosSAC.auth.dto.LoginRequestDTO;
 import com.example.TrujillanosSAC.auth.dto.LoginResponseDTO;
+import com.example.TrujillanosSAC.auth.dto.RegistroClienteRequestDTO;
 import com.example.TrujillanosSAC.exception.dto.ErrorResponseDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -14,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 
-/** Login de la API (JWT). Público: lo permite VentasSecurityConfig. */
+/** Login y registro de clientes de la API (JWT). Públicos: los permite ApiSecurityConfig. */
 @RestController
 @RequestMapping("/api/v1/auth")
 public class AuthController {
@@ -22,14 +23,24 @@ public class AuthController {
     private static final Logger log = LoggerFactory.getLogger(AuthController.class);
 
     private final AuthService authService;
+    private final RegistroClienteService registroClienteService;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, RegistroClienteService registroClienteService) {
         this.authService = authService;
+        this.registroClienteService = registroClienteService;
     }
 
     @PostMapping("/login")
     public LoginResponseDTO login(@Valid @RequestBody LoginRequestDTO request) {
         return authService.login(request);
+    }
+
+    /** Registro público de un cliente. Responde igual que el login: el cliente queda con la sesión iniciada. */
+    @PostMapping("/registro")
+    @ResponseStatus(HttpStatus.CREATED)
+    public LoginResponseDTO registro(@Valid @RequestBody RegistroClienteRequestDTO request) {
+        registroClienteService.registrar(request);
+        return authService.login(new LoginRequestDTO(request.username().trim(), request.password()));
     }
 
     /** Usuario inexistente o contraseña incorrecta: el mismo mensaje en ambos casos, para no revelar cuál fue. */

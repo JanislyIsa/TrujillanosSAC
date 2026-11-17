@@ -24,7 +24,8 @@ public class Pedido {
     @Column(name = "ID_PEDIDO")
     private Long idPedido;
 
-    @Column(name = "FECHA_REGISTRO", nullable = false)
+    /** La genera el backend al guardar (@PrePersist); no se recibe en el request ni se modifica después. */
+    @Column(name = "FECHA_REGISTRO", nullable = false, updatable = false)
     private LocalDateTime fechaRegistro;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -41,6 +42,13 @@ public class Pedido {
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("idDetalle")
     private List<DetallePedido> detalles = new ArrayList<>();
+
+    @PrePersist
+    public void prePersist() {
+        fechaRegistro = LocalDateTime.now();
+        // El estado inicial (PENDIENTE) lo asigna el service: es un registro de catálogo
+        // (tabla ESTADO_PEDIDO), no un enum, así que no se puede crear aquí sin el repositorio.
+    }
 
     public void agregarDetalle(DetallePedido detalle) {
         detalle.setPedido(this);

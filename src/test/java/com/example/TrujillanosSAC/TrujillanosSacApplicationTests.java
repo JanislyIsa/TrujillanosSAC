@@ -16,8 +16,6 @@ class TrujillanosSacApplicationTests {
 	@Test
 	void contextLoads() {
 		assertThat(context.getBean("detalleOrdenCompraRepository"))
-				.isInstanceOf(com.example.TrujillanosSAC.Repository.DetalleOrdenCompraRepository.class);
-		assertThat(context.getBean("comprasDetalleOrdenCompraRepository"))
 				.isInstanceOf(com.example.TrujillanosSAC.compras.repository.DetalleOrdenCompraRepository.class);
 	}
 

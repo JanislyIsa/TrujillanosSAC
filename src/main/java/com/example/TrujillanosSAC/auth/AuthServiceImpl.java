@@ -1,6 +1,8 @@
 package com.example.TrujillanosSAC.auth;
 
 import com.example.TrujillanosSAC.usuarios.model.Persona;
+import com.example.TrujillanosSAC.usuarios.model.Cliente;
+import com.example.TrujillanosSAC.usuarios.repository.ClienteRepository;
 import com.example.TrujillanosSAC.usuarios.repository.UsuarioRepository;
 import com.example.TrujillanosSAC.auth.dto.LoginRequestDTO;
 import com.example.TrujillanosSAC.auth.dto.LoginResponseDTO;
@@ -23,12 +25,14 @@ public class AuthServiceImpl implements AuthService {
     private final AuthenticationProvider authenticationProvider;
     private final JwtService jwtService;
     private final UsuarioRepository usuarios;
+    private final ClienteRepository clientes;
 
     public AuthServiceImpl(AuthenticationProvider authenticationProvider, JwtService jwtService,
-                           UsuarioRepository usuarios) {
+                           UsuarioRepository usuarios, ClienteRepository clientes) {
         this.authenticationProvider = authenticationProvider;
         this.jwtService = jwtService;
         this.usuarios = usuarios;
+        this.clientes = clientes;
     }
 
     // Sin @Transactional: la consulta de la persona ya trae todo con "join fetch", y así una clave incorrecta
@@ -47,9 +51,14 @@ public class AuthServiceImpl implements AuthService {
                 .sorted()
                 .toList();
         String nombreUsuario = autenticacion.getName();
-        String nombreCompleto = usuarios.findByUsernameConRolesYPersona(nombreUsuario)
-                .map(u -> nombreCompleto(u.getPersona()))
-                .orElse(nombreUsuario);
+        var usuario = usuarios.findByUsernameConRolesYPersona(nombreUsuario);
+        String nombreCompleto = usuario.map(u -> nombreCompleto(u.getPersona())).orElse(nombreUsuario);
+        // El correo vive en el perfil de cliente; el frontend lo usa para el cobro sin volver a pedirlo.
+        String correo = usuario.flatMap(u -> clientes.findById(u.getPersona().getIdPersona()))
+                .map(Cliente::getCorreo)
+                .orElse(null);
+
+        String numeroDocumento = usuario.map(u -> u.getPersona()).map(Persona::getNumDoc).orElse(null);
 
         log.info("Inicio de sesión correcto: usuario={} roles={}", nombreUsuario, roles);
         return new LoginResponseDTO(
@@ -58,6 +67,8 @@ public class AuthServiceImpl implements AuthService {
                 jwtService.getExpiracionSegundos(),
                 nombreUsuario,
                 nombreCompleto,
+                correo,
+                numeroDocumento,
                 roles,
                 PermisosPorRol.permisos(roles));
     }
