@@ -8,7 +8,7 @@ import com.example.TrujillanosSAC.inventario.dto.InventarioDtos.*;
 import com.example.TrujillanosSAC.inventario.exception.InventarioException;
 import com.example.TrujillanosSAC.inventario.model.*;
 import com.example.TrujillanosSAC.inventario.repository.*;
-import com.example.TrujillanosSAC.inventario.service.*;
+import com.example.TrujillanosSAC.inventario.service.service.*;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;

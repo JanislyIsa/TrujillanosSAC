@@ -1,6 +1,6 @@
 package com.example.TrujillanosSAC.Controller;
 
-import com.example.TrujillanosSAC.inventario.service.SolicitudInventarioService;
+import com.example.TrujillanosSAC.inventario.service.service.SolicitudInventarioService;
 import com.example.TrujillanosSAC.inventario.dto.InventarioDtos.SolicitudRequest;
 import com.example.TrujillanosSAC.inventario.dto.InventarioDtos.SolicitudLineaRequest;
 

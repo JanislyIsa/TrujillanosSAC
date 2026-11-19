@@ -1,6 +1,6 @@
 package com.example.TrujillanosSAC.ServiceImpl;
 
-import com.example.TrujillanosSAC.inventario.service.MovimientoInventarioService;
+import com.example.TrujillanosSAC.inventario.service.service.MovimientoInventarioService;
 import com.example.TrujillanosSAC.inventario.dto.InventarioDtos.MovimientoRequest;
 import com.example.TrujillanosSAC.inventario.model.TipoMovimiento;
 import com.example.TrujillanosSAC.inventario.model.TipoItem;

@@ -1,7 +1,7 @@
 package com.example.TrujillanosSAC.Controller;
 
 import com.example.TrujillanosSAC.Dto.CheckoutRequest;
-import com.example.TrujillanosSAC.inventario.service.ProductoService;
+import com.example.TrujillanosSAC.inventario.service.service.ProductoService;
 import com.example.TrujillanosSAC.Service.PedidoService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
