@@ -1,5 +1,7 @@
 package com.example.TrujillanosSAC.inventario.service.service;
-import com.example.TrujillanosSAC.inventario.dto.InventarioDtos.*;
+import com.example.TrujillanosSAC.inventario.dto.request.InsumoRequest;
+import com.example.TrujillanosSAC.inventario.dto.request.ProductoRequest;
+import com.example.TrujillanosSAC.inventario.dto.response.ItemResponse;
 import com.example.TrujillanosSAC.inventario.model.*;
 import java.util.List;
 

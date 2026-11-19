@@ -1,5 +1,6 @@
 package com.example.TrujillanosSAC.inventario.controller;
-import com.example.TrujillanosSAC.inventario.dto.InventarioDtos.*;
+import com.example.TrujillanosSAC.inventario.dto.response.ItemResponse;
+import com.example.TrujillanosSAC.inventario.dto.response.PaginaResponse;
 import com.example.TrujillanosSAC.inventario.model.*;
 import com.example.TrujillanosSAC.inventario.service.service.CatalogoInventarioService;
 import lombok.RequiredArgsConstructor;

@@ -1,6 +1,9 @@
 package com.example.TrujillanosSAC.inventario.service.impl;
 
-import com.example.TrujillanosSAC.inventario.dto.InventarioDtos.*;
+import com.example.TrujillanosSAC.inventario.dto.request.InsumoRequest;
+import com.example.TrujillanosSAC.inventario.dto.request.MovimientoRequest;
+import com.example.TrujillanosSAC.inventario.dto.request.ProductoRequest;
+import com.example.TrujillanosSAC.inventario.dto.response.ItemResponse;
 import com.example.TrujillanosSAC.inventario.exception.InventarioException;
 import com.example.TrujillanosSAC.inventario.mapper.ItemInventarioMapper;
 import com.example.TrujillanosSAC.inventario.model.*;

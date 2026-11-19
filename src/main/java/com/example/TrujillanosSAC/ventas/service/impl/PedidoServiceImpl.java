@@ -4,7 +4,7 @@ import com.example.TrujillanosSAC.usuarios.model.Cliente;
 import com.example.TrujillanosSAC.usuarios.repository.ClienteRepository;
 import com.example.TrujillanosSAC.exception.RecursosNoEncontradosException;
 import com.example.TrujillanosSAC.exception.ReglaNegocioException;
-import com.example.TrujillanosSAC.inventario.dto.InventarioDtos.MovimientoRequest;
+import com.example.TrujillanosSAC.inventario.dto.request.MovimientoRequest;
 import com.example.TrujillanosSAC.inventario.model.Producto;
 import com.example.TrujillanosSAC.inventario.model.TipoItem;
 import com.example.TrujillanosSAC.inventario.model.TipoMovimiento;

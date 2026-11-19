@@ -1,5 +1,9 @@
 package com.example.TrujillanosSAC.inventario.controller;
-import com.example.TrujillanosSAC.inventario.dto.InventarioDtos.*;
+import com.example.TrujillanosSAC.inventario.dto.request.SolicitudAutomaticaRequest;
+import com.example.TrujillanosSAC.inventario.dto.request.SolicitudRequest;
+import com.example.TrujillanosSAC.inventario.dto.response.FaltanteResponse;
+import com.example.TrujillanosSAC.inventario.dto.response.PaginaResponse;
+import com.example.TrujillanosSAC.inventario.dto.response.SolicitudResponse;
 import com.example.TrujillanosSAC.inventario.service.service.SolicitudInventarioService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;

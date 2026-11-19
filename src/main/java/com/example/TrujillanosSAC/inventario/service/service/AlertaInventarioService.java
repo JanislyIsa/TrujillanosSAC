@@ -1,5 +1,6 @@
 package com.example.TrujillanosSAC.inventario.service.service;
-import com.example.TrujillanosSAC.inventario.dto.InventarioDtos.*;
+import com.example.TrujillanosSAC.inventario.dto.response.AlertaResponse;
+import com.example.TrujillanosSAC.inventario.dto.response.NotificacionResponse;
 import com.example.TrujillanosSAC.inventario.model.TipoItem;
 import java.util.List;
 

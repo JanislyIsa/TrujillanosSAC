@@ -1,5 +1,7 @@
 package com.example.TrujillanosSAC.inventario.controller;
-import com.example.TrujillanosSAC.inventario.dto.InventarioDtos.*;
+import com.example.TrujillanosSAC.inventario.dto.response.AlertaResponse;
+import com.example.TrujillanosSAC.inventario.dto.response.NotificacionResponse;
+import com.example.TrujillanosSAC.inventario.dto.response.PaginaResponse;
 import com.example.TrujillanosSAC.inventario.service.service.AlertaInventarioService;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;

@@ -1,5 +1,7 @@
 package com.example.TrujillanosSAC.inventario.service.service;
-import com.example.TrujillanosSAC.inventario.dto.InventarioDtos.*;
+import com.example.TrujillanosSAC.inventario.dto.request.SolicitudRequest;
+import com.example.TrujillanosSAC.inventario.dto.response.FaltanteResponse;
+import com.example.TrujillanosSAC.inventario.dto.response.SolicitudResponse;
 import java.util.List;
 
 public interface SolicitudInventarioService {
