@@ -1,5 +1,6 @@
 package com.example.TrujillanosSAC.inventario.controller;
 
+import com.example.TrujillanosSAC.inventario.dto.response.ImagenResponse;
 import com.example.TrujillanosSAC.inventario.exception.InventarioException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -14,7 +15,6 @@ import java.util.*;
 @RequestMapping("/api/v1/inventario/imagenes")
 @PreAuthorize("@inventarioPermisos.inventario(authentication)")
 public class ImagenInventarioController {
-    public record ImagenResponse(String ruta) {}
     @PostMapping @ResponseStatus(HttpStatus.CREATED)
     public ImagenResponse subir(@RequestParam("archivo") MultipartFile archivo) throws IOException {
         if (archivo.isEmpty() || archivo.getSize()>2*1024*1024)

@@ -1,5 +1,7 @@
 package com.example.TrujillanosSAC.inventario.controller;
-import com.example.TrujillanosSAC.inventario.dto.InventarioDtos.*;
+import com.example.TrujillanosSAC.inventario.dto.request.InsumoRequest;
+import com.example.TrujillanosSAC.inventario.dto.response.InsumoResponse;
+import com.example.TrujillanosSAC.inventario.dto.response.PaginaResponse;
 import com.example.TrujillanosSAC.inventario.model.*;
 import com.example.TrujillanosSAC.inventario.service.service.CatalogoInventarioService;
 import jakarta.validation.Valid;
@@ -17,21 +19,27 @@ import java.security.Principal;
 public class InsumoInventarioController {
     private final CatalogoInventarioService catalogo;
     @GetMapping
-    public PaginaResponse<ItemResponse> listar(@RequestParam(defaultValue="") String buscar,
+    public PaginaResponse<InsumoResponse> listar(@RequestParam(defaultValue="") String buscar,
             @RequestParam(required=false) Long idAlmacen, @RequestParam(required=false) Boolean activo, @RequestParam(required=false) EstadoStock estado,
             @RequestParam(defaultValue="0") int pagina, @RequestParam(defaultValue="20") int tamanio) {
-        return PaginaResponse.de(catalogo.listar(TipoItem.INSUMO,buscar,idAlmacen,estado).stream().filter(i -> activo==null || i.activo()==activo).toList(),pagina,tamanio);
+        var resultados = catalogo.listar(TipoItem.INSUMO, buscar, idAlmacen, estado).stream()
+                .filter(item -> activo == null || item.activo() == activo)
+                .map(InsumoResponse::de)
+                .toList();
+        return PaginaResponse.de(resultados, pagina, tamanio);
     }
     @GetMapping("/{id}")
-    public ItemResponse obtener(@PathVariable @Positive Long id) { return catalogo.obtener(TipoItem.INSUMO,id); }
+    public InsumoResponse obtener(@PathVariable @Positive Long id) {
+        return InsumoResponse.de(catalogo.obtener(TipoItem.INSUMO, id));
+    }
     @PostMapping
-    public ResponseEntity<ItemResponse> crear(@Valid @RequestBody InsumoRequest request, Principal principal) {
-        ItemResponse item = catalogo.crearInsumo(request,principal.getName());
+    public ResponseEntity<InsumoResponse> crear(@Valid @RequestBody InsumoRequest request, Principal principal) {
+        InsumoResponse item = InsumoResponse.de(catalogo.crearInsumo(request, principal.getName()));
         return ResponseEntity.created(URI.create("/api/v1/inventario/insumos/"+item.id())).body(item);
     }
     @PutMapping("/{id}")
-    public ItemResponse editar(@PathVariable @Positive Long id, @Valid @RequestBody InsumoRequest request) {
-        return catalogo.editarInsumo(id,request);
+    public InsumoResponse editar(@PathVariable @Positive Long id, @Valid @RequestBody InsumoRequest request) {
+        return InsumoResponse.de(catalogo.editarInsumo(id, request));
     }
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable @Positive Long id) {

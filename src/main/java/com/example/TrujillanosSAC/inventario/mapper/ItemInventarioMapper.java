@@ -1,6 +1,6 @@
 package com.example.TrujillanosSAC.inventario.mapper;
 
-import com.example.TrujillanosSAC.inventario.dto.InventarioDtos.ItemResponse;
+import com.example.TrujillanosSAC.inventario.dto.response.ItemResponse;
 import com.example.TrujillanosSAC.inventario.model.EstadoStock;
 import com.example.TrujillanosSAC.inventario.model.Insumo;
 import com.example.TrujillanosSAC.inventario.model.Producto;

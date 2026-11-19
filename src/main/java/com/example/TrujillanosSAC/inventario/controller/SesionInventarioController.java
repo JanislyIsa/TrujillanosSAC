@@ -1,11 +1,12 @@
 package com.example.TrujillanosSAC.inventario.controller;
 
+import com.example.TrujillanosSAC.inventario.dto.request.LoginRequest;
+import com.example.TrujillanosSAC.inventario.dto.response.SesionResponse;
 import com.example.TrujillanosSAC.usuarios.repository.UsuarioRepository;
 import com.example.TrujillanosSAC.Service.AdminAccessService;
 import com.example.TrujillanosSAC.inventario.exception.InventarioException;
 import jakarta.servlet.http.*;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.*;
 import org.springframework.http.*;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.*;
@@ -28,8 +29,6 @@ public class SesionInventarioController {
     public SesionInventarioController(AuthenticationProvider provider, AdminAccessService acceso, UsuarioRepository usuarios) {
         this.authenticationManager = new ProviderManager(provider); this.acceso=acceso; this.usuarios=usuarios;
     }
-    public record LoginRequest(@NotBlank @Size(max=20) String username, @NotBlank @Size(max=255) String password) {}
-    public record SesionResponse(String username, String nombre, String cargo, boolean inventario, boolean compras) {}
     @PostMapping("/login")
     public SesionResponse login(@Valid @RequestBody LoginRequest datos, HttpServletRequest request, HttpServletResponse response) {
         Authentication auth;

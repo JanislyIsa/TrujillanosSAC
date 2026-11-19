@@ -1,6 +1,6 @@
 package com.example.TrujillanosSAC.inventario.exception;
 
-import com.example.TrujillanosSAC.inventario.dto.InventarioDtos.ErrorResponse;
+import com.example.TrujillanosSAC.inventario.dto.response.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.dao.*;
