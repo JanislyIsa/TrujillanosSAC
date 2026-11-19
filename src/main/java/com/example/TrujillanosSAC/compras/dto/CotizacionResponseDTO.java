@@ -14,5 +14,6 @@ public record CotizacionResponseDTO(
         String proveedorNombre,
         BigDecimal monto,
         List<DetalleCotizacionResponseDTO> detalles,
-        String descripcion
+        String descripcion,
+        boolean tieneOrden
 ) {}

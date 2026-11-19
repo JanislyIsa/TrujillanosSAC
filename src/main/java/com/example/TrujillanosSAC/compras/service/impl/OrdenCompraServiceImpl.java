@@ -3,11 +3,18 @@ package com.example.TrujillanosSAC.compras.service.impl;
 import com.example.TrujillanosSAC.compras.dto.OrdenCompraRequestDTO;
 import com.example.TrujillanosSAC.compras.dto.OrdenCompraResponseDTO;
 import com.example.TrujillanosSAC.compras.mapper.OrdenCompraMapper;
+import com.example.TrujillanosSAC.compras.mapper.ComprobanteCompraMapper;
 import com.example.TrujillanosSAC.compras.model.DetalleOrdenCompra;
 import com.example.TrujillanosSAC.compras.model.OrdenCompra;
 import com.example.TrujillanosSAC.compras.repository.CotizacionRepository;
 import com.example.TrujillanosSAC.compras.repository.ComprobanteCompraRepository;
 import com.example.TrujillanosSAC.compras.repository.OrdenCompraRepository;
+import com.example.TrujillanosSAC.compras.repository.PagoCompraRepository;
+import com.example.TrujillanosSAC.compras.dto.OrdenCompraListadoResponseDTO;
+import com.example.TrujillanosSAC.compras.dto.OrdenesResumenResponseDTO;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageImpl;
 import com.example.TrujillanosSAC.compras.service.service.OrdenCompraService;
 import com.example.TrujillanosSAC.exception.RecursosNoEncontradosException;
 import com.example.TrujillanosSAC.exception.ReglaNegocioException;
@@ -21,15 +28,21 @@ public class OrdenCompraServiceImpl implements OrdenCompraService {
     private final CotizacionRepository cotizacionRepository;
     private final ComprobanteCompraRepository comprobanteRepository;
     private final OrdenCompraMapper mapper;
+    private final ComprobanteCompraMapper comprobanteMapper;
+    private final PagoCompraRepository pagoRepository;
 
     public OrdenCompraServiceImpl(OrdenCompraRepository ordenRepository,
                                   CotizacionRepository cotizacionRepository,
                                   ComprobanteCompraRepository comprobanteRepository,
-                                  OrdenCompraMapper mapper) {
+                                  OrdenCompraMapper mapper,
+                                  ComprobanteCompraMapper comprobanteMapper,
+                                  PagoCompraRepository pagoRepository) {
         this.ordenRepository = ordenRepository;
         this.cotizacionRepository = cotizacionRepository;
         this.comprobanteRepository = comprobanteRepository;
         this.mapper = mapper;
+        this.comprobanteMapper = comprobanteMapper;
+        this.pagoRepository = pagoRepository;
     }
 
     @Override @Transactional
@@ -87,6 +100,41 @@ public class OrdenCompraServiceImpl implements OrdenCompraService {
     @Override @Transactional(readOnly = true)
     public Iterable<OrdenCompraResponseDTO> readAll() {
         return ordenRepository.findAll().stream().map(mapper::toResponse).toList();
+    }
+
+    @Override @Transactional(readOnly = true)
+    public Page<OrdenCompraListadoResponseDTO> listarPagina(String buscar, Pageable pageable) {
+        Page<OrdenCompra> pagina = ordenRepository.buscarPagina(buscar == null ? "" : buscar.trim(), pageable);
+        var ordenes = pagina.getContent();
+        if (ordenes.isEmpty()) return new PageImpl<>(java.util.List.of(), pagina.getPageable(), pagina.getTotalElements());
+        var idsOrden = ordenes.stream().map(OrdenCompra::getIdOrdenCompra).toList();
+        var comprobantes = comprobanteRepository.findByOrdenCompraIdOrdenCompraIn(idsOrden);
+        var comprobantePorOrden = comprobantes.stream().collect(java.util.stream.Collectors.toMap(
+                c -> c.getOrdenCompra().getIdOrdenCompra(), java.util.function.Function.identity(), (a, b) -> a));
+        var comprobanteIds = comprobantes.stream().map(com.example.TrujillanosSAC.compras.model.ComprobanteCompra::getIdComprobante).toList();
+        var totalPagadoPorComprobante = comprobanteIds.isEmpty() ? java.util.Map.<Long, java.math.BigDecimal>of()
+                : pagoRepository.findByComprobanteCompraIdComprobanteIn(comprobanteIds).stream()
+                    .collect(java.util.stream.Collectors.groupingBy(
+                        p -> p.getComprobanteCompra().getIdComprobante(),
+                        java.util.stream.Collectors.reducing(java.math.BigDecimal.ZERO,
+                                com.example.TrujillanosSAC.compras.model.PagoCompra::getMonto, java.math.BigDecimal::add)));
+        return pagina.map(orden -> {
+            var base = mapper.toResponse(orden);
+            var comprobante = comprobantePorOrden.get(orden.getIdOrdenCompra());
+            var totalPagado = comprobante == null ? java.math.BigDecimal.ZERO
+                    : totalPagadoPorComprobante.getOrDefault(comprobante.getIdComprobante(), java.math.BigDecimal.ZERO);
+            var saldo = base.total().subtract(totalPagado).max(java.math.BigDecimal.ZERO);
+            return new OrdenCompraListadoResponseDTO(base.id(), base.fechaEmision(), base.descripcion(),
+                    base.cotizacionId(), base.proveedorNombre(), base.total(), base.detalles(),
+                    comprobante == null ? null : comprobanteMapper.toResponse(comprobante), totalPagado, saldo);
+        });
+    }
+
+    @Override @Transactional(readOnly = true)
+    public OrdenesResumenResponseDTO resumen() {
+        var resumen = ordenRepository.resumenOrdenes();
+        return new OrdenesResumenResponseDTO(resumen.getTotal(), resumen.getPendientes(),
+                resumen.getMontoPendiente() == null ? java.math.BigDecimal.ZERO : resumen.getMontoPendiente());
     }
 
     private OrdenCompra buscarEntidad(Long id) {
