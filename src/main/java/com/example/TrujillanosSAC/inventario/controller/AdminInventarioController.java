@@ -1,55 +1,68 @@
 package com.example.TrujillanosSAC.inventario.controller;
+import com.example.TrujillanosSAC.inventario.dto.InsumoAdminForm;
 import com.example.TrujillanosSAC.inventario.dto.request.InsumoRequest;
-import com.example.TrujillanosSAC.inventario.model.*;
-import com.example.TrujillanosSAC.inventario.repository.*;
-import com.example.TrujillanosSAC.inventario.service.service.*;
-import com.example.TrujillanosSAC.inventario.dto.*;
-import lombok.RequiredArgsConstructor;
+import com.example.TrujillanosSAC.inventario.model.TipoItem;
+import com.example.TrujillanosSAC.inventario.repository.AlmacenRepository;
+import com.example.TrujillanosSAC.inventario.service.service.CatalogoInventarioService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.security.Principal;
 
-@Controller @RequiredArgsConstructor
+@Controller
 @PreAuthorize("@inventarioPermisos.inventario(authentication)")
-
-@RequestMapping("/admin/inventario")
+@RequestMapping("/admin")
 public class AdminInventarioController {
     private final CatalogoInventarioService catalogo;
-    private final ProductoRepository productos;
-    private final InsumoRepository insumos;
-    private final CategoriaRepository categorias;
-    private final PresentacionProductoRepository presentaciones;
-    private final UnidadMedidaRepository unidades;
     private final AlmacenRepository almacenes;
-    @GetMapping
-    public String listar(Model model, Principal principal) {
-        return "redirect:/inventario-app/index.html#/inventario/catalogo";
+    private final String frontendEmpleadosUrl;
+
+    public AdminInventarioController(CatalogoInventarioService catalogo, AlmacenRepository almacenes,
+                                     @Value("${app.frontend.empleados-url}") String frontendEmpleadosUrl) {
+        this.catalogo = catalogo;
+        this.almacenes = almacenes;
+        this.frontendEmpleadosUrl = frontendEmpleadosUrl.replaceFirst("/+$", "");
     }
-    @GetMapping("/control-stock")
-    public String stock(Model model, Principal principal) {
-        return "redirect:/inventario-app/index.html#/inventario/stock";
+
+    @GetMapping({"/inventario", "/productos"})
+    public String catalogo() {
+        return irAlPanel("catalogo");
     }
-    private void comunes(Model model, Principal principal) {
-        model.addAttribute("usuarioNombre",principal.getName());
-        model.addAttribute("productos",productos.findAllParaGestion());
-        model.addAttribute("insumos",insumos.findAllParaInventario());
+
+    @GetMapping("/inventario/control-stock")
+    public String stock() {
+        return irAlPanel("stock");
     }
-    @PostMapping("/insumos")
+
+    @GetMapping("/inventario/movimientos")
+    public String movimientos() {
+        return irAlPanel("movimientos");
+    }
+
+    @GetMapping("/inventario/alertas")
+    public String alertas() {
+        return irAlPanel("alertas");
+    }
+
+    private String irAlPanel(String pagina) {
+        return "redirect:" + frontendEmpleadosUrl + "/#/inventario/" + pagina;
+    }
+
+    @PostMapping("/inventario/insumos")
     public String crear(@ModelAttribute InsumoAdminForm form, Principal principal, RedirectAttributes redirect) {
         try { catalogo.crearInsumo(request(form),principal.getName()); redirect.addFlashAttribute("mensajeExito","Insumo registrado correctamente."); }
         catch (RuntimeException ex) { redirect.addFlashAttribute("mensajeError","No se pudo registrar el insumo: revise sus datos y limites."); }
         return "redirect:/admin/inventario";
     }
-    @PostMapping("/insumos/{id}/editar")
+    @PostMapping("/inventario/insumos/{id}/editar")
     public String editar(@PathVariable Long id, @ModelAttribute InsumoAdminForm form, RedirectAttributes redirect) {
         try { catalogo.editarInsumo(id,request(form)); redirect.addFlashAttribute("mensajeExito","Insumo actualizado correctamente."); }
         catch (RuntimeException ex) { redirect.addFlashAttribute("mensajeError","Revise los datos. Cambie las existencias mediante movimientos; conserve almacen y unidad."); }
         return "redirect:/admin/inventario";
     }
-    @PostMapping("/insumos/{id}/eliminar")
+    @PostMapping("/inventario/insumos/{id}/eliminar")
     public String eliminar(@PathVariable Long id, RedirectAttributes redirect) {
         try { catalogo.eliminar(TipoItem.INSUMO,id); redirect.addFlashAttribute("mensajeExito","Insumo eliminado correctamente."); }
         catch (RuntimeException ex) { redirect.addFlashAttribute("mensajeError","El insumo tiene existencias o historial y debe conservarse."); }

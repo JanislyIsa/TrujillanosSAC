@@ -39,7 +39,8 @@ import com.example.TrujillanosSAC.usuarios.model.*;
 import com.example.TrujillanosSAC.usuarios.repository.*;
 
 @ActiveProfiles("test")
-@SpringBootTest @AutoConfigureMockMvc @Transactional
+@SpringBootTest(properties = "app.frontend.empleados-url=https://empleados.example.test/panel/")
+@AutoConfigureMockMvc @Transactional
 class InventarioIntegrationTests {
     @Autowired EntityManager em;
     @Autowired PlatformTransactionManager transactions;
@@ -269,11 +270,20 @@ class InventarioIntegrationTests {
         mvc.perform(post("/api/v1/inventario/sesion/logout").session(sesion).with(csrf())).andExpect(status().isNoContent());
         mvc.perform(get("/api/v1/inventario/sesion")).andExpect(status().isUnauthorized());
     }
-    @Test void frontendAbreSinSesionYPermiteRecargarLaRutaBase() throws Exception {
-        mvc.perform(get("/inventario-app/")).andExpect(status().isOk())
-                .andExpect(forwardedUrl("/inventario-app/index.html"));
-        mvc.perform(get("/inventario-app/index.html")).andExpect(status().isOk())
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("app-root")));
+    @Test void accesosDeInventarioRedirigenAlFrontendDeEmpleados() throws Exception {
+        var accesos = Map.of(
+                "/admin/inventario", "catalogo",
+                "/admin/productos", "catalogo",
+                "/admin/inventario/control-stock", "stock",
+                "/admin/inventario/movimientos", "movimientos",
+                "/admin/inventario/alertas", "alertas");
+        for (var acceso : accesos.entrySet()) {
+            mvc.perform(get(acceso.getKey()).with(user(almacenUser).roles("EMPLEADO")))
+                    .andExpect(status().isFound())
+                    .andExpect(redirectedUrl("https://empleados.example.test/panel/#/inventario/" + acceso.getValue()));
+        }
+        mvc.perform(get("/admin/inventario").with(user(jefeUser).roles("EMPLEADO")))
+                .andExpect(status().isForbidden());
     }
     @Test void loginGeneralComparteSesionConInventarioYRespetaCargo() throws Exception {
         var usuario=usuarios.findByUsernameConRolesYPersona(almacenUser).orElseThrow();
