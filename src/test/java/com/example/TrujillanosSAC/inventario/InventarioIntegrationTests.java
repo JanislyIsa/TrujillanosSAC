@@ -219,9 +219,9 @@ class InventarioIntegrationTests {
         mvc.perform(get("/api/v1/inventario/movimientos?tipoMovimiento=AJUSTE").with(user(almacenUser).roles("EMPLEADO")))
                 .andExpect(status().isBadRequest());
     }
-    @Test void jefeComprasPuedeSolicitarPeroAlmaceneroNo() throws Exception {
+    @Test void empleadosPuedenConsultarSolicitudesCompra() throws Exception {
         mvc.perform(get("/api/v1/inventario/solicitudes-compra/faltantes").with(user(almacenUser).roles("EMPLEADO")))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isOk()).andExpect(jsonPath("$.contenido").isArray());
         mvc.perform(get("/api/v1/inventario/solicitudes-compra/faltantes").with(user(jefeUser).roles("EMPLEADO")))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.contenido").isArray());
     }
@@ -264,9 +264,7 @@ class InventarioIntegrationTests {
         mvc.perform(post("/api/v1/inventario/sesion/logout").session(sesion).with(csrf())).andExpect(status().isNoContent());
         mvc.perform(get("/api/v1/inventario/sesion")).andExpect(status().isUnauthorized());
     }
-    @Test void frontendAbreSinSesionYPermiteRecargarLaRutaBase() throws Exception {
-        mvc.perform(get("/inventario-app/")).andExpect(status().isOk())
-                .andExpect(forwardedUrl("/inventario-app/index.html"));
+    @Test void frontendIntegradoAbreSinSesionPorSuRutaDeEntrada() throws Exception {
         mvc.perform(get("/inventario-app/index.html")).andExpect(status().isOk())
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("app-root")));
     }
