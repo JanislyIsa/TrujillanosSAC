@@ -7,7 +7,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 
 @Entity
 @Table(name = "DETALLE_SOLICITUD")
@@ -22,8 +21,9 @@ public class DetalleSolicitud {
     private Long idDetalleSol;
 
     @NotNull
-    @Column(name = "CANTIDAD", precision = 10, scale = 2, nullable = false)
-    private BigDecimal cantidad;
+    @jakarta.validation.constraints.Positive
+    @Column(name = "CANTIDAD", precision = 10, scale = 0, nullable = false)
+    private Integer cantidad;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)

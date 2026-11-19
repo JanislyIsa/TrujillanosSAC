@@ -16,8 +16,8 @@ public class DetalleCotizacion {
     @Column(name = "ID_DETALLE_COT")
     private Long idDetalleCot;
 
-    @NotNull @Positive @Column(name = "CANTIDAD", precision = 10, scale = 2, nullable = false)
-    private BigDecimal cantidad;
+    @NotNull @Positive @Column(name = "CANTIDAD", precision = 10, scale = 0, nullable = false)
+    private Integer cantidad;
 
     @NotNull @PositiveOrZero @Column(name = "PRECIO_UNITARIO", precision = 12, scale = 2, nullable = false)
     private BigDecimal precioUnitario;

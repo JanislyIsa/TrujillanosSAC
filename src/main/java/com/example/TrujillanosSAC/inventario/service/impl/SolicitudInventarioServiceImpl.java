@@ -55,8 +55,14 @@ public class SolicitudInventarioServiceImpl implements SolicitudInventarioServic
                 .fechaSolicitud(LocalDate.now(inventarioClock)).estadoSolicitudCompra(pendiente)
                 .proveedor(proveedor).empleado(empleado).build());
         for (SolicitudLineaRequest d : request.detalles()) {
+            final int cantidad;
+            try {
+                cantidad = d.cantidad().intValueExact();
+            } catch (ArithmeticException ex) {
+                throw new IllegalArgumentException("La cantidad solicitada debe ser un número entero dentro del rango permitido");
+            }
             detalles.save(DetalleSolicitud.builder().solicitudCompra(s)
-                    .insumo(items.get(d.idInsumo())).cantidad(d.cantidad()).build());
+                    .insumo(items.get(d.idInsumo())).cantidad(cantidad).build());
         }
         detalles.flush();
         return mapear(s);

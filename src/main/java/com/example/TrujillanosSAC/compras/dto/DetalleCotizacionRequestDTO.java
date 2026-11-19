@@ -7,6 +7,6 @@ import java.math.BigDecimal;
 
 public record DetalleCotizacionRequestDTO(
         @NotNull @Positive Long insumoId,
-        @NotNull @Positive BigDecimal cantidad,
+        @NotNull @Positive @jakarta.validation.constraints.DecimalMax("2147483647") BigDecimal cantidad,
         @NotNull @PositiveOrZero BigDecimal precioUnitario
 ) {}

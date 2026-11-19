@@ -7,7 +7,7 @@ public record DetalleCotizacionResponseDTO(
         Long insumoId,
         String insumoNombre,
         String unidadMedida,
-        BigDecimal cantidad,
+        Integer cantidad,
         BigDecimal precioUnitario,
         BigDecimal subtotal
 ) {}

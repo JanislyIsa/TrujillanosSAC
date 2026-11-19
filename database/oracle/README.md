@@ -115,8 +115,9 @@ No ejecutes `00`, `01`, `02` ni `03` sobre una base que ya tiene datos. Respáld
 1. `src/main/resources/db/migration/oracle/V1__inventario.sql`.
 2. `src/main/resources/db/migration/oracle/V2__inventario_frontend.sql`.
 3. `src/main/resources/db/migration/oracle/V3__comprobante_movimiento.sql`.
+4. `src/main/resources/db/migration/oracle/V4__compras_cantidades_enteras.sql`.
 
-V3 crea la entidad persistente `COMPROBANTE_MOVIMIENTO`, una por movimiento, y copia código, fecha, responsable y motivo de los movimientos previos. Mantiene los códigos `CM-001`, `CM-1000`, etc., sin truncar IDs mayores de 999. Los saldos históricos que no se guardaron siguen siendo desconocidos; la migración no los inventa.
+V3 crea la entidad persistente `COMPROBANTE_MOVIMIENTO`, una por movimiento, y copia código, fecha, responsable y motivo de los movimientos previos. Mantiene los códigos `CM-001`, `CM-1000`, etc., sin truncar IDs mayores de 999. Los saldos históricos que no se guardaron siguen siendo desconocidos; la migración no los inventa. V4 convierte las cantidades de solicitudes, cotizaciones y órdenes de compra a enteros. Se detiene si encuentra cantidades fraccionarias o fuera del rango `Integer`; corrige esos registros antes de volver a ejecutarla.
 
 No hay Flyway: estas migraciones son manuales. Spring conserva `ddl-auto=validate`, por lo que comprueba el esquema sin crearlo, borrarlo ni modificarlo.
 
