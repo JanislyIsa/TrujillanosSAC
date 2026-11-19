@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import jakarta.persistence.LockModeType;
 import java.util.List;
 import java.util.Optional;
+import java.util.Collection;
 
 @org.springframework.stereotype.Repository("comprasComprobanteCompraRepository")
 public interface ComprobanteCompraRepository extends JpaRepository<ComprobanteCompra, Long> {
@@ -18,4 +19,5 @@ public interface ComprobanteCompraRepository extends JpaRepository<ComprobanteCo
     List<ComprobanteCompra> findByOrdenCompraIdOrdenCompra(Long ordenCompraId);
     boolean existsByOrdenCompraIdOrdenCompra(Long ordenCompraId);
     Optional<ComprobanteCompra> findFirstByOrdenCompraIdOrdenCompraOrderByFechaEmisionDesc(Long ordenCompraId);
+    List<ComprobanteCompra> findByOrdenCompraIdOrdenCompraIn(Collection<Long> ordenCompraIds);
 }

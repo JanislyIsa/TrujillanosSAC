@@ -2,6 +2,7 @@ package com.example.TrujillanosSAC.compras.service.impl;
 
 import com.example.TrujillanosSAC.compras.dto.CotizacionRequestDTO;
 import com.example.TrujillanosSAC.compras.dto.CotizacionResponseDTO;
+import com.example.TrujillanosSAC.compras.dto.CotizacionesResumenResponseDTO;
 import com.example.TrujillanosSAC.compras.mapper.CotizacionMapper;
 import com.example.TrujillanosSAC.compras.model.Cotizacion;
 import com.example.TrujillanosSAC.compras.model.DetalleCotizacion;
@@ -20,6 +21,8 @@ import com.example.TrujillanosSAC.inventario.repository.DetalleSolicitudReposito
 import com.example.TrujillanosSAC.inventario.repository.SolicitudCompraRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -170,6 +173,50 @@ public class CotizacionServiceImpl implements CotizacionService {
     public List<CotizacionResponseDTO> listarPorProveedor(Long proveedorId) {
         if (!proveedorRepository.existsById(proveedorId)) throw notFound("Proveedor", proveedorId);
         return cotizacionRepository.findByProveedorIdPersona(proveedorId).stream().map(mapper::toResponse).toList();
+    }
+
+    @Override @Transactional(readOnly = true)
+    public Page<CotizacionResponseDTO> listarPagina(String buscar, Pageable pageable) {
+        return incluirOrdenes(cotizacionRepository.buscarPagina(buscar == null ? "" : buscar.trim(), pageable));
+    }
+
+    @Override @Transactional(readOnly = true)
+    public Page<CotizacionResponseDTO> listarPaginaPorProveedor(Long proveedorId, String buscar, Pageable pageable) {
+        return incluirOrdenes(cotizacionRepository.buscarPaginaPorProveedor(proveedorId,
+                buscar == null ? "" : buscar.trim(), pageable));
+    }
+
+    @Override @Transactional(readOnly = true)
+    public long contarPendientes() { return cotizacionRepository.countPendientes(); }
+
+    @Override @Transactional(readOnly = true)
+    public CotizacionesResumenResponseDTO resumen() {
+        long total = cotizacionRepository.count();
+        long pendientes = cotizacionRepository.countPendientes();
+        return new CotizacionesResumenResponseDTO(total, pendientes, total - pendientes);
+    }
+
+    @Override @Transactional(readOnly = true)
+    public CotizacionesResumenResponseDTO resumenPorProveedor(Long proveedorId) {
+        long pendientes = cotizacionRepository.countByProveedorIdPersonaAndEstadoCotizacionNombreIgnoreCase(proveedorId, "Pendiente")
+                + cotizacionRepository.countByProveedorIdPersonaAndEstadoCotizacionNombreIgnoreCase(proveedorId, "En revision")
+                + cotizacionRepository.countByProveedorIdPersonaAndEstadoCotizacionNombreIgnoreCase(proveedorId, "En revisión");
+        long aprobadas = cotizacionRepository.countByProveedorIdPersonaAndEstadoCotizacionNombreIgnoreCase(proveedorId, "Aceptada");
+        long total = cotizacionRepository.countByProveedorIdPersona(proveedorId);
+        return new CotizacionesResumenResponseDTO(total, pendientes, aprobadas);
+    }
+
+    private Page<CotizacionResponseDTO> incluirOrdenes(Page<Cotizacion> pagina) {
+        var ids = pagina.getContent().stream().map(Cotizacion::getIdCotizacion).toList();
+        var conOrden = ids.isEmpty() ? java.util.Set.<Long>of()
+                : ordenRepository.findByCotizacionIdCotizacionIn(ids).stream()
+                    .map(o -> o.getCotizacion().getIdCotizacion()).collect(Collectors.toSet());
+        return pagina.map(cotizacion -> {
+            var response = mapper.toResponse(cotizacion);
+            return new CotizacionResponseDTO(response.id(), response.fechaCotizacion(), response.fechaEntrega(),
+                    response.estado(), response.solicitudId(), response.proveedorId(), response.proveedorNombre(),
+                    response.monto(), response.detalles(), response.descripcion(), conOrden.contains(cotizacion.getIdCotizacion()));
+        });
     }
 
     @Override @Transactional
