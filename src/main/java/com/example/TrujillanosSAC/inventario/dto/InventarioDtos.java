@@ -65,12 +65,12 @@ public final class InventarioDtos {
     public record FaltanteResponse(Long idInsumo, String nombre, int stock,
             int stockMinimo, int stockLimite, int cantidadSugerida, String unidad) {}
     public record SolicitudLineaRequest(@NotNull @Positive Long idInsumo,
-            @NotNull @DecimalMin("0.01") @Digits(integer=8, fraction=2) BigDecimal cantidad) {}
+            @NotNull @Positive @DecimalMax("2147483647") BigDecimal cantidad) {}
     public record SolicitudRequest(@NotNull @Positive Long idProveedor,
             @NotEmpty @Size(max=100) List<@NotNull @Valid SolicitudLineaRequest> detalles) {}
     public record SolicitudAutomaticaRequest(@NotNull @Positive Long idProveedor) {}
     public record SolicitudDetalleResponse(Long idInsumo, String nombre,
-            BigDecimal cantidad, String unidad) {}
+            Integer cantidad, String unidad) {}
     public record SolicitudResponse(Long id, String codigo, LocalDate fecha, String estado,
             Long idProveedor, Long idEmpleado, List<SolicitudDetalleResponse> detalles) {}
     public record CatalogoResponse(Long id, String nombre) {}

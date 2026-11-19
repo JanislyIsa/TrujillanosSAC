@@ -5,4 +5,5 @@ import com.example.TrujillanosSAC.compras.dto.PagoCompraResponseDTO;
 import com.example.TrujillanosSAC.compras.service.generic.CrudService;
 
 public interface PagoCompraService extends CrudService<PagoCompraRequestDTO, PagoCompraResponseDTO, Long> {
+    PagoCompraResponseDTO create(PagoCompraRequestDTO request, String responsable);
 }

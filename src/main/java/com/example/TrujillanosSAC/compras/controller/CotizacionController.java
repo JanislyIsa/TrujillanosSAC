@@ -5,6 +5,7 @@ import com.example.TrujillanosSAC.usuarios.model.Usuario;
 import com.example.TrujillanosSAC.usuarios.repository.ProveedorRepository;
 import com.example.TrujillanosSAC.usuarios.repository.UsuarioRepository;
 import com.example.TrujillanosSAC.compras.dto.CotizacionRequestDTO;
+import com.example.TrujillanosSAC.compras.dto.CotizacionProveedorRequestDTO;
 import com.example.TrujillanosSAC.compras.dto.CotizacionResponseDTO;
 import com.example.TrujillanosSAC.compras.service.service.CotizacionService;
 import com.example.TrujillanosSAC.exception.RecursosNoEncontradosException;
@@ -36,7 +37,7 @@ public class CotizacionController {
 
     @PostMapping
     @PreAuthorize("hasAuthority('COMPRAS_COTIZACIONES_CREAR')")
-    public ResponseEntity<CotizacionResponseDTO> enviar(@Valid @RequestBody CotizacionRequestDTO request,
+    public ResponseEntity<CotizacionResponseDTO> enviar(@Valid @RequestBody CotizacionProveedorRequestDTO request,
                                                         Principal principal) {
         Long proveedorId = proveedorActual(principal).getIdPersona();
         CotizacionRequestDTO delProveedor = new CotizacionRequestDTO(

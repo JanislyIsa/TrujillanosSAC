@@ -11,6 +11,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.security.Principal;
 
 @RestController
 @Validated
@@ -24,8 +25,8 @@ public class PagoCompraController {
     }
 
     @PostMapping
-    public ResponseEntity<PagoCompraResponseDTO> pagar(@Valid @RequestBody PagoCompraRequestDTO request) {
-        PagoCompraResponseDTO response = pagoCompraService.create(request);
+    public ResponseEntity<PagoCompraResponseDTO> pagar(@Valid @RequestBody PagoCompraRequestDTO request, Principal principal) {
+        PagoCompraResponseDTO response = pagoCompraService.create(request, principal.getName());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

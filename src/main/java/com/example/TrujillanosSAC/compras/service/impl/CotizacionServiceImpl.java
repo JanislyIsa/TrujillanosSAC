@@ -88,12 +88,18 @@ public class CotizacionServiceImpl implements CotizacionService {
         for (var item : request.detalles()) {
             DetalleSolicitud solicitado = porInsumo.get(item.insumoId());
             if (solicitado == null) throw new ReglaNegocioException("El insumo " + item.insumoId() + " no pertenece a la solicitud");
-            BigDecimal subtotal = item.cantidad().multiply(item.precioUnitario());
-            if (item.cantidad().compareTo(solicitado.getCantidad()) != 0) {
+            final int cantidad;
+            try {
+                cantidad = item.cantidad().intValueExact();
+            } catch (ArithmeticException ex) {
+                throw new ReglaNegocioException("La cantidad cotizada debe ser un número entero dentro del rango permitido");
+            }
+            BigDecimal subtotal = BigDecimal.valueOf(cantidad).multiply(item.precioUnitario());
+            if (cantidad != solicitado.getCantidad()) {
                 throw new ReglaNegocioException("La cantidad cotizada debe coincidir con la cantidad solicitada");
             }
             DetalleCotizacion detalle = DetalleCotizacion.builder()
-                    .cantidad(item.cantidad()).precioUnitario(item.precioUnitario()).subtotal(subtotal)
+                    .cantidad(cantidad).precioUnitario(item.precioUnitario()).subtotal(subtotal)
                     .insumo(solicitado.getInsumo()).build();
             cotizacion.agregarDetalle(detalle);
             total = total.add(subtotal);
@@ -121,10 +127,16 @@ public class CotizacionServiceImpl implements CotizacionService {
         BigDecimal total = BigDecimal.ZERO;
         for (var item : request.detalles()) {
             DetalleSolicitud solicitado = solicitados.get(item.insumoId());
-            if (solicitado == null || solicitado.getCantidad().compareTo(item.cantidad()) != 0)
+            final int cantidad;
+            try {
+                cantidad = item.cantidad().intValueExact();
+            } catch (ArithmeticException ex) {
+                throw new ReglaNegocioException("La cantidad cotizada debe ser un número entero dentro del rango permitido");
+            }
+            if (solicitado == null || solicitado.getCantidad() != cantidad)
                 throw new ReglaNegocioException("El detalle cotizado debe corresponder a la solicitud y respetar su cantidad");
-            BigDecimal subtotal = item.cantidad().multiply(item.precioUnitario());
-            existente.agregarDetalle(DetalleCotizacion.builder().cantidad(item.cantidad())
+            BigDecimal subtotal = BigDecimal.valueOf(cantidad).multiply(item.precioUnitario());
+            existente.agregarDetalle(DetalleCotizacion.builder().cantidad(cantidad)
                     .precioUnitario(item.precioUnitario()).subtotal(subtotal).insumo(solicitado.getInsumo()).build());
             total = total.add(subtotal);
         }

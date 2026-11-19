@@ -6,6 +6,10 @@ import com.example.TrujillanosSAC.compras.mapper.PagoCompraMapper;
 import com.example.TrujillanosSAC.compras.model.PagoCompra;
 import com.example.TrujillanosSAC.compras.repository.*;
 import com.example.TrujillanosSAC.compras.service.service.PagoCompraService;
+import com.example.TrujillanosSAC.inventario.dto.InventarioDtos.MovimientoRequest;
+import com.example.TrujillanosSAC.inventario.model.TipoItem;
+import com.example.TrujillanosSAC.inventario.model.TipoMovimiento;
+import com.example.TrujillanosSAC.inventario.service.MovimientoInventarioService;
 import com.example.TrujillanosSAC.exception.RecursosNoEncontradosException;
 import com.example.TrujillanosSAC.exception.ReglaNegocioException;
 import org.springframework.stereotype.Service;
@@ -21,27 +25,36 @@ public class PagoCompraServiceImpl implements PagoCompraService {
     private final EstadoComprobanteCompraRepository estadoComprobanteRepository;
     private final EstadoCotizacionRepository estadoCotizacionRepository;
     private final PagoCompraMapper mapper;
+    private final MovimientoInventarioService movimientoInventarioService;
 
     public PagoCompraServiceImpl(PagoCompraRepository pagoRepository,
                                  ComprobanteCompraRepository comprobanteRepository,
                                  MetodoPagoRepository metodoPagoRepository,
                                  EstadoComprobanteCompraRepository estadoComprobanteRepository,
                                  EstadoCotizacionRepository estadoCotizacionRepository,
-                                 PagoCompraMapper mapper) {
+                                 PagoCompraMapper mapper,
+                                 MovimientoInventarioService movimientoInventarioService) {
         this.pagoRepository = pagoRepository;
         this.comprobanteRepository = comprobanteRepository;
         this.metodoPagoRepository = metodoPagoRepository;
         this.estadoComprobanteRepository = estadoComprobanteRepository;
         this.estadoCotizacionRepository = estadoCotizacionRepository;
         this.mapper = mapper;
+        this.movimientoInventarioService = movimientoInventarioService;
     }
 
     @Override @Transactional
     public PagoCompraResponseDTO create(PagoCompraRequestDTO request) {
-        var comprobante = comprobanteRepository.findById(request.comprobanteId()).orElseThrow(() ->
+        return create(request, "sistema");
+    }
+
+    @Transactional
+    public PagoCompraResponseDTO create(PagoCompraRequestDTO request, String responsable) {
+        var comprobante = comprobanteRepository.findByIdForUpdate(request.comprobanteId()).orElseThrow(() ->
                 new RecursosNoEncontradosException("Comprobante de compra no encontrado con id: " + request.comprobanteId()));
         var metodo = metodoPagoRepository.findById(request.metodoPagoId()).orElseThrow(() ->
                 new RecursosNoEncontradosException("Método de pago no encontrado con id: " + request.metodoPagoId()));
+        validarMetodoEfectivo(metodo.getNombre());
         if (request.fechaPago().isAfter(LocalDate.now()))
             throw new ReglaNegocioException("La fecha de pago no puede ser futura");
         BigDecimal pagado = pagoRepository.findByComprobanteCompraIdComprobante(comprobante.getIdComprobante())
@@ -56,6 +69,7 @@ public class PagoCompraServiceImpl implements PagoCompraService {
         PagoCompra guardado = pagoRepository.save(pago);
         BigDecimal nuevoTotalPagado = pagado.add(request.monto());
         if (nuevoTotalPagado.compareTo(comprobante.getMonto()) == 0) {
+            registrarRecepcion(comprobante, responsable);
             comprobante.setEstadoComprobanteCompra(estado("Pagado"));
             comprobanteRepository.save(comprobante);
             boolean todosPagados = comprobanteRepository.findByOrdenCompraIdOrdenCompra(
@@ -70,6 +84,22 @@ public class PagoCompraServiceImpl implements PagoCompraService {
         return mapper.toResponse(guardado);
     }
 
+    private void registrarRecepcion(com.example.TrujillanosSAC.compras.model.ComprobanteCompra comprobante,
+                                    String responsable) {
+        var orden = comprobante.getOrdenCompra();
+        if (orden.getDetalles() == null || orden.getDetalles().isEmpty())
+            throw new ReglaNegocioException("La orden no tiene insumos para registrar su recepción");
+        for (var detalle : orden.getDetalles()) {
+            final int cantidad = detalle.getCantidad();
+            if (cantidad <= 0)
+                throw new ReglaNegocioException("La cantidad recibida debe ser mayor que cero");
+            var insumo = detalle.getDetalleCotizacion().getInsumo();
+            movimientoInventarioService.registrar(new MovimientoRequest(TipoMovimiento.INGRESO,
+                    TipoItem.INSUMO, insumo.getIdInsumo(), cantidad,
+                    "Recepción de orden de compra " + orden.getIdOrdenCompra()), responsable);
+        }
+    }
+
     @Override @Transactional
     public PagoCompraResponseDTO update(Long id, PagoCompraRequestDTO request) {
         PagoCompra pago = buscarEntidad(id);
@@ -82,6 +112,7 @@ public class PagoCompraServiceImpl implements PagoCompraService {
             throw new ReglaNegocioException("El pago supera el saldo pendiente del comprobante");
         var metodo = metodoPagoRepository.findById(request.metodoPagoId()).orElseThrow(() ->
                 new RecursosNoEncontradosException("Método de pago no encontrado con id: " + request.metodoPagoId()));
+        validarMetodoEfectivo(metodo.getNombre());
         pago.setMonto(request.monto());
         pago.setFechaPago(request.fechaPago());
         pago.setMetodoPago(metodo);
@@ -121,6 +152,12 @@ public class PagoCompraServiceImpl implements PagoCompraService {
     private com.example.TrujillanosSAC.compras.model.EstadoComprobanteCompra estado(String nombre) {
         return estadoComprobanteRepository.findByNombreIgnoreCase(nombre).orElseThrow(() ->
                 new ReglaNegocioException("No está configurado el estado del comprobante: " + nombre));
+    }
+
+    private void validarMetodoEfectivo(String nombre) {
+        if (!"Efectivo".equalsIgnoreCase(nombre)) {
+            throw new ReglaNegocioException("Por ahora, los pagos de compras solo se registran en efectivo");
+        }
     }
 
     private void sincronizarEstadoComprobante(com.example.TrujillanosSAC.compras.model.ComprobanteCompra comprobante) {

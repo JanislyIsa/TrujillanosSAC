@@ -9,13 +9,13 @@ import com.example.TrujillanosSAC.compras.repository.ComprobanteCompraRepository
 import com.example.TrujillanosSAC.compras.service.service.ComprobanteCompraService;
 import com.example.TrujillanosSAC.exception.RecursosNoEncontradosException;
 import com.example.TrujillanosSAC.exception.ReglaNegocioException;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -74,36 +74,26 @@ public class ComprobanteCompraController {
     }
 
     @GetMapping("/{id}/archivo")
-    @PreAuthorize("hasAuthority('COMPRAS_COMPROBANTES_CREAR')")
+    @PreAuthorize("hasAnyAuthority('COMPRAS_COMPROBANTES_CREAR','COMPRAS_COMPROBANTES_VER')")
     @Transactional(readOnly = true)
-    public ResponseEntity<byte[]> verFactura(@PathVariable @Positive Long id, Principal principal) {
-        Usuario usuario = usuarioRepository.findByUsernameConRolesYPersona(principal.getName())
-                .orElseThrow(() -> new RecursosNoEncontradosException("Usuario autenticado no encontrado"));
+    public ResponseEntity<byte[]> descargarFactura(@PathVariable @Positive Long id, Principal principal,
+                                                   Authentication authentication) {
         var comprobante = comprobanteRepository.findById(id)
                 .orElseThrow(() -> new RecursosNoEncontradosException("Comprobante no encontrado"));
-        if (usuario.getPersona() == null || !comprobante.getOrdenCompra().getCotizacion().getProveedor()
-                .getIdPersona().equals(usuario.getPersona().getIdPersona()))
-            throw new ReglaNegocioException("El comprobante no pertenece al proveedor autenticado");
+        boolean comprasPuedeVerTodos = authentication.getAuthorities().stream()
+                .anyMatch(a -> "COMPRAS_COMPROBANTES_VER".equals(a.getAuthority()));
+        if (!comprasPuedeVerTodos) {
+            Usuario usuario = usuarioRepository.findByUsernameConRolesYPersona(principal.getName())
+                    .orElseThrow(() -> new RecursosNoEncontradosException("Usuario autenticado no encontrado"));
+            if (usuario.getPersona() == null || !comprobante.getOrdenCompra().getCotizacion().getProveedor()
+                    .getIdPersona().equals(usuario.getPersona().getIdPersona()))
+                throw new ReglaNegocioException("El comprobante no pertenece al proveedor autenticado");
+        }
         if (comprobante.getArchivoFactura() == null || comprobante.getArchivoFactura().length == 0)
             throw new RecursosNoEncontradosException("El comprobante no tiene archivo adjunto");
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_PDF)
-                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"factura.pdf\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"factura-" + id + ".pdf\"")
                 .body(comprobante.getArchivoFactura());
-    }
-
-    @PostMapping
-    @PreAuthorize("hasAuthority('COMPRAS_COMPROBANTES_CREAR')")
-    public ResponseEntity<ComprobanteCompraResponseDTO> enviar(@Valid @RequestBody ComprobanteCompraRequestDTO request,
-                                                               Principal principal) {
-        Usuario usuario = usuarioRepository.findByUsernameConRolesYPersona(principal.getName())
-                .orElseThrow(() -> new RecursosNoEncontradosException("Usuario autenticado no encontrado"));
-        if (usuario.getPersona() == null) throw new RecursosNoEncontradosException("El usuario no tiene persona asociada");
-        var orden = ordenRepository.findById(request.ordenCompraId()).orElseThrow(() ->
-                new RecursosNoEncontradosException("Orden de compra no encontrada con id: " + request.ordenCompraId()));
-        if (orden.getCotizacion().getProveedor().getIdPersona().equals(usuario.getPersona().getIdPersona()) == false)
-            throw new ReglaNegocioException("La orden no pertenece al proveedor autenticado");
-        ComprobanteCompraResponseDTO response = comprobanteService.create(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping

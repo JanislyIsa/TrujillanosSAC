@@ -7,7 +7,7 @@ public record DetalleOrdenCompraResponseDTO(
         Long insumoId,
         String insumoNombre,
         String unidadMedida,
-        BigDecimal cantidad,
+        Integer cantidad,
         BigDecimal precioUnitario,
         BigDecimal subtotal
 ) {}
