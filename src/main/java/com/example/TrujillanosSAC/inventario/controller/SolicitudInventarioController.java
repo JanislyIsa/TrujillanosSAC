@@ -1,6 +1,6 @@
-package com.example.TrujillanosSAC.inventario.controller.api;
+package com.example.TrujillanosSAC.inventario.controller;
 import com.example.TrujillanosSAC.inventario.dto.InventarioDtos.*;
-import com.example.TrujillanosSAC.inventario.service.SolicitudInventarioService;
+import com.example.TrujillanosSAC.inventario.service.service.SolicitudInventarioService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;

@@ -9,7 +9,7 @@ import com.example.TrujillanosSAC.inventario.model.Producto;
 import com.example.TrujillanosSAC.inventario.model.TipoItem;
 import com.example.TrujillanosSAC.inventario.model.TipoMovimiento;
 import com.example.TrujillanosSAC.inventario.repository.ProductoRepository;
-import com.example.TrujillanosSAC.inventario.service.MovimientoInventarioService;
+import com.example.TrujillanosSAC.inventario.service.service.MovimientoInventarioService;
 import com.example.TrujillanosSAC.ventas.dto.request.DetallePedidoRequestDTO;
 import com.example.TrujillanosSAC.ventas.dto.request.PedidoRequestDTO;
 import com.example.TrujillanosSAC.ventas.dto.response.PedidoResponseDTO;

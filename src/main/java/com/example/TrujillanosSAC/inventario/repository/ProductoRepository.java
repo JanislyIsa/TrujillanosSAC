@@ -9,15 +9,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ProductoRepository extends JpaRepository<Producto, Long> {
-    @Query("""
-            select p
-            from Producto p
-            left join fetch p.presentacion
-            left join fetch p.categoria
-            where p.presentacion.idPresentacion = 1
-            order by p.nombre
-            """)
-    List<Producto> findAllConPresentacion();
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"presentacion", "categoria"})
+    List<Producto> findByPresentacionNombreIgnoreCaseOrderByNombre(String nombrePresentacion);
 
     @Query("""
             select p

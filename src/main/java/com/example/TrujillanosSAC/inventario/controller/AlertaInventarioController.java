@@ -1,6 +1,6 @@
-package com.example.TrujillanosSAC.inventario.controller.api;
+package com.example.TrujillanosSAC.inventario.controller;
 import com.example.TrujillanosSAC.inventario.dto.InventarioDtos.*;
-import com.example.TrujillanosSAC.inventario.service.AlertaInventarioService;
+import com.example.TrujillanosSAC.inventario.service.service.AlertaInventarioService;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

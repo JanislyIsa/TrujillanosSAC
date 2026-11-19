@@ -9,7 +9,7 @@ import com.example.TrujillanosSAC.compras.service.service.PagoCompraService;
 import com.example.TrujillanosSAC.inventario.dto.InventarioDtos.MovimientoRequest;
 import com.example.TrujillanosSAC.inventario.model.TipoItem;
 import com.example.TrujillanosSAC.inventario.model.TipoMovimiento;
-import com.example.TrujillanosSAC.inventario.service.MovimientoInventarioService;
+import com.example.TrujillanosSAC.inventario.service.service.MovimientoInventarioService;
 import com.example.TrujillanosSAC.exception.RecursosNoEncontradosException;
 import com.example.TrujillanosSAC.exception.ReglaNegocioException;
 import org.springframework.stereotype.Service;

@@ -1,7 +1,7 @@
-package com.example.TrujillanosSAC.inventario.controller.api;
+package com.example.TrujillanosSAC.inventario.controller;
 import com.example.TrujillanosSAC.inventario.dto.InventarioDtos.*;
 import com.example.TrujillanosSAC.inventario.model.*;
-import com.example.TrujillanosSAC.inventario.service.CatalogoInventarioService;
+import com.example.TrujillanosSAC.inventario.service.service.CatalogoInventarioService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;

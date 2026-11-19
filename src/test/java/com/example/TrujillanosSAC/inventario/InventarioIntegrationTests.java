@@ -11,7 +11,7 @@ import com.example.TrujillanosSAC.inventario.dto.InventarioDtos.*;
 import com.example.TrujillanosSAC.inventario.exception.InventarioException;
 import com.example.TrujillanosSAC.inventario.model.*;
 import com.example.TrujillanosSAC.inventario.repository.*;
-import com.example.TrujillanosSAC.inventario.service.*;
+import com.example.TrujillanosSAC.inventario.service.service.*;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -169,7 +169,7 @@ class InventarioIntegrationTests {
         assertThat(s.estado()).isEqualTo("Pendiente");
         assertThat(s.detalles()).anySatisfy(d -> {
             assertThat(d.idInsumo()).isEqualTo(insumoId);
-            assertThat(d.cantidad()).isEqualByComparingTo("17");
+            assertThat(d.cantidad()).isEqualTo(17);
         });
         assertThat(solicitudRepository.findAllParaProveedor()).anyMatch(x -> x.getIdSolicitud().equals(s.id()));
         assertThat(detalleSolicitudRepository.findBySolicitudParaProveedor(s.id())).isNotEmpty();

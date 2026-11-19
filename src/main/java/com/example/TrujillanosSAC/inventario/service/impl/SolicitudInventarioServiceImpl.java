@@ -4,7 +4,7 @@ import com.example.TrujillanosSAC.inventario.dto.InventarioDtos.*;
 import com.example.TrujillanosSAC.inventario.exception.InventarioException;
 import com.example.TrujillanosSAC.inventario.model.*;
 import com.example.TrujillanosSAC.inventario.repository.*;
-import com.example.TrujillanosSAC.inventario.service.SolicitudInventarioService;
+import com.example.TrujillanosSAC.inventario.service.service.SolicitudInventarioService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -80,15 +80,41 @@ public class SolicitudInventarioServiceImpl implements SolicitudInventarioServic
         return crear(new SolicitudRequest(idProveedor,lineas),username);
     }
     @Override
-    public List<SolicitudResponse> listar() { return solicitudes.findAllParaProveedor().stream().map(this::mapear).toList(); }
+    public List<SolicitudResponse> listar() {
+        List<SolicitudCompra> lista = solicitudes.findAllParaProveedor();
+        if (lista.isEmpty()) return Collections.emptyList();
+
+        List<Long> ids = new ArrayList<>();
+        for (SolicitudCompra solicitud : lista) ids.add(solicitud.getIdSolicitud());
+        List<DetalleSolicitud> todosLosDetalles = detalles.findAllParaSolicitudes(ids);
+        Map<Long, List<DetalleSolicitud>> detallesPorSolicitud = new HashMap<>();
+        for (DetalleSolicitud detalle : todosLosDetalles) {
+            Long idSolicitud = detalle.getSolicitudCompra().getIdSolicitud();
+            if (!detallesPorSolicitud.containsKey(idSolicitud)) {
+                detallesPorSolicitud.put(idSolicitud, new ArrayList<>());
+            }
+            detallesPorSolicitud.get(idSolicitud).add(detalle);
+        }
+
+        List<SolicitudResponse> respuestas = new ArrayList<>();
+        for (SolicitudCompra solicitud : lista) {
+            List<DetalleSolicitud> detallesSolicitud = detallesPorSolicitud.getOrDefault(
+                    solicitud.getIdSolicitud(), Collections.emptyList());
+            respuestas.add(mapear(solicitud, detallesSolicitud));
+        }
+        return respuestas;
+    }
     @Override
     public SolicitudResponse obtener(Long id) {
         return mapear(solicitudes.findById(id).orElseThrow(() -> InventarioException.noEncontrado("Solicitud")));
     }
     private SolicitudResponse mapear(SolicitudCompra s) {
+        return mapear(s, detalles.findBySolicitudParaProveedor(s.getIdSolicitud()));
+    }
+    private SolicitudResponse mapear(SolicitudCompra s, List<DetalleSolicitud> detallesSolicitud) {
         return new SolicitudResponse(s.getIdSolicitud(),"SC-%03d".formatted(s.getIdSolicitud()),
                 s.getFechaSolicitud(),s.getEstadoSolicitudCompra().getNombre(),s.getProveedor().getIdPersona(),
-                s.getEmpleado().getIdPersona(),detalles.findBySolicitudParaProveedor(s.getIdSolicitud()).stream()
+                s.getEmpleado().getIdPersona(),detallesSolicitud.stream()
                 .map(d -> new SolicitudDetalleResponse(d.getInsumo().getIdInsumo(),d.getInsumo().getNombre(),
                         d.getCantidad(),d.getInsumo().getUnidadMedida().getNombre())).toList());
     }

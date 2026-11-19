@@ -8,7 +8,7 @@ import com.example.TrujillanosSAC.exception.ReglaNegocioException;
 import com.example.TrujillanosSAC.inventario.model.Producto;
 import com.example.TrujillanosSAC.inventario.model.TipoMovimiento;
 import com.example.TrujillanosSAC.inventario.repository.ProductoRepository;
-import com.example.TrujillanosSAC.inventario.service.MovimientoInventarioService;
+import com.example.TrujillanosSAC.inventario.service.service.MovimientoInventarioService;
 import com.example.TrujillanosSAC.ventas.dto.request.*;
 import com.example.TrujillanosSAC.ventas.dto.reporte.*;
 import org.springframework.data.domain.Sort;

@@ -1,7 +1,7 @@
-package com.example.TrujillanosSAC.inventario.controller.api;
+package com.example.TrujillanosSAC.inventario.controller;
 import com.example.TrujillanosSAC.inventario.dto.InventarioDtos.*;
 import com.example.TrujillanosSAC.inventario.model.*;
-import com.example.TrujillanosSAC.inventario.service.CatalogoInventarioService;
+import com.example.TrujillanosSAC.inventario.service.service.CatalogoInventarioService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
@@ -12,29 +12,29 @@ import java.net.URI;
 import java.security.Principal;
 
 @RestController @RequiredArgsConstructor
-@RequestMapping("/api/v1/inventario/productos")
+@RequestMapping("/api/v1/inventario/insumos")
 @PreAuthorize("@inventarioPermisos.inventario(authentication)")
-public class ProductoInventarioController {
+public class InsumoInventarioController {
     private final CatalogoInventarioService catalogo;
     @GetMapping
     public PaginaResponse<ItemResponse> listar(@RequestParam(defaultValue="") String buscar,
             @RequestParam(required=false) Long idAlmacen, @RequestParam(required=false) Boolean activo, @RequestParam(required=false) EstadoStock estado,
             @RequestParam(defaultValue="0") int pagina, @RequestParam(defaultValue="20") int tamanio) {
-        return PaginaResponse.de(catalogo.listar(TipoItem.PRODUCTO,buscar,idAlmacen,estado).stream().filter(i -> activo==null || i.activo()==activo).toList(),pagina,tamanio);
+        return PaginaResponse.de(catalogo.listar(TipoItem.INSUMO,buscar,idAlmacen,estado).stream().filter(i -> activo==null || i.activo()==activo).toList(),pagina,tamanio);
     }
     @GetMapping("/{id}")
-    public ItemResponse obtener(@PathVariable @Positive Long id) { return catalogo.obtener(TipoItem.PRODUCTO,id); }
+    public ItemResponse obtener(@PathVariable @Positive Long id) { return catalogo.obtener(TipoItem.INSUMO,id); }
     @PostMapping
-    public ResponseEntity<ItemResponse> crear(@Valid @RequestBody ProductoRequest request, Principal principal) {
-        ItemResponse item = catalogo.crearProducto(request,principal.getName());
-        return ResponseEntity.created(URI.create("/api/v1/inventario/productos/"+item.id())).body(item);
+    public ResponseEntity<ItemResponse> crear(@Valid @RequestBody InsumoRequest request, Principal principal) {
+        ItemResponse item = catalogo.crearInsumo(request,principal.getName());
+        return ResponseEntity.created(URI.create("/api/v1/inventario/insumos/"+item.id())).body(item);
     }
     @PutMapping("/{id}")
-    public ItemResponse editar(@PathVariable @Positive Long id, @Valid @RequestBody ProductoRequest request) {
-        return catalogo.editarProducto(id,request);
+    public ItemResponse editar(@PathVariable @Positive Long id, @Valid @RequestBody InsumoRequest request) {
+        return catalogo.editarInsumo(id,request);
     }
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable @Positive Long id) {
-        catalogo.eliminar(TipoItem.PRODUCTO,id); return ResponseEntity.noContent().build();
+        catalogo.eliminar(TipoItem.INSUMO,id); return ResponseEntity.noContent().build();
     }
 }

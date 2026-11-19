@@ -14,7 +14,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import java.time.*;
 import java.util.*;
 
-@RestControllerAdvice(basePackages = "com.example.TrujillanosSAC.inventario.controller.api")
+@RestControllerAdvice(basePackages = "com.example.TrujillanosSAC.inventario.controller")
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class InventarioExceptionHandler {
     private final Clock clock;
