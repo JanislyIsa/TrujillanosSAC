@@ -86,11 +86,9 @@ public class Producto {
         if (ruta.startsWith("http://") || ruta.startsWith("https://") || ruta.startsWith("/")) {
             return ruta;
         }
-
         if (ruta.startsWith("img/")) {
             return "/" + ruta;
         }
-
         return "/img/" + ruta;
     }
 

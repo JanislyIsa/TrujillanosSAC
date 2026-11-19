@@ -25,6 +25,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/css/**", "/js/**", "/img/**", "/uploads/**", "/inventario-app/**").permitAll()
                         .requestMatchers("/login", "/ventas/catalogo", "/ventas/producto/**").permitAll()
+                        // Documentacion de la API (solo se publica en dev: en prod springdoc esta desactivado)
+                        .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("EMPLEADO")
                         .requestMatchers("/proveedor/**").hasRole("PROVEEDOR")
                         .anyRequest().authenticated()

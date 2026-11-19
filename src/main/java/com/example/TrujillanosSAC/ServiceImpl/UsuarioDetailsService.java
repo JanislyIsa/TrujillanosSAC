@@ -1,8 +1,8 @@
 package com.example.TrujillanosSAC.ServiceImpl;
 
-import com.example.TrujillanosSAC.Model.Rol;
-import com.example.TrujillanosSAC.Model.Usuario;
-import com.example.TrujillanosSAC.Repository.UsuarioRepository;
+import com.example.TrujillanosSAC.usuarios.model.Rol;
+import com.example.TrujillanosSAC.usuarios.model.Usuario;
+import com.example.TrujillanosSAC.usuarios.repository.UsuarioRepository;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;

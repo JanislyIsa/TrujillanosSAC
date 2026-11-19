@@ -1,11 +1,11 @@
 package com.example.TrujillanosSAC.ServiceImpl;
 
 import com.example.TrujillanosSAC.Dto.AdminModuleDto;
-import com.example.TrujillanosSAC.Model.Empleado;
-import com.example.TrujillanosSAC.Model.Rol;
-import com.example.TrujillanosSAC.Model.Usuario;
-import com.example.TrujillanosSAC.Repository.EmpleadoRepository;
-import com.example.TrujillanosSAC.Repository.UsuarioRepository;
+import com.example.TrujillanosSAC.usuarios.model.Empleado;
+import com.example.TrujillanosSAC.usuarios.model.Rol;
+import com.example.TrujillanosSAC.usuarios.model.Usuario;
+import com.example.TrujillanosSAC.usuarios.repository.EmpleadoRepository;
+import com.example.TrujillanosSAC.usuarios.repository.UsuarioRepository;
 import com.example.TrujillanosSAC.Service.AdminAccessService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

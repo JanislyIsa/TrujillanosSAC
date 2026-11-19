@@ -1,6 +1,5 @@
 package com.example.TrujillanosSAC.inventario.service.impl;
 
-import com.example.TrujillanosSAC.Repository.*;
 import com.example.TrujillanosSAC.inventario.dto.InventarioDtos.*;
 import com.example.TrujillanosSAC.inventario.exception.InventarioException;
 import com.example.TrujillanosSAC.inventario.model.*;
@@ -12,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.*;
 import java.util.*;
+import com.example.TrujillanosSAC.usuarios.repository.*;
 
 @Service @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -55,8 +55,14 @@ public class SolicitudInventarioServiceImpl implements SolicitudInventarioServic
                 .fechaSolicitud(LocalDate.now(inventarioClock)).estadoSolicitudCompra(pendiente)
                 .proveedor(proveedor).empleado(empleado).build());
         for (SolicitudLineaRequest d : request.detalles()) {
+            final int cantidad;
+            try {
+                cantidad = d.cantidad().intValueExact();
+            } catch (ArithmeticException ex) {
+                throw new IllegalArgumentException("La cantidad solicitada debe ser un número entero dentro del rango permitido");
+            }
             detalles.save(DetalleSolicitud.builder().solicitudCompra(s)
-                    .insumo(items.get(d.idInsumo())).cantidad(d.cantidad()).build());
+                    .insumo(items.get(d.idInsumo())).cantidad(cantidad).build());
         }
         detalles.flush();
         return mapear(s);

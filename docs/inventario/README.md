@@ -113,4 +113,4 @@ Ejecutar `./mvnw.cmd test` con JDK 21 o superior. Las pruebas usan H2 en modo Or
 
 ## Frontend Angular
 
-El módulo ya incluye frontend en `frontend/`. Consultar `frontend/README.md` para iniciar desarrollo, compilar e integrarlo con Spring. La migración V2 agrega el estado activo/inactivo requerido por sus formularios. La sesión REST y la carga de imágenes están descritas en el contrato actualizado.
+La interfaz Angular vive en el repositorio independiente `TrujillanosSAC-Frontend`; este backend solo publica las API REST. Ejecutar Spring en `localhost:8080` y Angular en `localhost:4200`; el proxy del frontend conecta ambos proyectos. La migración V2 agrega el estado activo/inactivo requerido por sus formularios. La sesión REST y la carga de imágenes están descritas en el contrato actualizado.

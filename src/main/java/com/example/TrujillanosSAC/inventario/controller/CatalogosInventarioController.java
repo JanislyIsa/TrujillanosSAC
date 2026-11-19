@@ -14,7 +14,7 @@ public class CatalogosInventarioController {
     private final PresentacionProductoRepository presentaciones;
     private final UnidadMedidaRepository unidades;
     private final AlmacenRepository almacenes;
-    private final com.example.TrujillanosSAC.Repository.ProveedorRepository proveedores;
+    private final com.example.TrujillanosSAC.usuarios.repository.ProveedorRepository proveedores;
     @GetMapping("/proveedores") @PreAuthorize("@inventarioPermisos.compras(authentication)")
     @org.springframework.transaction.annotation.Transactional(readOnly=true)
     public java.util.List<CatalogoResponse> proveedores() {

@@ -1,6 +1,6 @@
 package com.example.TrujillanosSAC.inventario.model;
 
-import com.example.TrujillanosSAC.Model.Empleado;
+import com.example.TrujillanosSAC.usuarios.model.Empleado;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
