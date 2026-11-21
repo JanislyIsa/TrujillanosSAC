@@ -1,6 +1,10 @@
 package com.example.TrujillanosSAC.inventario.service.impl;
 
-import com.example.TrujillanosSAC.inventario.dto.InventarioDtos.*;
+import com.example.TrujillanosSAC.inventario.dto.request.SolicitudLineaRequest;
+import com.example.TrujillanosSAC.inventario.dto.request.SolicitudRequest;
+import com.example.TrujillanosSAC.inventario.dto.response.FaltanteResponse;
+import com.example.TrujillanosSAC.inventario.dto.response.SolicitudDetalleResponse;
+import com.example.TrujillanosSAC.inventario.dto.response.SolicitudResponse;
 import com.example.TrujillanosSAC.inventario.exception.InventarioException;
 import com.example.TrujillanosSAC.inventario.model.*;
 import com.example.TrujillanosSAC.inventario.repository.*;

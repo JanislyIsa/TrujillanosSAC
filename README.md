@@ -16,7 +16,7 @@ Para comenzar compras, integrar primero la entrega inicial mediante un pull requ
 
 El propietario debe crear el repositorio en GitHub e invitar a los compañeros como colaboradores. Cada persona usa su propia cuenta y clona el repositorio en su laptop. Los cambios se proponen mediante pull requests, sin compartir credenciales.
 
-La rama de implementación incluye el backend Spring Boot, el frontend Angular, los scripts Oracle y las instrucciones de ejecución. Cada integrante configura su propia base y sus credenciales localmente.
+Este repositorio contiene el backend Spring Boot, los scripts Oracle y las instrucciones de ejecución. El panel Angular de empleados está en `TrujillanosSAC-Frontend`. Cada integrante configura su propia base y sus credenciales localmente.
 
 ## Ejecutar la entrega de inventario
 
@@ -25,7 +25,9 @@ Requisitos: JDK 21 o superior, Node compatible con Angular 22 (se verificó con 
 1. Preparar usuario, tablas y datos con [la guía Oracle](database/oracle/README.md). Cada integrante usa su propia base o una instancia compartida acordada por el equipo.
 2. Copiar `application-local.properties.example` a `application-local.properties` en la raíz y completar las credenciales. Ese archivo personal no se sube a Git.
 3. Iniciar Spring desde la raíz con `./mvnw.cmd spring-boot:run` en Windows. El perfil local escucha en `http://localhost:8080`.
-4. En el repositorio independiente `TrujillanosSAC-Frontend`, ejecutar `npm ci` y `npm start`. Abrir `http://localhost:4200`; el proxy de Angular conecta con el backend.
+4. En el repositorio independiente `TrujillanosSAC-Frontend`, ejecutar `npm ci` y `npm start`. Abrir `http://127.0.0.1:4200/`. El proxy de Angular conecta con el backend.
+
+Spring redirige los accesos de administración de Inventario a esa dirección. Si el panel se despliega en otra URL, configura `FRONTEND_EMPLEADOS_URL` con su URL base, antes del fragmento `#/`.
 
 Validación: `./mvnw.cmd test` en la raíz del backend; `npm run check` y `npm run build` en el repositorio `TrujillanosSAC-Frontend`.
 

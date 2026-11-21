@@ -6,7 +6,7 @@ import com.example.TrujillanosSAC.compras.mapper.PagoCompraMapper;
 import com.example.TrujillanosSAC.compras.model.PagoCompra;
 import com.example.TrujillanosSAC.compras.repository.*;
 import com.example.TrujillanosSAC.compras.service.service.PagoCompraService;
-import com.example.TrujillanosSAC.inventario.dto.InventarioDtos.MovimientoRequest;
+import com.example.TrujillanosSAC.inventario.dto.request.MovimientoRequest;
 import com.example.TrujillanosSAC.inventario.model.TipoItem;
 import com.example.TrujillanosSAC.inventario.model.TipoMovimiento;
 import com.example.TrujillanosSAC.inventario.service.service.MovimientoInventarioService;

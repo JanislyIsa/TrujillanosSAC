@@ -1,5 +1,6 @@
 package com.example.TrujillanosSAC.inventario.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -13,6 +14,9 @@ import java.time.ZoneId;
 @EnableScheduling
 public class InventarioConfig implements WebMvcConfigurer {
 
+    @Value("${app.frontend.empleados-url:http://127.0.0.1:4200}")
+    private String frontendEmpleadosUrl;
+
     @Bean
     public Clock inventarioClock() {
         return Clock.system(ZoneId.of("America/Lima"));
@@ -20,20 +24,21 @@ public class InventarioConfig implements WebMvcConfigurer {
 
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {
+        String frontend = frontendEmpleadosUrl.replaceAll("/+$", "");
         registry.addRedirectViewController(
                 "/admin/inventario",
-                "/inventario-app/index.html#/inventario/catalogo");
+                frontend + "/#/inventario/catalogo");
         registry.addRedirectViewController(
                 "/admin/inventario/control-stock",
-                "/inventario-app/index.html#/inventario/stock");
+                frontend + "/#/inventario/stock");
         registry.addRedirectViewController(
                 "/admin/inventario/alertas",
-                "/inventario-app/index.html#/inventario/alertas");
+                frontend + "/#/inventario/alertas");
         registry.addRedirectViewController(
                 "/admin/inventario/movimientos",
-                "/inventario-app/index.html#/inventario/movimientos");
+                frontend + "/#/inventario/movimientos");
         registry.addRedirectViewController(
                 "/admin/productos",
-                "/inventario-app/index.html#/inventario/catalogo");
+                frontend + "/#/inventario/catalogo");
     }
 }

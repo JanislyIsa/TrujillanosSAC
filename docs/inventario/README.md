@@ -7,9 +7,8 @@ Implementa el módulo de inventario dentro del proyecto TrujillanosSAC. La matri
 ```text
 com.example.TrujillanosSAC.inventario
   config          reloj de Lima, seguridad REST, permisos, CORS y monitor
-  controller      adaptadores de las pantallas existentes
-    api           endpoints REST para el futuro frontend
-  dto             peticiones, respuestas y formularios existentes
+  controller      API REST y accesos del panel administrativo
+  dto             peticiones, respuestas y formularios administrativos
   exception       errores HTTP de inventario
   model           productos, insumos, almacenes, movimientos, alertas y solicitudes
   repository      acceso JPA y consultas con bloqueo
@@ -18,6 +17,12 @@ com.example.TrujillanosSAC.inventario
 ```
 
 Usuarios, empleados y proveedores siguen siendo entidades compartidas. Los módulos existentes importan las entidades del paquete `inventario`; no existen copias ni entidades duplicadas.
+
+## Panel de empleados
+
+Ejecuta Angular desde `TrujillanosSAC-Frontend` con `npm start` y abre [127.0.0.1:4200](http://127.0.0.1:4200/). El panel usa `/api/v1/inventario` mediante su proxy de desarrollo.
+
+Si el usuario entra por el panel administrativo de Spring, los accesos de catálogo, stock, movimientos y alertas redirigen al panel Angular. Define `FRONTEND_EMPLEADOS_URL` con la URL base de Angular si lo alojas en otra dirección.
 
 ## Preparación de Oracle
 

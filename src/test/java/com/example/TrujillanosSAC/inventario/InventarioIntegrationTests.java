@@ -7,7 +7,12 @@ import com.example.TrujillanosSAC.ventas.dto.request.DetallePedidoRequestDTO;
 import com.example.TrujillanosSAC.ventas.dto.request.PedidoRequestDTO;
 import com.example.TrujillanosSAC.ventas.security.ActorVenta;
 import com.example.TrujillanosSAC.ventas.service.service.PedidoService;
-import com.example.TrujillanosSAC.inventario.dto.InventarioDtos.*;
+import com.example.TrujillanosSAC.inventario.dto.request.InsumoRequest;
+import com.example.TrujillanosSAC.inventario.dto.request.MovimientoRequest;
+import com.example.TrujillanosSAC.inventario.dto.request.ProductoRequest;
+import com.example.TrujillanosSAC.inventario.dto.request.SolicitudLineaRequest;
+import com.example.TrujillanosSAC.inventario.dto.request.SolicitudRequest;
+import com.example.TrujillanosSAC.inventario.dto.response.PaginaResponse;
 import com.example.TrujillanosSAC.inventario.exception.InventarioException;
 import com.example.TrujillanosSAC.inventario.model.*;
 import com.example.TrujillanosSAC.inventario.repository.*;
@@ -34,7 +39,8 @@ import com.example.TrujillanosSAC.usuarios.model.*;
 import com.example.TrujillanosSAC.usuarios.repository.*;
 
 @ActiveProfiles("test")
-@SpringBootTest @AutoConfigureMockMvc @Transactional
+@SpringBootTest(properties = "app.frontend.empleados-url=https://empleados.example.test/panel/")
+@AutoConfigureMockMvc @Transactional
 class InventarioIntegrationTests {
     @Autowired EntityManager em;
     @Autowired PlatformTransactionManager transactions;
@@ -264,9 +270,21 @@ class InventarioIntegrationTests {
         mvc.perform(post("/api/v1/inventario/sesion/logout").session(sesion).with(csrf())).andExpect(status().isNoContent());
         mvc.perform(get("/api/v1/inventario/sesion")).andExpect(status().isUnauthorized());
     }
-    @Test void frontendIntegradoAbreSinSesionPorSuRutaDeEntrada() throws Exception {
-        mvc.perform(get("/inventario-app/index.html")).andExpect(status().isOk())
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("app-root")));
+    @Test void accesosDeInventarioRedirigenAlFrontendDeEmpleados() throws Exception {
+        var accesos = Map.of(
+                "/admin/inventario", "catalogo",
+                "/admin/productos", "catalogo",
+                "/admin/inventario/control-stock", "stock",
+                "/admin/inventario/movimientos", "movimientos",
+                "/admin/inventario/alertas", "alertas");
+        for (var acceso : accesos.entrySet()) {
+            mvc.perform(get(acceso.getKey()).with(user(almacenUser).roles("EMPLEADO")))
+                    .andExpect(status().isFound())
+                    .andExpect(redirectedUrl("https://empleados.example.test/panel/#/inventario/" + acceso.getValue()));
+        }
+        mvc.perform(get("/admin/inventario").with(user(jefeUser).roles("EMPLEADO")))
+                .andExpect(status().isFound())
+                .andExpect(redirectedUrl("https://empleados.example.test/panel/#/inventario/catalogo"));
     }
     @Test void loginGeneralComparteSesionConInventarioYRespetaCargo() throws Exception {
         var usuario=usuarios.findByUsernameConRolesYPersona(almacenUser).orElseThrow();

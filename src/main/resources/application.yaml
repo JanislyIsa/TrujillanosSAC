@@ -33,6 +33,8 @@ inventario:
     origenes: "${INVENTARIO_CORS_ORIGENES:http://localhost:4200,http://localhost:5173,http://localhost:3000}"
 
 app:
+  frontend:
+    empleados-url: "${FRONTEND_EMPLEADOS_URL:http://127.0.0.1:4200}"
   seed:
     habilitado: ${APP_SEED_HABILITADO:false}
 

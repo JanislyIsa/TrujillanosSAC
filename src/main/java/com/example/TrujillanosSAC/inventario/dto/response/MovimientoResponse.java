@@ -1,9 +1,9 @@
-package com.example.TrujillanosSAC.inventario.dto;
+package com.example.TrujillanosSAC.inventario.dto.response;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-public record MovimientoInventarioDto(
+public record MovimientoResponse(
         Long idMovimiento,
         String codigoMovimiento,
         String codigoComprobante,

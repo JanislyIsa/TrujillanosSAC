@@ -1,7 +1,8 @@
 package com.example.TrujillanosSAC.inventario.service.impl;
 
-import com.example.TrujillanosSAC.inventario.dto.InventarioDtos.*;
-import com.example.TrujillanosSAC.inventario.dto.MovimientoInventarioDto;
+import com.example.TrujillanosSAC.inventario.dto.request.MovimientoRequest;
+import com.example.TrujillanosSAC.inventario.dto.response.ComprobanteResponse;
+import com.example.TrujillanosSAC.inventario.dto.response.MovimientoResponse;
 import com.example.TrujillanosSAC.inventario.exception.InventarioException;
 import com.example.TrujillanosSAC.inventario.model.*;
 import com.example.TrujillanosSAC.inventario.repository.*;
@@ -36,7 +37,7 @@ public class MovimientoInventarioServiceImpl implements MovimientoInventarioServ
         Movimiento movimiento = Movimiento.builder().tipoMovimiento(request.tipoMovimiento().valor())
                 .fecha(ahora.toLocalDate()).hora(ahora).responsable(responsable)
                 .motivo(request.motivo().trim()).build();
-        MovimientoInventarioDto dto;
+        MovimientoResponse dto;
         if (request.tipoItem() == TipoItem.PRODUCTO) {
             Producto item = bloqueos.producto(request.idItem())
                     .orElseThrow(() -> InventarioException.noEncontrado("Producto"));
@@ -80,14 +81,14 @@ public class MovimientoInventarioServiceImpl implements MovimientoInventarioServ
     }
 
     @Override
-    public List<MovimientoInventarioDto> listar(TipoItem tipo, Long idItem,
+    public List<MovimientoResponse> listar(TipoItem tipo, Long idItem,
             TipoMovimiento movimiento, LocalDate desde, LocalDate hasta, Long almacen) {
         if (desde != null && hasta != null && desde.isAfter(hasta))
             throw new IllegalArgumentException("El rango de fechas es invalido");
-        Stream<MovimientoInventarioDto> p = tipo == TipoItem.INSUMO ? Stream.empty()
+        Stream<MovimientoResponse> p = tipo == TipoItem.INSUMO ? Stream.empty()
                 : detallesProducto.findAllParaInventario().stream()
                 .filter(d -> idItem == null || idItem.equals(d.getProducto().getIdProducto())).map(this::mapear);
-        Stream<MovimientoInventarioDto> i = tipo == TipoItem.PRODUCTO ? Stream.empty()
+        Stream<MovimientoResponse> i = tipo == TipoItem.PRODUCTO ? Stream.empty()
                 : detallesInsumo.findAllParaInventario().stream()
                 .filter(d -> idItem == null || idItem.equals(d.getInsumo().getIdInsumo())).map(this::mapear);
         Set<Long> idsAlmacen = almacen == null ? null : new HashSet<>(movimientos.findAllParaInventario()
@@ -98,38 +99,38 @@ public class MovimientoInventarioServiceImpl implements MovimientoInventarioServ
                 .filter(d -> desde == null || !d.fecha().isBefore(desde))
                 .filter(d -> hasta == null || !d.fecha().isAfter(hasta))
                 .filter(d -> idsAlmacen == null || idsAlmacen.contains(d.idMovimiento()))
-                .sorted(Comparator.comparing(MovimientoInventarioDto::idMovimiento).reversed()).toList();
+                .sorted(Comparator.comparing(MovimientoResponse::idMovimiento).reversed()).toList();
     }
 
     @Override
     public ComprobanteResponse comprobante(Long id) {
         ComprobanteMovimiento comprobante = comprobantes.findById(id)
                 .orElseThrow(() -> InventarioException.noEncontrado("Comprobante del movimiento"));
-        MovimientoInventarioDto dto = detallesProducto.findByIdMovimiento(id)
+        MovimientoResponse dto = detallesProducto.findByIdMovimiento(id)
                 .map(this::mapear)
                 .orElseGet(() -> detallesInsumo.findByIdMovimiento(id).map(this::mapear)
                         .orElseThrow(() -> InventarioException.noEncontrado("Detalle del movimiento")));
-        var guardado = new MovimientoInventarioDto(dto.idMovimiento(),dto.codigoMovimiento(),
+        var guardado = new MovimientoResponse(dto.idMovimiento(),dto.codigoMovimiento(),
                 comprobante.getCodigo(),dto.tipoMovimiento(),dto.tipoItem(),dto.nombreItem(),
                 dto.cantidad(),dto.unidad(),dto.stockAnterior(),dto.stockNuevo(),dto.fecha(),dto.hora(),dto.almacen());
         return new ComprobanteResponse(guardado, comprobante.getResponsable(), comprobante.getMotivo());
     }
 
-    private MovimientoInventarioDto mapear(DetalleMovProducto d) {
+    private MovimientoResponse mapear(DetalleMovProducto d) {
         return dto(d.getMovimiento(), "Producto",
                 d.getNombreItem() != null ? d.getNombreItem() : d.getProducto().getNombre(),
                 d.getCantidad(), d.getUnidadItem() != null ? d.getUnidadItem() : d.getProducto().getPresentacion().getNombre(),
                 d.getStockAnterior(), d.getStockNuevo());
     }
-    private MovimientoInventarioDto mapear(DetalleMovInsumo d) {
+    private MovimientoResponse mapear(DetalleMovInsumo d) {
         return dto(d.getMovimiento(), "Insumo",
                 d.getNombreItem() != null ? d.getNombreItem() : d.getInsumo().getNombre(),
                 d.getCantidad(), d.getUnidadItem() != null ? d.getUnidadItem() : d.getInsumo().getUnidadMedida().getNombre(),
                 d.getStockAnterior(), d.getStockNuevo());
     }
-    private MovimientoInventarioDto dto(Movimiento m, String tipo, String nombre,
+    private MovimientoResponse dto(Movimiento m, String tipo, String nombre,
             int cantidad, String unidad, Integer anterior, Integer nuevo) {
-        return new MovimientoInventarioDto(m.getIdMovimiento(), "MOV-%03d".formatted(m.getIdMovimiento()),
+        return new MovimientoResponse(m.getIdMovimiento(), "MOV-%03d".formatted(m.getIdMovimiento()),
                 "CM-%03d".formatted(m.getIdMovimiento()), m.getTipoMovimiento(), tipo, nombre,
                 cantidad, unidad, anterior, nuevo, m.getFecha(), m.getHora(), m.getAlmacen().getNombre());
     }
