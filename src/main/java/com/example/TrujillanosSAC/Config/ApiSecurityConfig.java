@@ -48,7 +48,8 @@ public class ApiSecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/login", "/api/v1/auth/registro").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/login", "/api/v1/auth/registro",
+                                "/api/v1/auth/olvide-clave", "/api/v1/auth/restablecer-clave").permitAll()
                         // Catálogo público: la tienda se puede ver sin iniciar sesión (solo lectura).
                         .requestMatchers(HttpMethod.GET, "/api/v1/ventas/productos", "/api/v1/ventas/productos/*").permitAll()
                         .anyRequest().authenticated())

@@ -35,6 +35,23 @@ En Swagger: hacer login, copiar el `token` y pegarlo en **Authorize → jwt** (s
 | `MAIL_REMITENTE`, `MAIL_NOMBRE_REMITENTE` | Remitente visible (por defecto `MAIL_USERNAME` y "El Trujillano") |
 | `FRONTEND_URL` | URL de la tienda para los enlaces de los correos (`http://localhost:4300`) |
 
+## Recuperar y cambiar la contraseña (clientes)
+
+Solo para clientes: son los que tienen correo (`CLIENTES.CORREO`). Requiere `MAIL_USERNAME` y `MAIL_PASSWORD`,
+y la tabla `PASSWORD_RESET_TOKEN` (en una base ya creada, ejecutar una vez `database/oracle/06_password_reset.sql`).
+
+| Endpoint | Acceso | Cuerpo | Qué hace |
+|---|---|---|---|
+| `POST /api/v1/auth/olvide-clave` | público | `{ "correo" }` | Envía un enlace `{FRONTEND_URL}/restablecer-clave?token=...`. Responde **siempre** 200 con el mismo mensaje, exista o no el correo |
+| `POST /api/v1/auth/restablecer-clave` | público | `{ "token", "nuevaClave" }` | Cambia la clave si el enlace existe, no se usó y no venció. Si no: 409 "El enlace no es válido o ya venció" |
+| `POST /api/v1/auth/cambiar-clave` | con token JWT | `{ "claveActual", "nuevaClave" }` | Cambio desde "Mi cuenta"; 409 si la clave actual no coincide |
+
+- El enlace vence a los 30 minutos (`app.recuperacion-clave.minutos-validez`) y sirve una sola vez.
+- En la base solo se guarda el hash SHA-256 del token; pedir un enlace nuevo o cambiar la clave anula los anteriores.
+- Como máximo un correo por minuto por cuenta (`app.recuperacion-clave.espera-segundos`).
+- La nueva clave: de 8 a 72 caracteres (BCrypt). El correo se envía en segundo plano, después de guardar el enlace.
+- Los tokens JWT ya emitidos siguen valiendo hasta que vencen (la API no guarda sesiones).
+
 ## Flujo de una venta
 
 1. **Pedido** — `POST /pedidos` `{ "detalles": [{ "productoId": 1, "cantidad": 2 }] }`

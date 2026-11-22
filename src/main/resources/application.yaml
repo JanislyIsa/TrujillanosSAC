@@ -58,6 +58,10 @@ app:
     tienda-url: ${FRONTEND_URL:http://localhost:4300}
   seed:
     habilitado: ${APP_SEED_HABILITADO:false}
+  recuperacion-clave:
+    # El enlace para restablecer la contraseña vence a los 30 minutos; un correo cada 60 s como máximo.
+    minutos-validez: 30
+    espera-segundos: 60
   correo:
     # Dirección que aparece como remitente (por defecto, la misma cuenta MAIL_USERNAME).
     remitente: ${MAIL_REMITENTE:${MAIL_USERNAME:}}
