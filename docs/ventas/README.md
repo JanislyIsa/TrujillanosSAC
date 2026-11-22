@@ -35,7 +35,7 @@ En Swagger: hacer login, copiar el `token` y pegarlo en **Authorize → jwt** (s
 | `SERVER_PORT` | Puerto del backend (8080) |
 | `MAIL_USERNAME`, `MAIL_PASSWORD` | Cuenta Gmail del negocio y su contraseña de aplicación. Sin ellas no se envían correos |
 | `MAIL_REMITENTE`, `MAIL_NOMBRE_REMITENTE` | Remitente visible (por defecto `MAIL_USERNAME` y "El Trujillano") |
-| `FRONTEND_URL` | URL de la tienda para los enlaces de los correos (`http://localhost:4300`) |
+| `FRONTEND_URL` | URL del frontend para los enlaces de los correos (`http://localhost:4200`) |
 
 ## Recuperar y cambiar la contraseña (clientes)
 

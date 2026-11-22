@@ -52,8 +52,9 @@ inventario:
 app:
   frontend:
     empleados-url: "${FRONTEND_EMPLEADOS_URL:http://127.0.0.1:4200}"
-    # URL de la tienda: se usa para armar los enlaces que van en los correos.
-    tienda-url: ${FRONTEND_URL:http://localhost:4300}
+    # URL del frontend (Angular): se usa para armar los enlaces de los correos
+    # (por ejemplo {tienda-url}/restablecer-clave?token=...).
+    tienda-url: ${FRONTEND_URL:http://localhost:4200}
   seed:
     habilitado: ${APP_SEED_HABILITADO:false}
   recuperacion-clave:
@@ -75,7 +76,7 @@ seguridad:
 api:
   cors:
     # Orígenes permitidos para las APIs JWT consumidas por Angular (separados por coma).
-    # 4200: frontend de empleados (inventario); 4300: tienda de clientes.
+    # 4200: frontend único (tienda + intranet); 4300 se mantiene por la tienda anterior.
     origenes: ${API_CORS_ORIGENES:http://localhost:4200,http://localhost:4300}
 
 ventas:

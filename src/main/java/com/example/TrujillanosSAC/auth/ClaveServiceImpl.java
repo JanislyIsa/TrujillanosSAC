@@ -50,7 +50,7 @@ public class ClaveServiceImpl implements ClaveService {
     public ClaveServiceImpl(ClienteRepository clientes, UsuarioRepository usuarios,
                             PasswordResetTokenRepository tokens, PasswordEncoder passwordEncoder,
                             CorreoService correoService,
-                            @Value("${app.frontend.tienda-url:http://localhost:4300}") String tiendaUrl,
+                            @Value("${app.frontend.tienda-url:http://localhost:4200}") String tiendaUrl,
                             @Value("${app.recuperacion-clave.minutos-validez:30}") long minutosValidez,
                             @Value("${app.recuperacion-clave.espera-segundos:60}") long esperaSegundos) {
         this.clientes = clientes;
