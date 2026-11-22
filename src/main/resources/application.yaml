@@ -81,6 +81,11 @@ api:
     origenes: ${API_CORS_ORIGENES:http://localhost:4200,http://localhost:4300}
 
 ventas:
+  negocio:
+    # Datos del negocio que se imprimen en el comprobante de pago (ticket) y en el correo.
+    razon-social: ${VENTAS_NEGOCIO_RAZON_SOCIAL:El Trujillano S.A.C.}
+    ruc: ${VENTAS_NEGOCIO_RUC:10327958441}
+    direccion: ${VENTAS_NEGOCIO_DIRECCION:}
   culqi:
     # Llave secreta sk_test_... / sk_live_... de Culqi. Solo por variable de entorno, nunca en Git.
     llave-secreta: ${CULQI_LLAVE_SECRETA:}

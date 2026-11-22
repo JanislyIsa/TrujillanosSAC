@@ -129,7 +129,7 @@ class VentasServiceTests {
 
     private PagoServiceImpl pagoService(PasarelaPago pasarela) {
         var transacciones = new PagoTransacciones(pagos, pedidos, estadosPedido, estadosPago, metodos, acceso);
-        return new PagoServiceImpl(transacciones, pasarela, pagos, acceso);
+        return new PagoServiceImpl(transacciones, pasarela, pagos, acceso, comprobanteService());
     }
 
     private ComprobanteVentaServiceImpl comprobanteService() {

@@ -21,17 +21,22 @@ import com.example.TrujillanosSAC.ventas.service.service.ComprobanteVentaService
 import com.example.TrujillanosSAC.ventas.service.service.EstadoComprobanteVentaService;
 import com.example.TrujillanosSAC.ventas.service.facturacion.FacturacionElectronica;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 
 @Service("ventasComprobanteVentaService")
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class ComprobanteVentaServiceImpl implements ComprobanteVentaService {
+
+    private static final Logger log = LoggerFactory.getLogger(ComprobanteVentaServiceImpl.class);
 
     private static final long MAX_CORRELATIVO = 99_999_999L;
 
@@ -45,29 +50,47 @@ public class ComprobanteVentaServiceImpl implements ComprobanteVentaService {
     @Override
     @Transactional
     public ComprobanteVentaResponseDTO emitir(ComprobanteVentaRequestDTO request, ActorVenta actor) {
-        Pedido pedido = pedidos.bloquear(request.pedidoId())
-                .orElseThrow(() -> new RecursosNoEncontradosException("Pedido no encontrado"));
+        Pedido pedido = bloquearPedido(request.pedidoId());
         acceso.verificarPedido(pedido, actor);
-        if (!(pedido.estaEn(EstadoPedidoCodigo.PAGADO) || pedido.estaEn(EstadoPedidoCodigo.LISTO_PARA_RECOJO)
-                || pedido.estaEn(EstadoPedidoCodigo.ENTREGADO))) {
-            throw new ReglaNegocioException("Solo se emite comprobante de un pedido pagado");
-        }
+        exigirPagado(pedido);
         if (comprobantes.existsByPedido_IdPedido(pedido.getIdPedido())) {
             throw new ReglaNegocioException("El pedido ya tiene comprobante");
         }
         if (request.tipo() == TipoComprobanteCodigo.FACTURA && !tieneRuc(pedido.getCliente())) {
             throw new ReglaNegocioException("Para emitir factura el cliente debe estar registrado con RUC (11 dígitos)");
         }
+        return VentaMapper.comprobante(crear(pedido, request.tipo()));
+    }
+
+    @Override
+    @Transactional
+    public ComprobanteVentaResponseDTO emitirAutomatico(Long pedidoId) {
+        Pedido pedido = bloquearPedido(pedidoId);
+        exigirPagado(pedido);
+        // Si ya tiene comprobante (por ejemplo, un reintento) se devuelve el mismo: nunca dos por pedido.
+        Optional<ComprobanteVenta> existente = comprobantes.findByPedido_IdPedido(pedidoId);
+        if (existente.isPresent()) {
+            return VentaMapper.comprobante(existente.get());
+        }
+        // Cliente con RUC: factura; los demás (DNI, CE): boleta.
+        TipoComprobanteCodigo tipo = tieneRuc(pedido.getCliente()) ? TipoComprobanteCodigo.FACTURA : TipoComprobanteCodigo.BOLETA;
+        ComprobanteVenta comprobante = crear(pedido, tipo);
+        log.info("Comprobante emitido automáticamente. pedidoId={}, comprobante={}-{}",
+                pedidoId, comprobante.getSerie(), comprobante.getNumero());
+        return VentaMapper.comprobante(comprobante);
+    }
+
+    /** Crea el comprobante con el siguiente número de su serie (B001 o F001). */
+    private ComprobanteVenta crear(Pedido pedido, TipoComprobanteCodigo codigo) {
         // Bloquear el tipo evita que dos ventas simultáneas reciban el mismo número.
-        TipoComprobanteVenta tipo = tipos.bloquearPorCodigo(request.tipo().name()).orElseThrow(() ->
-                new ReglaNegocioException("Falta registrar el tipo de comprobante " + request.tipo()));
-        String serie = request.tipo().serie();
+        TipoComprobanteVenta tipo = tipos.bloquearPorCodigo(codigo.name()).orElseThrow(() ->
+                new ReglaNegocioException("Falta registrar el tipo de comprobante " + codigo));
+        String serie = codigo.serie();
         long siguiente = comprobantes.findTopBySerieOrderByNumeroDesc(serie)
                 .map(c -> Long.parseLong(c.getNumero()) + 1).orElse(1L);
         if (siguiente > MAX_CORRELATIVO) {
             throw new ReglaNegocioException("Se agotó la numeración de la serie " + serie);
         }
-
         ComprobanteVenta comprobante = new ComprobanteVenta();
         comprobante.setPedido(pedido);
         comprobante.setTipo(tipo);
@@ -78,7 +101,19 @@ public class ComprobanteVentaServiceImpl implements ComprobanteVentaService {
         comprobante.setTotal(pedido.getTotal());
         comprobantes.saveAndFlush(comprobante);
         comprobante.setEstadoSunat(facturacion.enviar(comprobante));
-        return VentaMapper.comprobante(comprobante);
+        return comprobante;
+    }
+
+    private Pedido bloquearPedido(Long pedidoId) {
+        return pedidos.bloquear(pedidoId)
+                .orElseThrow(() -> new RecursosNoEncontradosException("Pedido no encontrado"));
+    }
+
+    private static void exigirPagado(Pedido pedido) {
+        if (!(pedido.estaEn(EstadoPedidoCodigo.PAGADO) || pedido.estaEn(EstadoPedidoCodigo.LISTO_PARA_RECOJO)
+                || pedido.estaEn(EstadoPedidoCodigo.ENTREGADO))) {
+            throw new ReglaNegocioException("Solo se emite comprobante de un pedido pagado");
+        }
     }
 
     @Override

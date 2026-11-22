@@ -64,6 +64,12 @@ y la tabla `PASSWORD_RESET_TOKEN` (en una base ya creada, ejecutar una vez `data
    - La respuesta trae `estado.codigo`: `APROBADO`, `RECHAZADO` o `ERROR` (revisarlo siempre).
 3. **Comprobante** — `POST /comprobantes` `{ "pedidoId", "tipo": "BOLETA" | "FACTURA" }`
    - Solo de pedidos pagados. Factura exige cliente con RUC de 11 dígitos. Series B001 / F001.
+   - Al aprobarse el pago, el backend emite solo el comprobante: **factura** si el cliente tiene RUC, si no **boleta**
+     (`B001-00000001`). Si falla, el pago queda registrado igual y se puede emitir después con `POST /comprobantes`.
+   - Ticket: `GET /pedidos/{id}/comprobante-pago` (cliente dueño o empleado; 409 si no está pagado) devuelve negocio,
+     serie-número, cliente, ítems, total, método de pago, N.º de operación de Culqi y la leyenda
+     "no válida ante SUNAT" mientras no exista facturación electrónica. Datos del negocio: `VENTAS_NEGOCIO_RAZON_SOCIAL`,
+     `VENTAS_NEGOCIO_RUC`, `VENTAS_NEGOCIO_DIRECCION`.
 4. **Entrega** (empleado) — `PATCH /pedidos/{id}/estado` `{ "estado": "LISTO_PARA_RECOJO" | "ENTREGADO" }`
 
 Otros: `GET /pedidos` (empleado: todos; cliente: los suyos), `GET /pedidos/{id}`,
