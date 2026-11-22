@@ -2,60 +2,42 @@ package com.example.TrujillanosSAC.Config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
+/**
+ * Seguridad general. La única forma de autenticarse es el token JWT de {@link ApiSecurityConfig}
+ * (POST /api/v1/auth/login), que protege todo /api/**: no hay sesiones, cookies, CSRF ni formulario de login.
+ * <p>
+ * Esta cadena atiende lo que queda fuera de /api: imágenes públicas, Swagger y páginas de error.
+ * Ahí no hay datos del negocio, por eso se permite sin token.
+ * {@code @EnableMethodSecurity} activa los {@code @PreAuthorize} de todos los controllers.
+ */
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http,
-                                                   AuthenticationProvider authenticationProvider,
-                                                   com.example.TrujillanosSAC.Service.AdminAccessService acceso) throws Exception {
-
+    @Order(2)
+    public SecurityFilterChain recursosPublicos(HttpSecurity http) throws Exception {
         http
-                .authenticationProvider(authenticationProvider)
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/css/**", "/js/**", "/img/**", "/uploads/**").permitAll()
-                        .requestMatchers("/login", "/ventas/catalogo", "/ventas/producto/**").permitAll()
-                        // Documentacion de la API (solo se publica en dev: en prod springdoc esta desactivado)
-                        .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        .requestMatchers("/admin/**").hasRole("EMPLEADO")
-                        .requestMatchers("/proveedor/**").hasRole("PROVEEDOR")
-                        .anyRequest().authenticated()
-                )
-                .formLogin(form -> form
-                        .loginPage("/login")
-                        .successHandler((request, response, authentication) -> {
-                            boolean esProveedor = authentication.getAuthorities().stream()
-                                    .anyMatch(authority -> "ROLE_PROVEEDOR".equals(authority.getAuthority()));
-                            boolean esEmpleado = authentication.getAuthorities().stream()
-                                    .anyMatch(authority -> "ROLE_EMPLEADO".equals(authority.getAuthority()));
-                            if (esProveedor) {
-                                response.sendRedirect("/proveedor/solicitudes");
-                            } else if (esEmpleado) {
-                                String destino = acceso.obtenerModulos(authentication.getName()).stream()
-                                        .map(com.example.TrujillanosSAC.Dto.AdminModuleDto::url)
-                                        .findFirst().orElse("/ventas/catalogo");
-                                response.sendRedirect(destino);
-                            } else {
-                                response.sendRedirect("/ventas/catalogo");
-                            }
-                        })
-                        .permitAll()
-                )
-                .logout(logout -> logout
-                        .logoutSuccessUrl("/ventas/catalogo")
-                        .permitAll()
-                );
-
+                .csrf(AbstractHttpConfigurer::disable)
+                .formLogin(AbstractHttpConfigurer::disable)
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .logout(AbstractHttpConfigurer::disable)
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
         return http.build();
     }
 

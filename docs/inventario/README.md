@@ -51,13 +51,12 @@ Importar `docs/inventario/openapi.json` en Postman o un visor OpenAPI. Base: `/a
 | Solicitudes RF53 y RF56 | `GET/POST /solicitudes-compra`, `GET /solicitudes-compra/{id}` | Jefe de compras, administrador |
 | Faltantes y llenado automático RF54–RF55 | `GET /solicitudes-compra/faltantes`, `POST /solicitudes-compra/automatica` | Jefe de compras, administrador |
 | Opciones para formularios | `GET /catalogos` | Inventario o compras |
-| Token de escritura | `GET /csrf` | Público |
 
-El administrador puede operar ambos ámbitos. Los permisos combinan el rol `EMPLEADO` y su cargo en base de datos. Un cliente o proveedor no puede acceder a la API de inventario. La API acepta la sesión de login existente y HTTP Basic; usar HTTPS fuera de desarrollo.
+El administrador puede operar ambos ámbitos. Los permisos combinan el rol `EMPLEADO` y su cargo en base de datos. Un cliente o proveedor no puede acceder a la API de inventario. Usar HTTPS fuera de desarrollo.
 
-Las escrituras requieren CSRF. Consultar `GET /csrf`, conservar cookies y enviar el valor `token` en el encabezado `headerName` devuelto (`X-XSRF-TOKEN`). En el frontend usar `credentials: 'include'`. Las sesiones utilizan el login existente en `/login`; si este rota o elimina el token, volver a consultar `/csrf`.
+**Autenticación: solo JWT**, igual que ventas y compras. Iniciar sesión con `POST /api/v1/auth/login` y enviar `Authorization: Bearer <token>` en cada petición. No hay sesión, cookies ni CSRF (se retiraron `/sesion`, `/sesion/login`, `/sesion/logout` y `/csrf`). La respuesta del login trae `cargo` y los accesos `inventario` y `compras` para mostrar u ocultar opciones.
 
-CORS admite `http://localhost:5173` y `http://localhost:3000`. Configurar `INVENTARIO_CORS_ORIGENES` como lista de orígenes separados por comas para otras direcciones.
+CORS: lo define `API_CORS_ORIGENES` para toda la API (por defecto `http://localhost:4200,http://localhost:4300`).
 
 Las listas principales devuelven `{contenido, pagina, tamanio, totalElementos, totalPaginas}`. `pagina` empieza en 0; `tamanio` admite 1–100 y vale 20 por defecto. Productos e insumos admiten `buscar`, `idAlmacen`, `estado`. Stock agrega `tipoItem`. El historial admite `tipoItem`, `idItem`, `tipoMovimiento`, `desde`, `hasta`, `idAlmacen`; las fechas son inclusivas. El filtrado y paginado actuales se hacen sobre las consultas de gestión; para catálogos grandes se deberá llevar esa paginación a SQL.
 
@@ -110,7 +109,7 @@ Solicitud manual:
 {"idProveedor":1,"detalles":[{"idInsumo":1,"cantidad":15.50}]}
 ```
 
-Errores: `400` datos inválidos, `401` sin autenticación, `403` sin permisos o CSRF, `404` recurso inexistente, `409` stock insuficiente, conflicto concurrente. Los errores de validación REST incluyen `errores` por campo; los de negocio incluyen el motivo en `mensaje`. No se devuelve la excepción de la base de datos.
+Errores: `400` datos inválidos, `401` sin autenticación, `403` sin permisos, `404` recurso inexistente, `409` stock insuficiente, conflicto concurrente. Los errores de validación REST incluyen `errores` por campo; los de negocio incluyen el motivo en `mensaje`. No se devuelve la excepción de la base de datos.
 
 ## Verificación local
 

@@ -1,14 +1,16 @@
 # Módulo de ventas
 
 API REST en `/api/v1/ventas/**`, pensada para el frontend Angular `trujillano-frontend`
-(`http://localhost:4200`). Usa **JWT**: no hay sesión, cookies ni CSRF.
+(`http://localhost:4300`). Usa **JWT**: no hay sesión, cookies ni CSRF. Es el mismo token para toda la API
+(`/api/**`: auth, ventas, compras, inventario y usuarios): un solo login para clientes y empleados.
 
 ## Autenticación (JWT)
 
 1. `POST /api/v1/auth/login` (público) con `{ "username": "cliente", "password": "..." }`. Responde:
    ```json
    { "token": "eyJ...", "tipo": "Bearer", "expiraEnSegundos": 3600, "username": "cliente",
-     "nombreCompleto": "Cliente Demostracion", "roles": ["CLIENTE"], "permisos": ["PAGO_REALIZAR", "PEDIDO_CREAR", ...] }
+     "nombreCompleto": "Cliente Demostracion", "roles": ["CLIENTE"], "permisos": ["PAGO_REALIZAR", "PEDIDO_CREAR", ...],
+     "cargo": null, "inventario": false, "compras": false }
    ```
 2. En cada petición a `/api/v1/ventas/**` enviar el header `Authorization: Bearer <token>`
    (en Angular, con un `HttpInterceptor`).

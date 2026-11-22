@@ -48,8 +48,6 @@ inventario:
     habilitado: true
     intervalo-ms: 60000
     inicio-ms: 60000
-  cors:
-    origenes: "${INVENTARIO_CORS_ORIGENES:http://localhost:4200,http://localhost:5173,http://localhost:3000}"
 
 app:
   frontend:

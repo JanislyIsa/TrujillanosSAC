@@ -22,9 +22,9 @@ spring:
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
-    # Swagger lee la cookie XSRF-TOKEN y la envia en X-XSRF-TOKEN (necesario para POST/PUT/PATCH)
+    # La API usa solo JWT (sin CSRF): en Swagger, Authorize con el token del login.
     csrf:
-      enabled: true
+      enabled: false
 
   api-docs:
     enabled: true

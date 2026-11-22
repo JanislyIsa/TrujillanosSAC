@@ -1,5 +1,6 @@
 package com.example.TrujillanosSAC.auth;
 
+import com.example.TrujillanosSAC.Service.AdminAccessService;
 import com.example.TrujillanosSAC.usuarios.model.Persona;
 import com.example.TrujillanosSAC.usuarios.model.Cliente;
 import com.example.TrujillanosSAC.usuarios.repository.ClienteRepository;
@@ -26,13 +27,16 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
     private final UsuarioRepository usuarios;
     private final ClienteRepository clientes;
+    private final AdminAccessService accesoEmpleado;
 
     public AuthServiceImpl(AuthenticationProvider authenticationProvider, JwtService jwtService,
-                           UsuarioRepository usuarios, ClienteRepository clientes) {
+                           UsuarioRepository usuarios, ClienteRepository clientes,
+                           AdminAccessService accesoEmpleado) {
         this.authenticationProvider = authenticationProvider;
         this.jwtService = jwtService;
         this.usuarios = usuarios;
         this.clientes = clientes;
+        this.accesoEmpleado = accesoEmpleado;
     }
 
     // Sin @Transactional: la consulta de la persona ya trae todo con "join fetch", y así una clave incorrecta
@@ -60,6 +64,12 @@ public class AuthServiceImpl implements AuthService {
 
         String numeroDocumento = usuario.map(u -> u.getPersona()).map(Persona::getNumDoc).orElse(null);
 
+        // Empleados: cargo y módulos a los que puede entrar (antes lo daba la sesión de inventario).
+        boolean empleado = roles.contains("EMPLEADO");
+        String cargo = empleado ? vacioANull(accesoEmpleado.obtenerCargo(nombreUsuario)) : null;
+        boolean inventario = empleado && accesoEmpleado.puedeAccederA(nombreUsuario, "/admin/inventario");
+        boolean compras = empleado && accesoEmpleado.puedeAccederA(nombreUsuario, "/admin/compras/solicitudes");
+
         log.info("Inicio de sesión correcto: usuario={} roles={}", nombreUsuario, roles);
         return new LoginResponseDTO(
                 jwtService.generarToken(nombreUsuario, roles),
@@ -70,7 +80,14 @@ public class AuthServiceImpl implements AuthService {
                 correo,
                 numeroDocumento,
                 roles,
-                PermisosPorRol.permisos(roles));
+                PermisosPorRol.permisos(roles),
+                cargo,
+                inventario,
+                compras);
+    }
+
+    private static String vacioANull(String texto) {
+        return texto == null || texto.isBlank() ? null : texto;
     }
 
     private static String nombreCompleto(Persona persona) {

@@ -3,7 +3,6 @@ import com.example.TrujillanosSAC.inventario.dto.response.CatalogoResponse;
 import com.example.TrujillanosSAC.inventario.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
@@ -21,8 +20,6 @@ public class CatalogosInventarioController {
         return proveedores.findAll().stream().map(p -> new CatalogoResponse(p.getIdPersona(),
                 p.getPersona().getNombre()+" "+p.getPersona().getApellido())).toList();
     }
-    @GetMapping("/csrf")
-    public Map<String,String> csrf(CsrfToken csrf) { return Map.of("headerName",csrf.getHeaderName(),"token",csrf.getToken()); }
     @GetMapping("/catalogos") @PreAuthorize("hasRole('EMPLEADO')")
     public Map<String,List<CatalogoResponse>> catalogos() {
         return Map.of("categorias",categorias.findAll().stream().map(c -> new CatalogoResponse(c.getIdCategoria(),c.getNombre())).toList(),
