@@ -16,6 +16,7 @@ import com.example.TrujillanosSAC.ventas.model.*;
 import com.example.TrujillanosSAC.ventas.model.codigo.*;
 import com.example.TrujillanosSAC.ventas.repository.*;
 import com.example.TrujillanosSAC.ventas.security.ActorVenta;
+import com.example.TrujillanosSAC.ventas.service.service.ComprobanteCorreoService;
 import com.example.TrujillanosSAC.ventas.service.service.*;
 import com.example.TrujillanosSAC.ventas.service.facturacion.SinFacturacionElectronica;
 import com.example.TrujillanosSAC.ventas.service.impl.*;
@@ -129,7 +130,8 @@ class VentasServiceTests {
 
     private PagoServiceImpl pagoService(PasarelaPago pasarela) {
         var transacciones = new PagoTransacciones(pagos, pedidos, estadosPedido, estadosPago, metodos, acceso);
-        return new PagoServiceImpl(transacciones, pasarela, pagos, acceso, comprobanteService());
+        return new PagoServiceImpl(transacciones, pasarela, pagos, acceso, comprobanteService(),
+                mock(ComprobanteCorreoService.class));
     }
 
     private ComprobanteVentaServiceImpl comprobanteService() {

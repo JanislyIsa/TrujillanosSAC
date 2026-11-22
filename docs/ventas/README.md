@@ -70,6 +70,10 @@ y la tabla `PASSWORD_RESET_TOKEN` (en una base ya creada, ejecutar una vez `data
      serie-número, cliente, ítems, total, método de pago, N.º de operación de Culqi y la leyenda
      "no válida ante SUNAT" mientras no exista facturación electrónica. Datos del negocio: `VENTAS_NEGOCIO_RAZON_SOCIAL`,
      `VENTAS_NEGOCIO_RUC`, `VENTAS_NEGOCIO_DIRECCION`.
+   - Correo del comprobante: al aprobarse el pago se envía en segundo plano (plantilla `templates/mail/comprobante-pago.html`)
+     al correo de la cuenta del cliente o, si no tiene, al `email` con el que pagó. Un fallo del correo solo queda en el log.
+   - Reenvío: `POST /pedidos/{id}/comprobante/enviar` (cliente dueño o empleado) → `{ "mensaje", "destinatario" }`.
+     409 si el pedido no está pagado, si la cuenta no tiene correo o si faltan `MAIL_USERNAME` / `MAIL_PASSWORD`.
 4. **Entrega** (empleado) — `PATCH /pedidos/{id}/estado` `{ "estado": "LISTO_PARA_RECOJO" | "ENTREGADO" }`
 
 Otros: `GET /pedidos` (empleado: todos; cliente: los suyos), `GET /pedidos/{id}`,

@@ -6,6 +6,7 @@ import com.example.TrujillanosSAC.ventas.mapper.VentaMapper;
 import com.example.TrujillanosSAC.ventas.model.Pago;
 import com.example.TrujillanosSAC.ventas.repository.PagoRepository;
 import com.example.TrujillanosSAC.ventas.security.ActorVenta;
+import com.example.TrujillanosSAC.ventas.service.service.ComprobanteCorreoService;
 import com.example.TrujillanosSAC.ventas.service.service.ComprobanteVentaService;
 import com.example.TrujillanosSAC.ventas.service.service.PagoService;
 import com.example.TrujillanosSAC.ventas.service.pasarela.PasarelaPago;
@@ -30,6 +31,7 @@ public class PagoServiceImpl implements PagoService {
     private final PagoRepository pagos;
     private final AccesoVentas acceso;
     private final ComprobanteVentaService comprobantes;
+    private final ComprobanteCorreoService comprobanteCorreo;
 
     // Sin @Transactional a propósito: cada paso de PagoTransacciones abre y cierra su propia transacción.
     @Override
@@ -57,6 +59,8 @@ public class PagoServiceImpl implements PagoService {
             } catch (RuntimeException e) {
                 log.error("Pago aprobado sin comprobante: no se pudo emitir. pedidoId={}", request.pedidoId(), e);
             }
+            // 5) Enviar el comprobante por correo en segundo plano (no retrasa la respuesta ni puede fallarla).
+            comprobanteCorreo.enviarAlAprobarse(request.pedidoId(), request.email());
         }
         return pago;
     }

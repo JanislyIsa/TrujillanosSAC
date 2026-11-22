@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Comprobante de pago</title>
+</head>
+<body style="margin:0;padding:0;background:#f4f5f8;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f5f8;padding:24px 0;">
+  <tr>
+    <td align="center">
+      <!-- Ticket de ~80 mm: ancho fijo y letra monoespaciada, como una ticketera -->
+      <table role="presentation" width="320" cellpadding="0" cellspacing="0"
+             style="width:320px;background:#ffffff;font-family:'Courier New',Courier,monospace;font-size:13px;color:#111111;padding:18px 16px;">
+        <tr>
+          <td style="text-align:center;padding-bottom:6px;">
+            <div style="font-size:16px;font-weight:bold;" th:text="${c.negocio().razonSocial()}">El Trujillano S.A.C.</div>
+            <div th:if="${c.negocio().ruc()}" th:text="'RUC ' + ${c.negocio().ruc()}">RUC</div>
+            <div th:if="${c.negocio().direccion()}" th:text="${c.negocio().direccion()}">Dirección</div>
+          </td>
+        </tr>
+        <tr><td style="border-top:1px dashed #555555;padding-top:6px;"></td></tr>
+        <tr>
+          <td style="text-align:center;padding-bottom:6px;">
+            <div style="font-weight:bold;"
+                 th:text="${c.nombreComprobante() != null ? #strings.toUpperCase(c.nombreComprobante()) : 'COMPROBANTE DE PEDIDO'}">BOLETA DE VENTA</div>
+            <div style="font-size:15px;font-weight:bold;"
+                 th:text="${c.serie() != null ? c.serie() + '-' + c.numero() : 'Pedido N.º ' + c.pedidoId()}">B001-00000001</div>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding-bottom:6px;line-height:1.5;">
+            <div th:if="${c.fechaPago()}" th:text="'Fecha: ' + ${#temporals.format(c.fechaPago(), 'dd/MM/yyyy HH:mm')}">Fecha</div>
+            <div th:text="'Pedido: #' + ${c.pedidoId()}">Pedido</div>
+            <div th:text="'Cliente: ' + ${c.cliente().nombreCompleto()}">Cliente</div>
+            <div th:if="${c.cliente().numeroDocumento()}"
+                 th:text="${(c.cliente().tipoDocumento() != null ? c.cliente().tipoDocumento() : 'Doc.') + ': ' + c.cliente().numeroDocumento()}">DNI</div>
+          </td>
+        </tr>
+        <tr><td style="border-top:1px dashed #555555;padding-top:6px;"></td></tr>
+        <tr th:each="i : ${c.items()}">
+          <td style="padding:2px 0;">
+            <div th:text="${i.cantidad() + ' x ' + i.descripcion() + (i.presentacion() != null ? ' (' + #strings.capitalize(#strings.toLowerCase(i.presentacion())) + ')' : '')}">1 x Producto</div>
+            <div style="text-align:right;"
+                 th:text="'S/ ' + ${#numbers.formatDecimal(i.subtotal(), 1, 'COMMA', 2, 'POINT')}">S/ 0.00</div>
+          </td>
+        </tr>
+        <tr><td style="border-top:1px dashed #555555;padding-top:6px;"></td></tr>
+        <tr>
+          <td style="padding-bottom:6px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+                   style="font-family:'Courier New',Courier,monospace;">
+              <tr>
+                <td style="font-size:16px;font-weight:bold;">TOTAL</td>
+                <td style="font-size:16px;font-weight:bold;text-align:right;"
+                    th:text="'S/ ' + ${#numbers.formatDecimal(c.total(), 1, 'COMMA', 2, 'POINT')}">S/ 0.00</td>
+              </tr>
+            </table>
+            <div th:text="${c.unidades() + (c.unidades() == 1 ? ' unidad' : ' unidades')}">1 unidad</div>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding-bottom:6px;line-height:1.5;">
+            <div th:if="${c.metodoPago()}" th:text="'Pago: ' + ${c.metodoPago()}">Pago: Yape</div>
+            <div th:if="${c.referenciaOperacion()}" th:text="'N.º operación: ' + ${c.referenciaOperacion()}">N.º operación</div>
+          </td>
+        </tr>
+        <tr><td style="border-top:1px dashed #555555;padding-top:6px;"></td></tr>
+        <tr>
+          <td style="text-align:center;line-height:1.5;">
+            <div style="font-weight:bold;">¡Gracias por tu compra!</div>
+            <div th:if="${c.leyenda()}" style="font-size:11px;color:#555555;" th:text="${c.leyenda()}">Leyenda</div>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>
