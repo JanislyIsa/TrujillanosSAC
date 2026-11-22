@@ -16,7 +16,7 @@ import java.security.Principal;
 
 @RestController @RequiredArgsConstructor
 @RequestMapping("/api/v1/inventario/solicitudes-compra")
-@PreAuthorize("@inventarioPermisos.compras(authentication)")
+@PreAuthorize("hasRole('EMPLEADO')")
 public class SolicitudInventarioController {
     private final SolicitudInventarioService solicitudes;
     @GetMapping("/faltantes")

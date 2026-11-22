@@ -15,7 +15,7 @@ import java.security.Principal;
 
 @RestController @RequiredArgsConstructor
 @RequestMapping("/api/v1/inventario/insumos")
-@PreAuthorize("@inventarioPermisos.inventario(authentication)")
+@PreAuthorize("hasRole('EMPLEADO')")
 public class InsumoInventarioController {
     private final CatalogoInventarioService catalogo;
     @GetMapping
@@ -35,7 +35,7 @@ public class InsumoInventarioController {
     @PostMapping
     public ResponseEntity<InsumoResponse> crear(@Valid @RequestBody InsumoRequest request, Principal principal) {
         InsumoResponse item = InsumoResponse.de(catalogo.crearInsumo(request, principal.getName()));
-        return ResponseEntity.created(URI.create("/api/v1/inventario/insumos/"+item.id())).body(item);
+        return ResponseEntity.created(URI.create("/api/v1/inventario/insumos/" + item.id())).body(item);
     }
     @PutMapping("/{id}")
     public InsumoResponse editar(@PathVariable @Positive Long id, @Valid @RequestBody InsumoRequest request) {

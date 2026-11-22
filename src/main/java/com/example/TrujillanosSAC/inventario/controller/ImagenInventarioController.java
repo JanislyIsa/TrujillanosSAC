@@ -1,7 +1,7 @@
 package com.example.TrujillanosSAC.inventario.controller;
 
-import com.example.TrujillanosSAC.inventario.dto.response.ImagenResponse;
 import com.example.TrujillanosSAC.inventario.exception.InventarioException;
+import com.example.TrujillanosSAC.inventario.dto.response.ImagenResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -13,7 +13,7 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/api/v1/inventario/imagenes")
-@PreAuthorize("@inventarioPermisos.inventario(authentication)")
+@PreAuthorize("hasRole('EMPLEADO')")
 public class ImagenInventarioController {
     @PostMapping @ResponseStatus(HttpStatus.CREATED)
     public ImagenResponse subir(@RequestParam("archivo") MultipartFile archivo) throws IOException {

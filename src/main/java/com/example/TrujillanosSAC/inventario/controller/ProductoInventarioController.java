@@ -15,7 +15,7 @@ import java.security.Principal;
 
 @RestController @RequiredArgsConstructor
 @RequestMapping("/api/v1/inventario/productos")
-@PreAuthorize("@inventarioPermisos.inventario(authentication)")
+@PreAuthorize("hasRole('EMPLEADO')")
 public class ProductoInventarioController {
     private final CatalogoInventarioService catalogo;
     @GetMapping
@@ -35,7 +35,7 @@ public class ProductoInventarioController {
     @PostMapping
     public ResponseEntity<ProductoResponse> crear(@Valid @RequestBody ProductoRequest request, Principal principal) {
         ProductoResponse item = ProductoResponse.de(catalogo.crearProducto(request, principal.getName()));
-        return ResponseEntity.created(URI.create("/api/v1/inventario/productos/"+item.id())).body(item);
+        return ResponseEntity.created(URI.create("/api/v1/inventario/productos/" + item.id())).body(item);
     }
     @PutMapping("/{id}")
     public ProductoResponse editar(@PathVariable @Positive Long id, @Valid @RequestBody ProductoRequest request) {

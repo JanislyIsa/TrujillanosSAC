@@ -100,11 +100,9 @@ try {
 
 Ajusta el puerto/servicio a tu instalación. La contraseña se solicita oculta y no queda escrita en el historial de PowerShell ni en el repositorio. `APP_SEED_HABILITADO` debe quedar sin definir o en `false`; los datos ya se cargaron mediante SQL.
 
-Cuando aparezca `Started TrujillanosSacApplication`, abre:
+Cuando aparezca `Started TrujillanosSacApplication`, abre otra terminal en el repositorio `TrujillanosSAC-Frontend` y ejecuta `npm ci` y `npm start`. Abre el panel de empleados en [127.0.0.1:4200](http://127.0.0.1:4200/). Si Spring escucha en un puerto distinto a 8080, ajusta el destino del proxy de Angular al puerto indicado en la consola del backend.
 
-**http://localhost:9191/inventario-app/index.html**
-
-La interfaz Angular ya está integrada en los recursos estáticos. No necesitas levantar Angular por separado. Si cambias su código, ejecuta `npm run build:backend` desde `frontend` y vuelve a iniciar el backend. `Ctrl+C` detiene la aplicación; los datos de Oracle permanecen.
+Para desplegar el panel en otra dirección, define `FRONTEND_EMPLEADOS_URL` en el backend con la URL base del panel. `Ctrl+C` detiene el backend. Los datos de Oracle permanecen.
 
 No uses `spring-boot:test-run` para esta conexión: ese comando inicia la vista previa H2 del proyecto, que utiliza datos temporales y el puerto 9192.
 

@@ -3,7 +3,8 @@ import com.example.TrujillanosSAC.inventario.dto.request.MovimientoRequest;
 import com.example.TrujillanosSAC.inventario.dto.response.ComprobanteResponse;
 import com.example.TrujillanosSAC.inventario.dto.response.MovimientoResponse;
 import com.example.TrujillanosSAC.inventario.dto.response.PaginaResponse;
-import com.example.TrujillanosSAC.inventario.model.*;
+import com.example.TrujillanosSAC.inventario.model.TipoItem;
+import com.example.TrujillanosSAC.inventario.model.TipoMovimiento;
 import com.example.TrujillanosSAC.inventario.service.service.MovimientoInventarioService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
@@ -18,7 +19,7 @@ import java.time.LocalDate;
 
 @RestController @RequiredArgsConstructor
 @RequestMapping("/api/v1/inventario/movimientos")
-@PreAuthorize("@inventarioPermisos.inventario(authentication)")
+@PreAuthorize("hasRole('EMPLEADO')")
 public class MovimientoInventarioController {
     private final MovimientoInventarioService movimientos;
     @PostMapping

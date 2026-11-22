@@ -15,7 +15,7 @@ public class CatalogosInventarioController {
     private final UnidadMedidaRepository unidades;
     private final AlmacenRepository almacenes;
     private final com.example.TrujillanosSAC.usuarios.repository.ProveedorRepository proveedores;
-    @GetMapping("/proveedores") @PreAuthorize("@inventarioPermisos.compras(authentication)")
+    @GetMapping("/proveedores") @PreAuthorize("hasRole('EMPLEADO')")
     @org.springframework.transaction.annotation.Transactional(readOnly=true)
     public java.util.List<CatalogoResponse> proveedores() {
         return proveedores.findAll().stream().map(p -> new CatalogoResponse(p.getIdPersona(),
@@ -23,7 +23,7 @@ public class CatalogosInventarioController {
     }
     @GetMapping("/csrf")
     public Map<String,String> csrf(CsrfToken csrf) { return Map.of("headerName",csrf.getHeaderName(),"token",csrf.getToken()); }
-    @GetMapping("/catalogos") @PreAuthorize("@inventarioPermisos.lectura(authentication)")
+    @GetMapping("/catalogos") @PreAuthorize("hasRole('EMPLEADO')")
     public Map<String,List<CatalogoResponse>> catalogos() {
         return Map.of("categorias",categorias.findAll().stream().map(c -> new CatalogoResponse(c.getIdCategoria(),c.getNombre())).toList(),
                 "presentaciones",presentaciones.findAll().stream().map(p -> new CatalogoResponse(p.getIdPresentacion(),p.getNombre())).toList(),
