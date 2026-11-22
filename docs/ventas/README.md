@@ -28,7 +28,9 @@ En Swagger: hacer login, copiar el `token` y pegarlo en **Authorize → jwt** (s
 |---|---|
 | `JWT_SECRET` | Secreto Base64 de mínimo 32 bytes (`openssl rand -base64 32`). Obligatorio en `prod` |
 | `JWT_EXPIRACION_MINUTOS` | Duración del token (60) |
-| `API_CORS_ORIGENES` | Orígenes permitidos del frontend (`http://localhost:4200`) |
+| `API_CORS_ORIGENES` | Orígenes permitidos del frontend, separados por coma (`http://localhost:4200,http://localhost:4300`) |
+| `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` | Conexión a Oracle (ej. `jdbc:oracle:thin:@IP:1521/orcl`). Obligatorias; nunca en Git |
+| `SERVER_PORT` | Puerto del backend (8080) |
 
 ## Flujo de una venta
 

@@ -22,7 +22,8 @@ spring:
       max-request-size: 10MB
 
 server:
-  port: ${SERVER_PORT:9191}
+  # Puerto único del backend (dev y prod). El frontend llama a http://localhost:8080/api/v1
+  port: ${SERVER_PORT:8080}
 
 inventario:
   monitor:
@@ -47,8 +48,9 @@ seguridad:
 
 api:
   cors:
-    # Orígenes permitidos para las APIs JWT consumidas por Angular.
-    origenes: ${API_CORS_ORIGENES:http://localhost:4200}
+    # Orígenes permitidos para las APIs JWT consumidas por Angular (separados por coma).
+    # 4200: frontend de empleados (inventario); 4300: tienda de clientes.
+    origenes: ${API_CORS_ORIGENES:http://localhost:4200,http://localhost:4300}
 
 ventas:
   culqi:
