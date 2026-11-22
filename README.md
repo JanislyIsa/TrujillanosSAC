@@ -23,8 +23,8 @@ Este repositorio contiene el backend Spring Boot, los scripts Oracle y las instr
 Requisitos: JDK 21 o superior, Node compatible con Angular 22 (se verificó con Node 24.21), y Oracle con una PDB abierta.
 
 1. Preparar usuario, tablas y datos con [la guía Oracle](database/oracle/README.md). Cada integrante usa su propia base o una instancia compartida acordada por el equipo.
-2. Copiar `application-local.properties.example` a `application-local.properties` en la raíz y completar las credenciales. Ese archivo personal no se sube a Git.
-3. Iniciar Spring desde la raíz con `./mvnw.cmd spring-boot:run` en Windows. El perfil local escucha en `http://localhost:8080`.
+2. Configurar la conexión a Oracle con las variables de entorno `DB_URL`, `DB_USERNAME` y `DB_PASSWORD` (en IntelliJ: Run → Edit Configurations → Environment variables), o copiar `application-local.properties.example` a `application-local.properties` en la raíz y completarlo. Ninguno de los dos se sube a Git.
+3. Iniciar Spring desde la raíz con `./mvnw.cmd spring-boot:run` en Windows. El backend escucha en `http://localhost:8080` (puerto único; se puede cambiar con `SERVER_PORT`). Las API JWT aceptan por defecto los orígenes `http://localhost:4200` y `http://localhost:4300` (`API_CORS_ORIGENES`).
 4. En el repositorio independiente `TrujillanosSAC-Frontend`, ejecutar `npm ci` y `npm start`. Abrir `http://127.0.0.1:4200/`. El proxy de Angular conecta con el backend.
 
 Spring redirige los accesos de administración de Inventario a esa dirección. Si el panel se despliega en otra URL, configura `FRONTEND_EMPLEADOS_URL` con su URL base, antes del fragmento `#/`.

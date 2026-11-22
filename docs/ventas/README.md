@@ -1,14 +1,16 @@
 # Módulo de ventas
 
 API REST en `/api/v1/ventas/**`, pensada para el frontend Angular `trujillano-frontend`
-(`http://localhost:4200`). Usa **JWT**: no hay sesión, cookies ni CSRF.
+(`http://localhost:4300`). Usa **JWT**: no hay sesión, cookies ni CSRF. Es el mismo token para toda la API
+(`/api/**`: auth, ventas, compras, inventario y usuarios): un solo login para clientes y empleados.
 
 ## Autenticación (JWT)
 
 1. `POST /api/v1/auth/login` (público) con `{ "username": "cliente", "password": "..." }`. Responde:
    ```json
    { "token": "eyJ...", "tipo": "Bearer", "expiraEnSegundos": 3600, "username": "cliente",
-     "nombreCompleto": "Cliente Demostracion", "roles": ["CLIENTE"], "permisos": ["PAGO_REALIZAR", "PEDIDO_CREAR", ...] }
+     "nombreCompleto": "Cliente Demostracion", "roles": ["CLIENTE"], "permisos": ["PAGO_REALIZAR", "PEDIDO_CREAR", ...],
+     "cargo": null, "inventario": false, "compras": false }
    ```
 2. En cada petición a `/api/v1/ventas/**` enviar el header `Authorization: Bearer <token>`
    (en Angular, con un `HttpInterceptor`).
@@ -28,7 +30,29 @@ En Swagger: hacer login, copiar el `token` y pegarlo en **Authorize → jwt** (s
 |---|---|
 | `JWT_SECRET` | Secreto Base64 de mínimo 32 bytes (`openssl rand -base64 32`). Obligatorio en `prod` |
 | `JWT_EXPIRACION_MINUTOS` | Duración del token (60) |
-| `API_CORS_ORIGENES` | Orígenes permitidos del frontend (`http://localhost:4200`) |
+| `API_CORS_ORIGENES` | Orígenes permitidos del frontend, separados por coma (`http://localhost:4200,http://localhost:4300`) |
+| `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` | Conexión a Oracle (ej. `jdbc:oracle:thin:@IP:1521/orcl`). Obligatorias; nunca en Git |
+| `SERVER_PORT` | Puerto del backend (8080) |
+| `MAIL_USERNAME`, `MAIL_PASSWORD` | Cuenta Gmail del negocio y su contraseña de aplicación. Sin ellas no se envían correos |
+| `MAIL_REMITENTE`, `MAIL_NOMBRE_REMITENTE` | Remitente visible (por defecto `MAIL_USERNAME` y "El Trujillano") |
+| `FRONTEND_URL` | URL del frontend para los enlaces de los correos (`http://localhost:4200`) |
+
+## Recuperar y cambiar la contraseña (clientes)
+
+Solo para clientes: son los que tienen correo (`CLIENTES.CORREO`). Requiere `MAIL_USERNAME` y `MAIL_PASSWORD`,
+y la tabla `PASSWORD_RESET_TOKEN` (en una base ya creada, ejecutar una vez `database/oracle/06_password_reset.sql`).
+
+| Endpoint | Acceso | Cuerpo | Qué hace |
+|---|---|---|---|
+| `POST /api/v1/auth/olvide-clave` | público | `{ "correo" }` | Envía un enlace `{FRONTEND_URL}/restablecer-clave?token=...`. Responde **siempre** 200 con el mismo mensaje, exista o no el correo |
+| `POST /api/v1/auth/restablecer-clave` | público | `{ "token", "nuevaClave" }` | Cambia la clave si el enlace existe, no se usó y no venció. Si no: 409 "El enlace no es válido o ya venció" |
+| `POST /api/v1/auth/cambiar-clave` | con token JWT | `{ "claveActual", "nuevaClave" }` | Cambio desde "Mi cuenta"; 409 si la clave actual no coincide |
+
+- El enlace vence a los 30 minutos (`app.recuperacion-clave.minutos-validez`) y sirve una sola vez.
+- En la base solo se guarda el hash SHA-256 del token; pedir un enlace nuevo o cambiar la clave anula los anteriores.
+- Como máximo un correo por minuto por cuenta (`app.recuperacion-clave.espera-segundos`).
+- La nueva clave: de 8 a 72 caracteres (BCrypt). El correo se envía en segundo plano, después de guardar el enlace.
+- Los tokens JWT ya emitidos siguen valiendo hasta que vencen (la API no guarda sesiones).
 
 ## Flujo de una venta
 
@@ -42,6 +66,16 @@ En Swagger: hacer login, copiar el `token` y pegarlo en **Authorize → jwt** (s
    - La respuesta trae `estado.codigo`: `APROBADO`, `RECHAZADO` o `ERROR` (revisarlo siempre).
 3. **Comprobante** — `POST /comprobantes` `{ "pedidoId", "tipo": "BOLETA" | "FACTURA" }`
    - Solo de pedidos pagados. Factura exige cliente con RUC de 11 dígitos. Series B001 / F001.
+   - Al aprobarse el pago, el backend emite solo el comprobante: **factura** si el cliente tiene RUC, si no **boleta**
+     (`B001-00000001`). Si falla, el pago queda registrado igual y se puede emitir después con `POST /comprobantes`.
+   - Ticket: `GET /pedidos/{id}/comprobante-pago` (cliente dueño o empleado; 409 si no está pagado) devuelve negocio,
+     serie-número, cliente, ítems, total, método de pago, N.º de operación de Culqi y la leyenda
+     "no válida ante SUNAT" mientras no exista facturación electrónica. Datos del negocio: `VENTAS_NEGOCIO_RAZON_SOCIAL`,
+     `VENTAS_NEGOCIO_RUC`, `VENTAS_NEGOCIO_DIRECCION`.
+   - Correo del comprobante: al aprobarse el pago se envía en segundo plano (plantilla `templates/mail/comprobante-pago.html`)
+     al correo de la cuenta del cliente o, si no tiene, al `email` con el que pagó. Un fallo del correo solo queda en el log.
+   - Reenvío: `POST /pedidos/{id}/comprobante/enviar` (cliente dueño o empleado) → `{ "mensaje", "destinatario" }`.
+     409 si el pedido no está pagado, si la cuenta no tiene correo o si faltan `MAIL_USERNAME` / `MAIL_PASSWORD`.
 4. **Entrega** (empleado) — `PATCH /pedidos/{id}/estado` `{ "estado": "LISTO_PARA_RECOJO" | "ENTREGADO" }`
 
 Otros: `GET /pedidos` (empleado: todos; cliente: los suyos), `GET /pedidos/{id}`,

@@ -14,5 +14,11 @@ public record LoginResponseDTO(
         /** Número de documento (DNI, RUC o CE) de la persona; el comprobante lo muestra. */
         String numeroDocumento,
         List<String> roles,
-        List<String> permisos) {
+        List<String> permisos,
+        /** Cargo del empleado (ALMACENERO, JEFE_DE_COMPRAS...); null si no es empleado. */
+        String cargo,
+        /** El empleado puede entrar al módulo de inventario (según su cargo). */
+        boolean inventario,
+        /** El empleado puede entrar al módulo de compras (según su cargo). */
+        boolean compras) {
 }

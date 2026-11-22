@@ -6,6 +6,8 @@ import com.example.TrujillanosSAC.ventas.mapper.VentaMapper;
 import com.example.TrujillanosSAC.ventas.model.Pago;
 import com.example.TrujillanosSAC.ventas.repository.PagoRepository;
 import com.example.TrujillanosSAC.ventas.security.ActorVenta;
+import com.example.TrujillanosSAC.ventas.service.service.ComprobanteCorreoService;
+import com.example.TrujillanosSAC.ventas.service.service.ComprobanteVentaService;
 import com.example.TrujillanosSAC.ventas.service.service.PagoService;
 import com.example.TrujillanosSAC.ventas.service.pasarela.PasarelaPago;
 import com.example.TrujillanosSAC.ventas.service.pasarela.ResultadoCobro;
@@ -28,6 +30,8 @@ public class PagoServiceImpl implements PagoService {
     private final PasarelaPago pasarela;
     private final PagoRepository pagos;
     private final AccesoVentas acceso;
+    private final ComprobanteVentaService comprobantes;
+    private final ComprobanteCorreoService comprobanteCorreo;
 
     // Sin @Transactional a propósito: cada paso de PagoTransacciones abre y cierra su propia transacción.
     @Override
@@ -45,7 +49,20 @@ public class PagoServiceImpl implements PagoService {
             resultado = ResultadoCobro.error("Error inesperado al procesar el pago");
         }
         // 3) Guardar el resultado.
-        return transacciones.finalizar(intento.idPago(), resultado);
+        PagoResponseDTO pago = transacciones.finalizar(intento.idPago(), resultado);
+
+        // 4) Pago aprobado: emitir la boleta (o factura). Va en su propia transacción, después de guardar
+        //    el pago: si falla, el pago ya cobrado queda registrado igual y el comprobante se puede emitir luego.
+        if (resultado.resultado() == ResultadoCobro.Resultado.APROBADO) {
+            try {
+                comprobantes.emitirAutomatico(request.pedidoId());
+            } catch (RuntimeException e) {
+                log.error("Pago aprobado sin comprobante: no se pudo emitir. pedidoId={}", request.pedidoId(), e);
+            }
+            // 5) Enviar el comprobante por correo en segundo plano (no retrasa la respuesta ni puede fallarla).
+            comprobanteCorreo.enviarAlAprobarse(request.pedidoId(), request.email());
+        }
+        return pago;
     }
 
     @Override

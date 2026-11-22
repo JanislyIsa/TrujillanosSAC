@@ -20,23 +20,51 @@ spring:
     multipart:
       max-file-size: 10MB
       max-request-size: 10MB
+  # Correo saliente (Gmail). MAIL_PASSWORD es una "contraseña de aplicación" de Google
+  # (requiere verificación en 2 pasos). Solo por variables de entorno, nunca en Git.
+  # Si MAIL_USERNAME o MAIL_PASSWORD faltan, la app arranca igual y no envía correos.
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 10000
+          writetimeout: 10000
 
 server:
-  port: ${SERVER_PORT:9191}
+  # Puerto único del backend (dev y prod). El frontend llama a http://localhost:8080/api/v1
+  port: ${SERVER_PORT:8080}
 
 inventario:
   monitor:
     habilitado: true
     intervalo-ms: 60000
     inicio-ms: 60000
-  cors:
-    origenes: "${INVENTARIO_CORS_ORIGENES:http://localhost:4200,http://localhost:5173,http://localhost:3000}"
 
 app:
   frontend:
     empleados-url: "${FRONTEND_EMPLEADOS_URL:http://127.0.0.1:4200}"
+    # URL del frontend (Angular): se usa para armar los enlaces de los correos
+    # (por ejemplo {tienda-url}/restablecer-clave?token=...).
+    tienda-url: ${FRONTEND_URL:http://localhost:4200}
   seed:
     habilitado: ${APP_SEED_HABILITADO:false}
+  recuperacion-clave:
+    # El enlace para restablecer la contraseña vence a los 30 minutos; un correo cada 60 s como máximo.
+    minutos-validez: 30
+    espera-segundos: 60
+  correo:
+    # Dirección que aparece como remitente (por defecto, la misma cuenta MAIL_USERNAME).
+    remitente: ${MAIL_REMITENTE:${MAIL_USERNAME:}}
+    nombre-remitente: ${MAIL_NOMBRE_REMITENTE:El Trujillano}
 
 seguridad:
   jwt:
@@ -47,10 +75,16 @@ seguridad:
 
 api:
   cors:
-    # Orígenes permitidos para las APIs JWT consumidas por Angular.
-    origenes: ${API_CORS_ORIGENES:http://localhost:4200}
+    # Orígenes permitidos para las APIs JWT consumidas por Angular (separados por coma).
+    # 4200: frontend único (tienda + intranet); 4300 se mantiene por la tienda anterior.
+    origenes: ${API_CORS_ORIGENES:http://localhost:4200,http://localhost:4300}
 
 ventas:
+  negocio:
+    # Datos del negocio que se imprimen en el comprobante de pago (ticket) y en el correo.
+    razon-social: ${VENTAS_NEGOCIO_RAZON_SOCIAL:El Trujillano S.A.C.}
+    ruc: ${VENTAS_NEGOCIO_RUC:10327958441}
+    direccion: ${VENTAS_NEGOCIO_DIRECCION:}
   culqi:
     # Llave secreta sk_test_... / sk_live_... de Culqi. Solo por variable de entorno, nunca en Git.
     llave-secreta: ${CULQI_LLAVE_SECRETA:}

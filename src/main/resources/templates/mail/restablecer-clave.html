@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Restablece tu contraseña</title>
+</head>
+<body style="margin:0;padding:0;background:#f4f5f8;font-family:Arial,Helvetica,sans-serif;color:#1b1c1c;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f5f8;padding:24px 0;">
+  <tr>
+    <td align="center">
+      <table role="presentation" width="480" cellpadding="0" cellspacing="0"
+             style="max-width:480px;width:100%;background:#ffffff;border-radius:12px;overflow:hidden;">
+        <tr>
+          <td style="background:#182545;color:#ffffff;padding:20px 24px;font-size:20px;font-weight:bold;">
+            El Trujillano S.A.C.
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:24px;font-size:15px;line-height:1.6;">
+            <p style="margin:0 0 12px;">Hola <strong th:text="${nombre}">cliente</strong>,</p>
+            <p style="margin:0 0 20px;">
+              Recibimos una solicitud para restablecer la contraseña de tu cuenta en la tienda.
+              Haz clic en el botón para crear una nueva:
+            </p>
+            <p style="margin:0 0 20px;text-align:center;">
+              <a th:href="${enlace}" href="#"
+                 style="display:inline-block;background:#182545;color:#ffffff;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:bold;">
+                Restablecer contraseña
+              </a>
+            </p>
+            <p style="margin:0 0 12px;font-size:13px;color:#556160;">
+              El enlace vence en <span th:text="${minutos}">30</span> minutos y solo se puede usar una vez.
+            </p>
+            <p style="margin:0 0 12px;font-size:13px;color:#556160;">
+              Si el botón no funciona, copia esta dirección en tu navegador:<br>
+              <span th:text="${enlace}" style="word-break:break-all;color:#445895;">enlace</span>
+            </p>
+            <p style="margin:0;font-size:13px;color:#556160;">
+              Si no pediste este cambio, ignora este correo: tu contraseña seguirá siendo la misma.
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:16px 24px;background:#f4f5f8;font-size:12px;color:#808080;text-align:center;">
+            Correo automático, no respondas a este mensaje.
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>

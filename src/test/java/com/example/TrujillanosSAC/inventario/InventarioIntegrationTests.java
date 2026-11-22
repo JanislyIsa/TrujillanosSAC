@@ -211,14 +211,13 @@ class InventarioIntegrationTests {
                 .hasSize(1).allSatisfy(m -> assertThat(m.cantidad()).isEqualTo(5));
         assertThat(pedido.detalles()).hasSize(1);
     }
-    @Test void apiValidaJsonAutenticacionPermisosYCrsf() throws Exception {
+    @Test void apiValidaJsonAutenticacionYPermisos() throws Exception {
         mvc.perform(get("/api/v1/inventario/productos")).andExpect(status().isUnauthorized());
         mvc.perform(get("/api/v1/inventario/productos").with(user(clienteUser).roles("CLIENTE"))).andExpect(status().isForbidden());
         mvc.perform(get("/api/v1/inventario/productos").with(user(almacenUser).roles("EMPLEADO")))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.contenido").isArray());
+        // Solo JWT: sin CSRF, un POST autenticado con datos inválidos responde 400 (validación), no 403.
         mvc.perform(post("/api/v1/inventario/movimientos").with(user(almacenUser).roles("EMPLEADO"))
-                .contentType("application/json").content("{}")).andExpect(status().isForbidden());
-        mvc.perform(post("/api/v1/inventario/movimientos").with(user(almacenUser).roles("EMPLEADO")).with(csrf())
                 .contentType("application/json").content("{}")).andExpect(status().isBadRequest()).andExpect(jsonPath("$.errores.tipoItem").exists());
         mvc.perform(get("/api/v1/inventario/productos/999999999").with(user(almacenUser).roles("EMPLEADO")))
                 .andExpect(status().isNotFound());
@@ -256,19 +255,19 @@ class InventarioIntegrationTests {
         assertThat(catalogo.obtener(TipoItem.PRODUCTO,productoId).stock()).isEqualTo(10);
         assertThat(movimientos.listar(TipoItem.PRODUCTO,productoId,TipoMovimiento.INGRESO,null,null,null)).hasSize(2);
     }
-    @Test void loginMantieneLaSesionYLogoutLaInvalida() throws Exception {
+    @Test void loginJwtDaAccesoAInventarioSegunElCargo() throws Exception {
         var usuario=usuarios.findByUsernameConRolesYPersona(almacenUser).orElseThrow();
         usuario.setPassword(passwordEncoder.encode("PruebaInventario1!"));em.flush();
-        var respuesta=mvc.perform(post("/api/v1/inventario/sesion/login").with(csrf()).contentType("application/json")
+        String json=mvc.perform(post("/api/v1/auth/login").contentType("application/json")
                 .content("{\"username\":\""+almacenUser+"\",\"password\":\"PruebaInventario1!\"}"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.inventario").value(true))
-                .andExpect(jsonPath("$.compras").value(false)).andReturn();
-        var sesion=(org.springframework.mock.web.MockHttpSession)respuesta.getRequest().getSession(false);
-        assertThat(sesion).isNotNull();
-        mvc.perform(get("/api/v1/inventario/sesion").session(sesion)).andExpect(status().isOk())
-                .andExpect(jsonPath("$.username").value(almacenUser));
-        mvc.perform(post("/api/v1/inventario/sesion/logout").session(sesion).with(csrf())).andExpect(status().isNoContent());
-        mvc.perform(get("/api/v1/inventario/sesion")).andExpect(status().isUnauthorized());
+                .andExpect(jsonPath("$.compras").value(false)).andExpect(jsonPath("$.cargo").value("ALMACENERO"))
+                .andReturn().getResponse().getContentAsString();
+        String token=com.jayway.jsonpath.JsonPath.read(json,"$.token");
+        // El mismo token sirve para inventario: no hay sesión ni CSRF.
+        mvc.perform(get("/api/v1/inventario/stock").header("Authorization","Bearer "+token))
+                .andExpect(status().isOk()).andExpect(header().doesNotExist("Set-Cookie"));
+        mvc.perform(get("/api/v1/inventario/stock")).andExpect(status().isUnauthorized());
     }
     @Test void accesosDeInventarioRedirigenAlFrontendDeEmpleados() throws Exception {
         var accesos = Map.of(
@@ -286,18 +285,8 @@ class InventarioIntegrationTests {
                 .andExpect(status().isFound())
                 .andExpect(redirectedUrl("https://empleados.example.test/panel/#/inventario/catalogo"));
     }
-    @Test void loginGeneralComparteSesionConInventarioYRespetaCargo() throws Exception {
-        var usuario=usuarios.findByUsernameConRolesYPersona(almacenUser).orElseThrow();
-        usuario.setPassword(passwordEncoder.encode("PruebaInventario1!"));em.flush();
-        var respuesta=mvc.perform(post("/login").with(csrf()).param("username",almacenUser)
-                .param("password","PruebaInventario1!"))
-                .andExpect(status().is3xxRedirection()).andExpect(redirectedUrl("/admin/inventario")).andReturn();
-        var sesion=(org.springframework.mock.web.MockHttpSession)respuesta.getRequest().getSession(false);
-        mvc.perform(get("/api/v1/inventario/sesion").session(sesion)).andExpect(status().isOk())
-                .andExpect(jsonPath("$.username").value(almacenUser));
-    }
     @Test void loginRechazaCredencialesIncorrectas() throws Exception {
-        mvc.perform(post("/api/v1/inventario/sesion/login").with(csrf()).contentType("application/json")
+        mvc.perform(post("/api/v1/auth/login").contentType("application/json")
                 .content("{\"username\":\""+almacenUser+"\",\"password\":\"incorrecta\"}"))
                 .andExpect(status().isUnauthorized());
     }

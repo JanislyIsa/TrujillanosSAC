@@ -138,6 +138,28 @@ class AuthJwtIntegrationTests {
     }
 
     @Test
+    void inventarioYUsuariosTambienUsanSoloJwt() throws Exception {
+        // Un solo esquema: toda /api/** responde 401 en JSON sin token (antes inventario usaba sesión y CSRF).
+        mvc.perform(get("/api/v1/inventario/stock"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(header().string("WWW-Authenticate", "Bearer"))
+                .andExpect(jsonPath("$.status").value(401));
+        mvc.perform(get("/api/v1/usuarios/roles"))
+                .andExpect(status().isUnauthorized());
+        // Los endpoints de la sesión de inventario ya no existen como públicos.
+        mvc.perform(post("/api/v1/inventario/sesion/login").contentType("application/json").content("{}"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void loginDeClienteNoTraeAccesosDeEmpleado() throws Exception {
+        mvc.perform(post("/api/v1/auth/login").contentType("application/json").content(login(clienteUser, CLAVE)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.inventario").value(false))
+                .andExpect(jsonPath("$.compras").value(false));
+    }
+
+    @Test
     void permiteElPreflightCorsDelFrontend() throws Exception {
         mvc.perform(options("/api/v1/auth/login")
                         .header("Origin", "http://localhost:4200")
