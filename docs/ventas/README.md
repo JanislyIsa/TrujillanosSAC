@@ -31,6 +31,9 @@ En Swagger: hacer login, copiar el `token` y pegarlo en **Authorize → jwt** (s
 | `API_CORS_ORIGENES` | Orígenes permitidos del frontend, separados por coma (`http://localhost:4200,http://localhost:4300`) |
 | `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` | Conexión a Oracle (ej. `jdbc:oracle:thin:@IP:1521/orcl`). Obligatorias; nunca en Git |
 | `SERVER_PORT` | Puerto del backend (8080) |
+| `MAIL_USERNAME`, `MAIL_PASSWORD` | Cuenta Gmail del negocio y su contraseña de aplicación. Sin ellas no se envían correos |
+| `MAIL_REMITENTE`, `MAIL_NOMBRE_REMITENTE` | Remitente visible (por defecto `MAIL_USERNAME` y "El Trujillano") |
+| `FRONTEND_URL` | URL de la tienda para los enlaces de los correos (`http://localhost:4300`) |
 
 ## Flujo de una venta
 
