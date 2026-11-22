@@ -1,17 +1,12 @@
 package com.example.TrujillanosSAC.compras.controller;
 
-import com.example.TrujillanosSAC.usuarios.model.Proveedor;
-import com.example.TrujillanosSAC.usuarios.model.Usuario;
-import com.example.TrujillanosSAC.usuarios.repository.ProveedorRepository;
-import com.example.TrujillanosSAC.usuarios.repository.UsuarioRepository;
-import com.example.TrujillanosSAC.compras.dto.CotizacionRequestDTO;
 import com.example.TrujillanosSAC.compras.dto.CotizacionProveedorRequestDTO;
 import com.example.TrujillanosSAC.compras.dto.CotizacionResponseDTO;
 import com.example.TrujillanosSAC.compras.dto.PaginaResponseDTO;
 import com.example.TrujillanosSAC.compras.dto.CotizacionesResumenResponseDTO;
 import com.example.TrujillanosSAC.compras.util.PaginacionComprasUtil;
 import com.example.TrujillanosSAC.compras.service.service.CotizacionService;
-import com.example.TrujillanosSAC.exception.RecursosNoEncontradosException;
+import com.example.TrujillanosSAC.compras.service.service.PortalProveedorService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import org.springframework.http.HttpStatus;
@@ -29,25 +24,18 @@ import org.springframework.data.domain.Pageable;
 @RequestMapping("/api/v1/compras/cotizaciones")
 public class CotizacionController {
     private final CotizacionService cotizacionService;
-    private final UsuarioRepository usuarioRepository;
-    private final ProveedorRepository proveedorRepository;
+    private final PortalProveedorService portalProveedorService;
 
-    public CotizacionController(CotizacionService cotizacionService,
-                                UsuarioRepository usuarioRepository,
-                                ProveedorRepository proveedorRepository) {
+    public CotizacionController(CotizacionService cotizacionService, PortalProveedorService portalProveedorService) {
         this.cotizacionService = cotizacionService;
-        this.usuarioRepository = usuarioRepository;
-        this.proveedorRepository = proveedorRepository;
+        this.portalProveedorService = portalProveedorService;
     }
 
     @PostMapping
     @PreAuthorize("hasAuthority('COMPRAS_COTIZACIONES_CREAR')")
     public ResponseEntity<CotizacionResponseDTO> enviar(@Valid @RequestBody CotizacionProveedorRequestDTO request,
                                                         Principal principal) {
-        Long proveedorId = proveedorActual(principal).getIdPersona();
-        CotizacionRequestDTO delProveedor = new CotizacionRequestDTO(
-                request.solicitudId(), proveedorId, request.fechaEntrega(), request.detalles(), request.descripcion());
-        CotizacionResponseDTO response = cotizacionService.create(delProveedor);
+        CotizacionResponseDTO response = portalProveedorService.enviarCotizacion(request, principal.getName());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -80,13 +68,13 @@ public class CotizacionController {
         Pageable pageable = PaginacionComprasUtil.construir(pagina, tamanio, "fechaCot", "desc",
                 Set.of("fechaCot"), "fechaCot");
         return ResponseEntity.ok(PaginaResponseDTO.de(cotizacionService.listarPaginaPorProveedor(
-                proveedorActual(principal).getIdPersona(), PaginacionComprasUtil.normalizarBusqueda(buscar), pageable)));
+                portalProveedorService.proveedorId(principal.getName()), PaginacionComprasUtil.normalizarBusqueda(buscar), pageable)));
     }
 
     @GetMapping("/mias/resumen")
     @PreAuthorize("hasAuthority('COMPRAS_COTIZACIONES_VER_PROPIAS')")
     public ResponseEntity<CotizacionesResumenResponseDTO> resumenMias(Principal principal) {
-        return ResponseEntity.ok(cotizacionService.resumenPorProveedor(proveedorActual(principal).getIdPersona()));
+        return ResponseEntity.ok(cotizacionService.resumenPorProveedor(portalProveedorService.proveedorId(principal.getName())));
     }
 
     @GetMapping("/{id}")
@@ -120,12 +108,4 @@ public class CotizacionController {
         return ResponseEntity.noContent().build();
     }
 
-    private Proveedor proveedorActual(Principal principal) {
-        if (principal == null) throw new RecursosNoEncontradosException("No se encontró el usuario autenticado");
-        Usuario usuario = usuarioRepository.findByUsernameConRolesYPersona(principal.getName())
-                .orElseThrow(() -> new RecursosNoEncontradosException("Usuario autenticado no encontrado"));
-        if (usuario.getPersona() == null) throw new RecursosNoEncontradosException("El usuario no tiene persona asociada");
-        return proveedorRepository.findByIdPersona(usuario.getPersona().getIdPersona())
-                .orElseThrow(() -> new RecursosNoEncontradosException("El usuario no está registrado como proveedor"));
-    }
 }
