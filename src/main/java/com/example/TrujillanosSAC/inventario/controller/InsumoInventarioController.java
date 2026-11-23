@@ -22,8 +22,7 @@ public class InsumoInventarioController {
     public PaginaResponse<InsumoResponse> listar(@RequestParam(defaultValue="") String buscar,
             @RequestParam(required=false) Long idAlmacen, @RequestParam(required=false) Boolean activo, @RequestParam(required=false) EstadoStock estado,
             @RequestParam(defaultValue="0") int pagina, @RequestParam(defaultValue="20") int tamanio) {
-        var resultados = catalogo.listar(TipoItem.INSUMO, buscar, idAlmacen, estado).stream()
-                .filter(item -> activo == null || item.activo() == activo)
+        var resultados = catalogo.listar(TipoItem.INSUMO, buscar, idAlmacen, activo, estado).stream()
                 .map(InsumoResponse::de)
                 .toList();
         return PaginaResponse.de(resultados, pagina, tamanio);
