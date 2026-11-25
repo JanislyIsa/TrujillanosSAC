@@ -202,6 +202,27 @@ class InventarioIntegrationTests {
         assertThat(PaginaResponse.de(items,10,20).contenido()).isEmpty();
         assertThatThrownBy(() -> PaginaResponse.de(items,0,101)).isInstanceOf(IllegalArgumentException.class);
     }
+    @Test void paginasDeCatalogoSeFiltranAntesDeLimitarResultados() {
+        catalogo.crearProducto(producto(0,0,20,"Caramelo extra"),almacenUser);
+        var todas=catalogo.listarPagina(TipoItem.PRODUCTO,null,null,null,null,
+                org.springframework.data.domain.PageRequest.of(0,10));
+        assertThat(todas.getTotalElements()).isGreaterThanOrEqualTo(2);
+        assertThat(todas.getContent()).extracting("nombre").contains("Caramelo", "Caramelo extra");
+        assertThat(catalogo.listarPagina(TipoItem.PRODUCTO,"caramelo",null,null,null,
+                org.springframework.data.domain.PageRequest.of(0,10)).getTotalElements()).isGreaterThanOrEqualTo(2);
+        assertThat(catalogo.listarPagina(TipoItem.PRODUCTO,null,almacenId,null,null,
+                org.springframework.data.domain.PageRequest.of(0,10)).getTotalElements()).isEqualTo(2);
+        assertThat(catalogo.listarPagina(TipoItem.PRODUCTO,null,null,true,null,
+                org.springframework.data.domain.PageRequest.of(0,10)).getTotalElements()).isGreaterThanOrEqualTo(2);
+        var primera=catalogo.listarPagina(TipoItem.PRODUCTO,"caramelo",almacenId,true,null,
+                org.springframework.data.domain.PageRequest.of(0,1));
+        assertThat(primera.getContent()).hasSize(1);
+        assertThat(primera.getTotalElements()).isGreaterThanOrEqualTo(2);
+        assertThat(primera.getTotalPages()).isEqualTo((int) primera.getTotalElements());
+        var porCodigo=catalogo.listarPagina(TipoItem.PRODUCTO,"prd-"+String.format("%03d",productoId),
+                almacenId,true,null,org.springframework.data.domain.PageRequest.of(0,10));
+        assertThat(porCodigo.getContent()).extracting("id").containsExactly(productoId);
+    }
     @Test void ventasAgrupanDuplicadosYRegistranLaSalida() {
         var pedido=pedidos.crear(new PedidoRequestDTO(List.of(
                 new DetallePedidoRequestDTO(productoId,2),new DetallePedidoRequestDTO(productoId,3))),

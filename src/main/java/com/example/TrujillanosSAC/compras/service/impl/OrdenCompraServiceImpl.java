@@ -16,9 +16,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageImpl;
 import com.example.TrujillanosSAC.compras.service.service.OrdenCompraService;
+import com.example.TrujillanosSAC.auditoria.EventoAuditoria;
 import com.example.TrujillanosSAC.exception.RecursosNoEncontradosException;
 import com.example.TrujillanosSAC.exception.ReglaNegocioException;
 import org.springframework.stereotype.Service;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 
@@ -30,19 +32,22 @@ public class OrdenCompraServiceImpl implements OrdenCompraService {
     private final OrdenCompraMapper mapper;
     private final ComprobanteCompraMapper comprobanteMapper;
     private final PagoCompraRepository pagoRepository;
+    private final ApplicationEventPublisher eventos;
 
     public OrdenCompraServiceImpl(OrdenCompraRepository ordenRepository,
                                   CotizacionRepository cotizacionRepository,
                                   ComprobanteCompraRepository comprobanteRepository,
                                   OrdenCompraMapper mapper,
                                   ComprobanteCompraMapper comprobanteMapper,
-                                  PagoCompraRepository pagoRepository) {
+                                  PagoCompraRepository pagoRepository,
+                                  ApplicationEventPublisher eventos) {
         this.ordenRepository = ordenRepository;
         this.cotizacionRepository = cotizacionRepository;
         this.comprobanteRepository = comprobanteRepository;
         this.mapper = mapper;
         this.comprobanteMapper = comprobanteMapper;
         this.pagoRepository = pagoRepository;
+        this.eventos = eventos;
     }
 
     @Override @Transactional
@@ -74,7 +79,10 @@ public class OrdenCompraServiceImpl implements OrdenCompraService {
                     .subtotal(detalle.getSubtotal())
                     .build());
         }
-        return mapper.toResponse(ordenRepository.save(orden));
+        OrdenCompra guardada = ordenRepository.save(orden);
+        eventos.publishEvent(EventoAuditoria.actual("ORDEN_COMPRA_CREADA", "OrdenCompra",
+                guardada.getIdOrdenCompra(), "Cotización " + cotizacionId));
+        return mapper.toResponse(guardada);
     }
 
     @Override @Transactional

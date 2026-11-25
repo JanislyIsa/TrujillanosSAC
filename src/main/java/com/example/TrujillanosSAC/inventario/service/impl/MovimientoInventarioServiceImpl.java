@@ -7,7 +7,9 @@ import com.example.TrujillanosSAC.inventario.exception.InventarioException;
 import com.example.TrujillanosSAC.inventario.model.*;
 import com.example.TrujillanosSAC.inventario.repository.*;
 import com.example.TrujillanosSAC.inventario.service.service.*;
+import com.example.TrujillanosSAC.auditoria.EventoAuditoria;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.*;
@@ -27,6 +29,7 @@ public class MovimientoInventarioServiceImpl implements MovimientoInventarioServ
     private final AlertaInventarioService alertas;
     private final InventarioValidacion validacion;
     private final Clock inventarioClock;
+    private final ApplicationEventPublisher eventos;
 
     @Override @Transactional
     public ComprobanteResponse registrar(MovimientoRequest request, String responsable) {
@@ -69,6 +72,9 @@ public class MovimientoInventarioServiceImpl implements MovimientoInventarioServ
         ComprobanteMovimiento comprobante = comprobantes.save(ComprobanteMovimiento.builder()
                 .movimiento(movimiento).codigo(dto.codigoComprobante()).fechaEmision(ahora)
                 .responsable(responsable).motivo(movimiento.getMotivo()).build());
+        eventos.publishEvent(EventoAuditoria.actual("STOCK_MOVIMIENTO_REGISTRADO", "Movimiento",
+                movimiento.getIdMovimiento(), request.tipoMovimiento().valor() + " " + request.tipoItem()
+                        + " id=" + request.idItem() + " cantidad=" + request.cantidad()));
         return new ComprobanteResponse(dto, comprobante.getResponsable(), comprobante.getMotivo());
     }
 

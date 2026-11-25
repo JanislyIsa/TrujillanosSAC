@@ -1,6 +1,7 @@
 package com.example.TrujillanosSAC.ventas.service.impl;
 
 import com.example.TrujillanosSAC.usuarios.model.Cliente;
+import com.example.TrujillanosSAC.auditoria.EventoAuditoria;
 import com.example.TrujillanosSAC.usuarios.repository.ClienteRepository;
 import com.example.TrujillanosSAC.exception.RecursosNoEncontradosException;
 import com.example.TrujillanosSAC.exception.ReglaNegocioException;
@@ -27,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -54,6 +56,7 @@ public class PedidoServiceImpl implements PedidoService {
     private final EstadoPedidoService estados;
     private final MovimientoInventarioService movimientos;
     private final AccesoVentas acceso;
+    private final ApplicationEventPublisher eventos;
 
     @Override
     @Transactional
@@ -95,6 +98,8 @@ public class PedidoServiceImpl implements PedidoService {
         }
         pedido.setTotal(total);
         pedidos.save(pedido);
+        eventos.publishEvent(EventoAuditoria.actual("PEDIDO_CREADO", "Pedido", pedido.getIdPedido(),
+                "total=" + pedido.getTotal() + "; líneas=" + pedido.getDetalles().size()));
         log.info("Pedido registrado. pedidoId={}, clienteId={}, productos={}",
                 pedido.getIdPedido(), cliente.getIdPersona(), pedido.getDetalles().size());
 
@@ -155,6 +160,7 @@ public class PedidoServiceImpl implements PedidoService {
             throw new ReglaNegocioException("Solo se puede cancelar un pedido pendiente de pago");
         }
         anular(pedido, actor.username());
+        eventos.publishEvent(EventoAuditoria.actual("PEDIDO_CANCELADO", "Pedido", id, null));
         return VentaMapper.pedido(pedido);
     }
 
@@ -167,6 +173,7 @@ public class PedidoServiceImpl implements PedidoService {
             throw new ReglaNegocioException("No se puede pasar el pedido de " + actual + " a " + destino);
         }
         pedido.setEstado(estados.porCodigo(destino));
+        eventos.publishEvent(EventoAuditoria.actual("PEDIDO_ESTADO_CAMBIADO", "Pedido", id, destino.name()));
         return VentaMapper.pedido(pedido);
     }
 

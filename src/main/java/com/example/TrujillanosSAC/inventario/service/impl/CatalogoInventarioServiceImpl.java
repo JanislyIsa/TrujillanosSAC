@@ -10,11 +10,15 @@ import com.example.TrujillanosSAC.inventario.mapper.ItemInventarioMapper;
 import com.example.TrujillanosSAC.inventario.model.*;
 import com.example.TrujillanosSAC.inventario.repository.*;
 import com.example.TrujillanosSAC.inventario.service.service.*;
+import com.example.TrujillanosSAC.auditoria.EventoAuditoria;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 import java.util.stream.Stream;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import com.example.TrujillanosSAC.usuarios.repository.ProveedorRepository;
 
 @Service @RequiredArgsConstructor
@@ -32,7 +36,9 @@ public class CatalogoInventarioServiceImpl implements CatalogoInventarioService 
     private final MovimientoInventarioService movimientos;
     private final AlertaInventarioService alertas;
     private final InventarioValidacion validacion;
+    private final ApplicationEventPublisher eventos;
     private final ProveedorRepository proveedoresRepository;
+    private final MaestrosInventarioService maestros;
 
     @Override
     public List<ItemResponse> listar(TipoItem tipo, String buscar, Long almacen, EstadoStock estado) {
@@ -53,6 +59,42 @@ public class CatalogoInventarioServiceImpl implements CatalogoInventarioService 
                 .filter(x -> activo == null || activo.equals(x.activo()))
                 .filter(x -> estado == null || estado == x.estadoStock()).toList();
     }
+
+    @Override
+    public Page<ItemResponse> listarPagina(TipoItem tipo, String buscar, Long almacen, Boolean activo,
+                                           EstadoStock estado, Pageable pageable) {
+        if (tipo == null) throw new IllegalArgumentException("El tipo de ítem es obligatorio para paginar");
+        if (pageable.getPageNumber() < 0 || pageable.getPageSize() > 100)
+            throw new IllegalArgumentException("Use página >= 0 y tamaño entre 1 y 100");
+        String texto = buscar == null || buscar.isBlank() ? null : buscar.trim().toLowerCase(Locale.ROOT);
+        Long id = extraerId(texto, tipo);
+        String patron = texto == null || id != null ? null : texto;
+        PageRequestSeguro validar = new PageRequestSeguro(pageable.getPageSize());
+        if (tipo == TipoItem.PRODUCTO) {
+            return productos.buscarPagina(patron, id, almacen, activo, estado == null ? null : estado.name(),
+                    validar.conOrdenNombre(pageable)).map(mapper::aRespuesta);
+        }
+        return insumos.buscarPagina(patron, id, almacen, activo, estado == null ? null : estado.name(),
+                validar.conOrdenNombre(pageable)).map(mapper::aRespuesta);
+    }
+
+    private static Long extraerId(String texto, TipoItem tipo) {
+        if (texto == null) return null;
+        String prefijos = tipo == TipoItem.PRODUCTO ? "(?:prod|prd)-" : "ins-";
+        var coincidencia = java.util.regex.Pattern.compile("^" + prefijos + "(\\d+)$")
+                .matcher(texto);
+        if (!coincidencia.matches()) return null;
+        try { return Long.parseLong(coincidencia.group(1)); }
+        catch (NumberFormatException ex) { return null; }
+    }
+
+    private record PageRequestSeguro(int size) {
+        Pageable conOrdenNombre(Pageable pageable) {
+            if (size < 1 || size > 100) throw new IllegalArgumentException("El tamaño debe estar entre 1 y 100");
+            return org.springframework.data.domain.PageRequest.of(pageable.getPageNumber(), size,
+                    org.springframework.data.domain.Sort.by("nombre").ascending());
+        }
+    }
     @Override
     public List<CatalogoResponse> proveedores() {
         return proveedoresRepository.findAll().stream()
@@ -61,10 +103,7 @@ public class CatalogoInventarioServiceImpl implements CatalogoInventarioService 
     }
     @Override
     public Map<String, List<CatalogoResponse>> catalogos() {
-        return Map.of("categorias", categorias.findAll().stream().map(c -> new CatalogoResponse(c.getIdCategoria(),c.getNombre())).toList(),
-                "presentaciones", presentaciones.findAll().stream().map(p -> new CatalogoResponse(p.getIdPresentacion(),p.getNombre())).toList(),
-                "unidadesMedida", unidades.findAll().stream().map(u -> new CatalogoResponse(u.getIdUnidadMedida(),u.getNombre())).toList(),
-                "almacenes", almacenes.findAll().stream().map(a -> new CatalogoResponse(a.getIdAlmacen(),a.getNombre())).toList());
+        return maestros.catalogos();
     }
     @Override
     public ItemResponse obtener(TipoItem tipo, Long id) {
@@ -78,17 +117,21 @@ public class CatalogoInventarioServiceImpl implements CatalogoInventarioService 
         p.setStock(0);
         productos.saveAndFlush(p);
         inicial(TipoItem.PRODUCTO,p.getIdProducto(),r.stock(),responsable);
+        eventos.publishEvent(EventoAuditoria.actual("ITEM_CREADO", "Producto", p.getIdProducto(), p.getNombre()));
         return mapper.aRespuesta(p);
     }
     @Override @Transactional
     public ItemResponse editarProducto(Long id, ProductoRequest r) {
         validacion.validar(r); validacion.limites(r.stockMinimo(),r.stockLimite());
         Producto p = producto(id,true);
+        String precioAnterior = p.getPrecio().toPlainString();
         validarEdicion(r.stock(),p.getStock(), r.idAlmacen(),p.getAlmacen().getIdAlmacen());
         if (!p.getPresentacion().getIdPresentacion().equals(r.idPresentacion()))
             throw InventarioException.conflicto("Registre otra presentacion como producto independiente");
         asignar(p,r);
         alertas.sincronizar(TipoItem.PRODUCTO,id);
+        eventos.publishEvent(EventoAuditoria.actual("ITEM_ACTUALIZADO", "Producto", id,
+                p.getNombre() + "; precio " + precioAnterior + " -> " + p.getPrecio()));
         return mapper.aRespuesta(p);
     }
     @Override @Transactional
@@ -99,6 +142,7 @@ public class CatalogoInventarioServiceImpl implements CatalogoInventarioService 
         i.setStock(0);
         insumos.saveAndFlush(i);
         inicial(TipoItem.INSUMO,i.getIdInsumo(),r.stock(),responsable);
+        eventos.publishEvent(EventoAuditoria.actual("ITEM_CREADO", "Insumo", i.getIdInsumo(), i.getNombre()));
         return mapper.aRespuesta(i);
     }
     @Override @Transactional
@@ -110,6 +154,7 @@ public class CatalogoInventarioServiceImpl implements CatalogoInventarioService 
             throw InventarioException.conflicto("La unidad de un insumo existente no puede cambiar");
         asignar(i,r);
         alertas.sincronizar(TipoItem.INSUMO,id);
+        eventos.publishEvent(EventoAuditoria.actual("ITEM_ACTUALIZADO", "Insumo", id, i.getNombre()));
         return mapper.aRespuesta(i);
     }
     private void inicial(TipoItem tipo, Long id, Integer stock, String responsable) {
@@ -127,6 +172,7 @@ public class CatalogoInventarioServiceImpl implements CatalogoInventarioService 
     public void eliminar(TipoItem tipo, Long id) {
         if (tipo == TipoItem.PRODUCTO) producto(id,true).setActivo(false);
         else insumo(id,true).setActivo(false);
+        eventos.publishEvent(EventoAuditoria.actual("ITEM_DESACTIVADO", tipo.name(), id, null));
     }
 
     private Producto producto(Long id, boolean bloqueo) {

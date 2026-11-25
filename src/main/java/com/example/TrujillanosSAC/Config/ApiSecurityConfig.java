@@ -39,19 +39,21 @@ public class ApiSecurityConfig {
         cors.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         cors.setAllowedHeaders(List.of("Content-Type", "Authorization"));
         // Inventario devuelve la URL del recurso creado en Location (por ejemplo, el comprobante de un movimiento).
-        cors.setExposedHeaders(List.of("Location"));
+        cors.setExposedHeaders(List.of("Location", "X-Request-Id"));
         cors.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/api/**", cors);
 
-        http.securityMatcher("/api/**")
+        http.securityMatcher("/api/**", "/actuator/**")
                 .cors(config -> config.configurationSource(source))
                 .csrf(AbstractHttpConfigurer::disable)
                 .logout(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/health/**").permitAll()
+                        .requestMatchers("/actuator/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/login", "/api/v1/auth/registro",
                                 "/api/v1/auth/olvide-clave", "/api/v1/auth/restablecer-clave").permitAll()
                         // Catálogo público: la tienda se puede ver sin iniciar sesión (solo lectura).
