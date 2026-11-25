@@ -31,5 +31,7 @@ springdoc:
 
 # Desarrollo: trazas detalladas de los servicios (parametros, filas y duracion de cada consulta)
 logging:
+  pattern:
+    console: "%d{HH:mm:ss.SSS} %-5level [%X{requestId}] %logger{36} - %msg%n"
   level:
     com.example.TrujillanosSAC: debug

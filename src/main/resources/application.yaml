@@ -14,6 +14,17 @@ spring:
       hibernate:
         jdbc:
           fetch_size: 100
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: 500ms
+  cache:
+    type: redis
+    cache-names: inventario-catalogos
+    redis:
+      time-to-live: 10m
+      enable-statistics: true
   thymeleaf:
     check-template-location: false
   servlet:
@@ -93,3 +104,14 @@ ventas:
       # Un pedido sin pagar se cancela pasado este tiempo y su stock vuelve al inventario
       minutos: 30
       revision-ms: 60000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true

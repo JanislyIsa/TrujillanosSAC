@@ -22,11 +22,9 @@ public class InsumoInventarioController {
     public PaginaResponse<InsumoResponse> listar(@RequestParam(defaultValue="") String buscar,
             @RequestParam(required=false) Long idAlmacen, @RequestParam(required=false) Boolean activo, @RequestParam(required=false) EstadoStock estado,
             @RequestParam(defaultValue="0") int pagina, @RequestParam(defaultValue="20") int tamanio) {
-        var resultados = catalogo.listar(TipoItem.INSUMO, buscar, idAlmacen, estado).stream()
-                .filter(item -> activo == null || item.activo() == activo)
-                .map(InsumoResponse::de)
-                .toList();
-        return PaginaResponse.de(resultados, pagina, tamanio);
+        var pageable = org.springframework.data.domain.PageRequest.of(pagina, tamanio);
+        return PaginaResponse.de(catalogo.listarPagina(TipoItem.INSUMO, buscar, idAlmacen, activo,
+                estado, pageable).map(InsumoResponse::de));
     }
     @GetMapping("/{id}")
     public InsumoResponse obtener(@PathVariable @Positive Long id) {

@@ -1,6 +1,7 @@
 package com.example.TrujillanosSAC.compras.service.impl;
 
 import com.example.TrujillanosSAC.compras.dto.PagoCompraRequestDTO;
+import com.example.TrujillanosSAC.auditoria.EventoAuditoria;
 import com.example.TrujillanosSAC.compras.dto.PagoCompraResponseDTO;
 import com.example.TrujillanosSAC.compras.mapper.PagoCompraMapper;
 import com.example.TrujillanosSAC.compras.model.PagoCompra;
@@ -13,6 +14,7 @@ import com.example.TrujillanosSAC.inventario.service.service.MovimientoInventari
 import com.example.TrujillanosSAC.exception.RecursosNoEncontradosException;
 import com.example.TrujillanosSAC.exception.ReglaNegocioException;
 import org.springframework.stereotype.Service;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -26,6 +28,7 @@ public class PagoCompraServiceImpl implements PagoCompraService {
     private final EstadoCotizacionRepository estadoCotizacionRepository;
     private final PagoCompraMapper mapper;
     private final MovimientoInventarioService movimientoInventarioService;
+    private final ApplicationEventPublisher eventos;
 
     public PagoCompraServiceImpl(PagoCompraRepository pagoRepository,
                                  ComprobanteCompraRepository comprobanteRepository,
@@ -33,7 +36,8 @@ public class PagoCompraServiceImpl implements PagoCompraService {
                                  EstadoComprobanteCompraRepository estadoComprobanteRepository,
                                  EstadoCotizacionRepository estadoCotizacionRepository,
                                  PagoCompraMapper mapper,
-                                 MovimientoInventarioService movimientoInventarioService) {
+                                 MovimientoInventarioService movimientoInventarioService,
+                                 ApplicationEventPublisher eventos) {
         this.pagoRepository = pagoRepository;
         this.comprobanteRepository = comprobanteRepository;
         this.metodoPagoRepository = metodoPagoRepository;
@@ -41,6 +45,7 @@ public class PagoCompraServiceImpl implements PagoCompraService {
         this.estadoCotizacionRepository = estadoCotizacionRepository;
         this.mapper = mapper;
         this.movimientoInventarioService = movimientoInventarioService;
+        this.eventos = eventos;
     }
 
     @Override @Transactional
@@ -81,6 +86,9 @@ public class PagoCompraServiceImpl implements PagoCompraService {
                         .orElseThrow(() -> new ReglaNegocioException("No está configurado el estado de cotización: Pagado")));
             }
         }
+        eventos.publishEvent(EventoAuditoria.actual("PAGO_COMPRA_REGISTRADO", "PagoCompra",
+                guardado.getIdPago(), "Comprobante " + comprobante.getIdComprobante()
+                        + "; monto=" + guardado.getMonto()));
         return mapper.toResponse(guardado);
     }
 

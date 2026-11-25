@@ -12,6 +12,7 @@ import com.example.TrujillanosSAC.inventario.service.service.MovimientoInventari
 import com.example.TrujillanosSAC.ventas.dto.request.*;
 import com.example.TrujillanosSAC.ventas.dto.reporte.*;
 import org.springframework.data.domain.Sort;
+import org.springframework.context.ApplicationEventPublisher;
 import com.example.TrujillanosSAC.ventas.model.*;
 import com.example.TrujillanosSAC.ventas.model.codigo.*;
 import com.example.TrujillanosSAC.ventas.repository.*;
@@ -53,6 +54,7 @@ class VentasServiceTests {
     private final EstadoComprobanteVentaService estadosComprobante = mock(EstadoComprobanteVentaService.class);
     private final MovimientoInventarioService movimientos = mock(MovimientoInventarioService.class);
     private final AccesoVentas acceso = mock(AccesoVentas.class);
+    private final ApplicationEventPublisher eventos = mock(ApplicationEventPublisher.class);
 
     private final ActorVenta clienteActor = new ActorVenta("cliente", false);
     private final ActorVenta empleadoActor = new ActorVenta("empleado", true);
@@ -104,6 +106,8 @@ class VentasServiceTests {
         p.setActivo(true);
         p.setStock(stock);
         p.setPrecio(new BigDecimal(precio));
+        p.setPresentacion(com.example.TrujillanosSAC.inventario.model.PresentacionProducto.builder()
+                .nombre("Unidad").build());
         return p;
     }
 
@@ -125,7 +129,7 @@ class VentasServiceTests {
     }
 
     private PedidoServiceImpl pedidoService() {
-        return new PedidoServiceImpl(pedidos, productos, clientes, estadosPedido, movimientos, acceso);
+        return new PedidoServiceImpl(pedidos, productos, clientes, estadosPedido, movimientos, acceso, eventos);
     }
 
     private PagoServiceImpl pagoService(PasarelaPago pasarela) {

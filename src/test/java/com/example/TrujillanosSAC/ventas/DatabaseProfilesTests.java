@@ -19,9 +19,10 @@ class DatabaseProfilesTests {
         assertThat(base.getProperty("spring.jpa.hibernate.ddl-auto")).isEqualTo("validate");
         assertThat(base.getProperty("spring.datasource.driver-class-name")).isEqualTo("oracle.jdbc.OracleDriver");
         var dev = leer("application-dev.yaml");
-        // En dev el equipo deja la conexión de Oracle escrita en el archivo; solo se comprueba que exista.
-        assertThat(dev.getProperty("spring.datasource.url")).startsWith("jdbc:oracle:thin:@");
-        assertThat(dev.getProperty("spring.datasource.username")).isNotBlank();
+        // Las credenciales de desarrollo se inyectan por variables o archivo local fuera del Git.
+        assertThat(dev.getProperty("spring.datasource.url")).isEqualTo("${DB_URL}");
+        assertThat(dev.getProperty("spring.datasource.username")).isEqualTo("${DB_USERNAME}");
+        assertThat(dev.getProperty("spring.datasource.password")).isEqualTo("${DB_PASSWORD}");
         var prod = leer("application-prod.yaml");
         assertThat(prod.getProperty("spring.datasource.url")).isEqualTo("${DB_URL}");
         assertThat(prod.getProperty("spring.datasource.password")).isEqualTo("${DB_PASSWORD}");
