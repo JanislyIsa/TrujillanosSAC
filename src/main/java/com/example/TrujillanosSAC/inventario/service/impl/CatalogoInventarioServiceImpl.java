@@ -4,6 +4,7 @@ import com.example.TrujillanosSAC.inventario.dto.request.InsumoRequest;
 import com.example.TrujillanosSAC.inventario.dto.request.MovimientoRequest;
 import com.example.TrujillanosSAC.inventario.dto.request.ProductoRequest;
 import com.example.TrujillanosSAC.inventario.dto.response.ItemResponse;
+import com.example.TrujillanosSAC.inventario.dto.response.CatalogoResponse;
 import com.example.TrujillanosSAC.inventario.exception.InventarioException;
 import com.example.TrujillanosSAC.inventario.mapper.ItemInventarioMapper;
 import com.example.TrujillanosSAC.inventario.model.*;
@@ -18,6 +19,7 @@ import java.util.*;
 import java.util.stream.Stream;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import com.example.TrujillanosSAC.usuarios.repository.ProveedorRepository;
 
 @Service @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -35,9 +37,16 @@ public class CatalogoInventarioServiceImpl implements CatalogoInventarioService 
     private final AlertaInventarioService alertas;
     private final InventarioValidacion validacion;
     private final ApplicationEventPublisher eventos;
+    private final ProveedorRepository proveedoresRepository;
+    private final MaestrosInventarioService maestros;
 
     @Override
     public List<ItemResponse> listar(TipoItem tipo, String buscar, Long almacen, EstadoStock estado) {
+        return listar(tipo, buscar, almacen, null, estado);
+    }
+
+    @Override
+    public List<ItemResponse> listar(TipoItem tipo, String buscar, Long almacen, Boolean activo, EstadoStock estado) {
         String texto = buscar == null ? "" : buscar.trim().toLowerCase(Locale.ROOT);
         Stream<ItemResponse> p = tipo == TipoItem.INSUMO ? Stream.empty()
                 : productos.findAllParaGestion().stream().map(mapper::aRespuesta);
@@ -47,6 +56,7 @@ public class CatalogoInventarioServiceImpl implements CatalogoInventarioService 
                 || ((x.tipoItem()==TipoItem.PRODUCTO?"prod-":"ins-")+String.format("%03d",x.id())).contains(texto)
                 || ((x.tipoItem()==TipoItem.PRODUCTO?"prd-":"ins-")+String.format("%03d",x.id())).contains(texto))
                 .filter(x -> almacen == null || almacen.equals(x.idAlmacen()))
+                .filter(x -> activo == null || activo.equals(x.activo()))
                 .filter(x -> estado == null || estado == x.estadoStock()).toList();
     }
 
@@ -84,6 +94,16 @@ public class CatalogoInventarioServiceImpl implements CatalogoInventarioService 
             return org.springframework.data.domain.PageRequest.of(pageable.getPageNumber(), size,
                     org.springframework.data.domain.Sort.by("nombre").ascending());
         }
+    }
+    @Override
+    public List<CatalogoResponse> proveedores() {
+        return proveedoresRepository.findAll().stream()
+                .map(p -> new CatalogoResponse(p.getIdPersona(), p.getPersona().getNombre()+" "+p.getPersona().getApellido()))
+                .toList();
+    }
+    @Override
+    public Map<String, List<CatalogoResponse>> catalogos() {
+        return maestros.catalogos();
     }
     @Override
     public ItemResponse obtener(TipoItem tipo, Long id) {

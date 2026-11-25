@@ -18,6 +18,6 @@ public class StockInventarioController {
             @RequestParam(required=false) EstadoStock estado, @RequestParam(required=false) Long idAlmacen,
             @RequestParam(defaultValue="") String buscar, @RequestParam(defaultValue="0") int pagina,
             @RequestParam(defaultValue="20") int tamanio) {
-        return PaginaResponse.de(catalogo.listar(tipoItem,buscar,idAlmacen,estado),pagina,tamanio);
+        return PaginaResponse.de(catalogo.listar(tipoItem,buscar,idAlmacen,null,estado),pagina,tamanio);
     }
 }
