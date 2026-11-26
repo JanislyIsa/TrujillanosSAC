@@ -5,6 +5,7 @@ import com.example.TrujillanosSAC.auditoria.EventoAuditoria;
 import com.example.TrujillanosSAC.compras.dto.PagoCompraResponseDTO;
 import com.example.TrujillanosSAC.compras.mapper.PagoCompraMapper;
 import com.example.TrujillanosSAC.compras.model.PagoCompra;
+import com.example.TrujillanosSAC.compras.model.MetodoPago;
 import com.example.TrujillanosSAC.compras.repository.*;
 import com.example.TrujillanosSAC.compras.service.service.PagoCompraService;
 import com.example.TrujillanosSAC.inventario.dto.request.MovimientoRequest;
@@ -57,9 +58,7 @@ public class PagoCompraServiceImpl implements PagoCompraService {
     public PagoCompraResponseDTO create(PagoCompraRequestDTO request, String responsable) {
         var comprobante = comprobanteRepository.findByIdForUpdate(request.comprobanteId()).orElseThrow(() ->
                 new RecursosNoEncontradosException("Comprobante de compra no encontrado con id: " + request.comprobanteId()));
-        var metodo = metodoPagoRepository.findById(request.metodoPagoId()).orElseThrow(() ->
-                new RecursosNoEncontradosException("Método de pago no encontrado con id: " + request.metodoPagoId()));
-        validarMetodoEfectivo(metodo.getNombre());
+        var metodo = metodoEfectivo();
         if (request.fechaPago().isAfter(LocalDate.now()))
             throw new ReglaNegocioException("La fecha de pago no puede ser futura");
         BigDecimal pagado = pagoRepository.findByComprobanteCompraIdComprobante(comprobante.getIdComprobante())
@@ -118,9 +117,7 @@ public class PagoCompraServiceImpl implements PagoCompraService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         if (otrosPagos.add(request.monto()).compareTo(pago.getComprobanteCompra().getMonto()) > 0)
             throw new ReglaNegocioException("El pago supera el saldo pendiente del comprobante");
-        var metodo = metodoPagoRepository.findById(request.metodoPagoId()).orElseThrow(() ->
-                new RecursosNoEncontradosException("Método de pago no encontrado con id: " + request.metodoPagoId()));
-        validarMetodoEfectivo(metodo.getNombre());
+        var metodo = metodoEfectivo();
         pago.setMonto(request.monto());
         pago.setFechaPago(request.fechaPago());
         pago.setMetodoPago(metodo);
@@ -162,10 +159,9 @@ public class PagoCompraServiceImpl implements PagoCompraService {
                 new ReglaNegocioException("No está configurado el estado del comprobante: " + nombre));
     }
 
-    private void validarMetodoEfectivo(String nombre) {
-        if (!"Efectivo".equalsIgnoreCase(nombre)) {
-            throw new ReglaNegocioException("Por ahora, los pagos de compras solo se registran en efectivo");
-        }
+    private MetodoPago metodoEfectivo() {
+        return metodoPagoRepository.findByNombreIgnoreCase("Efectivo")
+                .orElseThrow(() -> new ReglaNegocioException("No está configurado el método de pago Efectivo"));
     }
 
     private void sincronizarEstadoComprobante(com.example.TrujillanosSAC.compras.model.ComprobanteCompra comprobante) {

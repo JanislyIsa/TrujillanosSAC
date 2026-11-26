@@ -8,6 +8,5 @@ import java.time.LocalDate;
 public record PagoCompraRequestDTO(
         @NotNull @Positive Long comprobanteId,
         @NotNull @Positive BigDecimal monto,
-        @NotNull LocalDate fechaPago,
-        @NotNull @Positive Long metodoPagoId
+        @NotNull LocalDate fechaPago
 ) {}
