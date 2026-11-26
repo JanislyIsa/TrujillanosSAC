@@ -30,6 +30,9 @@ import java.util.List;
 public class ApiSecurityConfig {
     @Bean
     @Order(1)
+    // Excepción revisada: la API usa JWT solo en Authorization; el navegador no lo envía automáticamente
+    // y la suite verifica que las respuestas de escritura no creen cookies de sesión.
+    @SuppressWarnings("java:S4502")
     public SecurityFilterChain apiSecurity(HttpSecurity http, JwtService jwtService,
             UserDetailsService userDetailsService,
             @Value("${api.cors.origenes:http://localhost:4200}") String origenes) throws Exception {
@@ -47,7 +50,9 @@ public class ApiSecurityConfig {
 
         http.securityMatcher("/api/**", "/actuator/**")
                 .cors(config -> config.configurationSource(source))
-                .csrf(AbstractHttpConfigurer::disable)
+                // La API autentica con JWT en Authorization, que el navegador no adjunta automáticamente.
+                // Se exime solo /api/**; CSRF permanece activo para las rutas de Actuator de esta cadena.
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"))
                 .logout(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth

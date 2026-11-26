@@ -29,6 +29,7 @@ import java.util.List;
 public class JwtService {
 
     private static final Logger log = LoggerFactory.getLogger(JwtService.class);
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     private final SecretKey clave;
     private final long expiracionMinutos;
@@ -50,7 +51,7 @@ public class JwtService {
             }
             log.warn("JWT_SECRET no está definido: se usa un secreto aleatorio. Los tokens dejarán de servir al reiniciar.");
             byte[] aleatorio = new byte[32];
-            new SecureRandom().nextBytes(aleatorio);
+            SECURE_RANDOM.nextBytes(aleatorio);
             return Keys.hmacShaKeyFor(aleatorio);
         }
         try {

@@ -1,0 +1,34 @@
+<!-- Fragmento de referencia. La configuración completa está aplicada en el pom.xml raíz. -->
+<properties>
+    <sonar.projectKey>grupo5-trujillanos-backend</sonar.projectKey>
+    <sonar.projectName>Trujillanos Backend</sonar.projectName>
+    <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+    <sonar.coverage.exclusions>**/dto/**,**/entity/**,**/model/**,**/enums/**,**/Config/**,**/config/**</sonar.coverage.exclusions>
+</properties>
+
+<plugin>
+    <groupId>org.jacoco</groupId>
+    <artifactId>jacoco-maven-plugin</artifactId>
+    <version>0.8.14</version>
+    <configuration>
+        <excludes>
+            <exclude>**/dto/**</exclude>
+            <exclude>**/entity/**</exclude>
+            <exclude>**/model/**</exclude>
+            <exclude>**/enums/**</exclude>
+            <exclude>**/Config/**</exclude>
+            <exclude>**/config/**</exclude>
+        </excludes>
+    </configuration>
+    <executions>
+        <execution>
+            <id>prepare-agent</id>
+            <goals><goal>prepare-agent</goal></goals>
+        </execution>
+        <execution>
+            <id>report</id>
+            <phase>verify</phase>
+            <goals><goal>report</goal></goals>
+        </execution>
+    </executions>
+</plugin>
