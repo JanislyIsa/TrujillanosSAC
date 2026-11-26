@@ -1,12 +1,10 @@
 package com.example.TrujillanosSAC.compras.repository;
 
 import com.example.TrujillanosSAC.compras.model.OrdenCompra;
-import com.example.TrujillanosSAC.compras.dto.OrdenesPorProveedorReporteDTO;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 import java.util.List;
 import java.util.Collection;
-import java.time.LocalDate;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.domain.Page;
@@ -77,23 +75,4 @@ public interface OrdenCompraRepository extends JpaRepository<OrdenCompra, Long> 
             """, nativeQuery = true)
     ResumenOrdenesProjection resumenOrdenes();
 
-    @Query("""
-            select new com.example.TrujillanosSAC.compras.dto.OrdenesPorProveedorReporteDTO(
-                proveedor.idPersona,
-                concat(concat(persona.nombre, ' '), persona.apellido),
-                count(distinct orden.idOrdenCompra),
-                sum(detalle.subtotal)
-            )
-            from ComprasOrdenCompra orden
-            join orden.cotizacion cotizacion
-            join cotizacion.proveedor proveedor
-            join proveedor.persona persona
-            join orden.detalles detalle
-            where (:desde is null or orden.fechaEmision >= :desde)
-              and (:hasta is null or orden.fechaEmision <= :hasta)
-            group by proveedor.idPersona, persona.nombre, persona.apellido
-            order by sum(detalle.subtotal) desc
-            """)
-    List<OrdenesPorProveedorReporteDTO> reportePorProveedor(@Param("desde") LocalDate desde,
-                                                            @Param("hasta") LocalDate hasta);
 }
