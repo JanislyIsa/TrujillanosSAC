@@ -3,14 +3,15 @@ package com.example.TrujillanosSAC.inventario.dto;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+/** Resumen de las unidades de productos e insumos registradas en cada movimiento. */
 public record ReporteMovimientoInventarioDto(
-        String codigoMovimiento,
+        Long idMovimiento,
         String tipoMovimiento,
         LocalDate fecha,
         LocalDateTime hora,
         String almacen,
-        Integer totalProductos,
-        Integer totalInsumos,
-        Integer totalItems
+        Long unidadesProductos,
+        Long unidadesInsumos,
+        Long totalUnidades
 ) {
 }
