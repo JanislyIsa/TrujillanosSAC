@@ -3,7 +3,7 @@ package com.example.TrujillanosSAC.reportes.controller;
 import com.example.TrujillanosSAC.reportes.dto.MovimientoInventarioReporteDTO;
 import com.example.TrujillanosSAC.reportes.dto.OrdenesPorProveedorReporteDTO;
 import com.example.TrujillanosSAC.reportes.service.ReporteService;
-import com.example.TrujillanosSAC.ventas.dto.reporte.VentaPorCategoriaDTO;
+import com.example.TrujillanosSAC.reportes.dto.VentaPorCategoriaDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;

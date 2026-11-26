@@ -4,7 +4,7 @@ import com.example.TrujillanosSAC.reportes.dto.MovimientoInventarioReporteDTO;
 import com.example.TrujillanosSAC.reportes.dto.OrdenesPorProveedorReporteDTO;
 import com.example.TrujillanosSAC.reportes.repository.ReporteComprasRepository;
 import com.example.TrujillanosSAC.reportes.repository.ReporteInventarioRepository;
-import com.example.TrujillanosSAC.ventas.dto.reporte.VentaPorCategoriaDTO;
+import com.example.TrujillanosSAC.reportes.dto.VentaPorCategoriaDTO;
 import com.example.TrujillanosSAC.exception.ReglaNegocioException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

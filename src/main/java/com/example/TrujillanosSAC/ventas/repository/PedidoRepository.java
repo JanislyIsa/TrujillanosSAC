@@ -1,7 +1,5 @@
 package com.example.TrujillanosSAC.ventas.repository;
 
-import com.example.TrujillanosSAC.ventas.dto.reporte.ProductoMasVendidoDTO;
-import com.example.TrujillanosSAC.ventas.dto.reporte.VentaPorCategoriaDTO;
 import com.example.TrujillanosSAC.ventas.model.Pedido;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Sort;
@@ -12,7 +10,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -77,42 +74,4 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
                         @Param("hasta") LocalDateTime hasta,
                         Sort sort);
 
-    // ---------- Reportes (Sesión 5) ----------
-    // Solo cuentan los pedidos que llegaron a pagarse (:estados). Un pedido PENDIENTE o CANCELADO no es una venta:
-    // si se quitara ese filtro, los montos parecerían correctos pero estarían inflados.
-
-    @Query("""
-            select new com.example.TrujillanosSAC.ventas.dto.reporte.VentaPorCategoriaDTO(
-                c.idCategoria, c.nombre, sum(d.cantidad), sum(d.subtotal))
-            from VentaDetallePedido d
-            join d.producto pr
-            join pr.categoria c
-            join d.pedido p
-            join p.estado e
-            where e.codigo in :estados
-              and (:desde is null or p.fechaRegistro >= :desde)
-              and (:hasta is null or p.fechaRegistro <= :hasta)
-            group by c.idCategoria, c.nombre
-            order by sum(d.subtotal) desc
-            """)
-    List<VentaPorCategoriaDTO> reportePorCategoria(@Param("estados") Collection<String> estados,
-                                                   @Param("desde") LocalDateTime desde,
-                                                   @Param("hasta") LocalDateTime hasta);
-
-    @Query("""
-            select new com.example.TrujillanosSAC.ventas.dto.reporte.ProductoMasVendidoDTO(
-                pr.idProducto, pr.nombre, sum(d.cantidad), sum(d.subtotal))
-            from VentaDetallePedido d
-            join d.producto pr
-            join d.pedido p
-            join p.estado e
-            where e.codigo in :estados
-              and (:desde is null or p.fechaRegistro >= :desde)
-              and (:hasta is null or p.fechaRegistro <= :hasta)
-            group by pr.idProducto, pr.nombre
-            order by sum(d.cantidad) desc, sum(d.subtotal) desc
-            """)
-    List<ProductoMasVendidoDTO> reporteProductosMasVendidos(@Param("estados") Collection<String> estados,
-                                                            @Param("desde") LocalDateTime desde,
-                                                            @Param("hasta") LocalDateTime hasta);
 }

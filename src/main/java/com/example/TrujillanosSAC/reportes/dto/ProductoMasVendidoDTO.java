@@ -1,8 +1,8 @@
-package com.example.TrujillanosSAC.ventas.dto.reporte;
+package com.example.TrujillanosSAC.reportes.dto;
 
 import java.math.BigDecimal;
 
-/** Una fila del reporte "productos más vendidos". Se construye con "select new" en la consulta JPQL. */
+/** Un producto y las unidades e importe total vendidos en el período consultado. */
 public record ProductoMasVendidoDTO(
         Long productoId,
         String productoNombre,

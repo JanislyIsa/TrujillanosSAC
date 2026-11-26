@@ -1,9 +1,9 @@
 package com.example.TrujillanosSAC.ventas.service.impl;
 
-import com.example.TrujillanosSAC.ventas.dto.reporte.ProductoMasVendidoDTO;
-import com.example.TrujillanosSAC.ventas.dto.reporte.VentaPorCategoriaDTO;
+import com.example.TrujillanosSAC.reportes.dto.ProductoMasVendidoDTO;
+import com.example.TrujillanosSAC.reportes.dto.VentaPorCategoriaDTO;
 import com.example.TrujillanosSAC.ventas.model.codigo.EstadoPedidoCodigo;
-import com.example.TrujillanosSAC.ventas.repository.PedidoRepository;
+import com.example.TrujillanosSAC.reportes.repository.ReporteVentasRepository;
 import com.example.TrujillanosSAC.ventas.service.service.ReporteService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -25,7 +25,7 @@ public class ReporteServiceImpl implements ReporteService {
     private static final List<String> ESTADOS_VENDIDOS =
             EstadoPedidoCodigo.vendidos().stream().map(Enum::name).toList();
 
-    private final PedidoRepository pedidos;
+    private final ReporteVentasRepository reportes;
 
     @Override
     public List<VentaPorCategoriaDTO> ventasPorCategoria(LocalDateTime desde, LocalDateTime hasta) {
@@ -33,7 +33,7 @@ public class ReporteServiceImpl implements ReporteService {
         log.info("Reporte ventas por categoría solicitado. desde={}, hasta={}", desde, hasta);
         PedidoServiceImpl.validarRango(desde, hasta);
 
-        List<VentaPorCategoriaDTO> resultado = pedidos.reportePorCategoria(ESTADOS_VENDIDOS, desde, hasta);
+        List<VentaPorCategoriaDTO> resultado = reportes.porCategoria(ESTADOS_VENDIDOS, desde, hasta);
         log.info("Reporte ventas por categoría resuelto. filas={}, duracionMs={}",
                 resultado.size(), System.currentTimeMillis() - inicio);
         return resultado;
@@ -45,8 +45,8 @@ public class ReporteServiceImpl implements ReporteService {
         log.info("Reporte productos más vendidos solicitado. desde={}, hasta={}, top={}", desde, hasta, top);
         PedidoServiceImpl.validarRango(desde, hasta);
 
-        List<ProductoMasVendidoDTO> resultado = pedidos
-                .reporteProductosMasVendidos(ESTADOS_VENDIDOS, desde, hasta)
+        List<ProductoMasVendidoDTO> resultado = reportes
+                .productosMasVendidos(ESTADOS_VENDIDOS, desde, hasta)
                 .stream().limit(top).toList();
         log.info("Reporte productos más vendidos resuelto. filas={}, duracionMs={}",
                 resultado.size(), System.currentTimeMillis() - inicio);
