@@ -10,7 +10,8 @@ import com.example.TrujillanosSAC.inventario.model.TipoMovimiento;
 import com.example.TrujillanosSAC.inventario.repository.ProductoRepository;
 import com.example.TrujillanosSAC.inventario.service.service.MovimientoInventarioService;
 import com.example.TrujillanosSAC.ventas.dto.request.*;
-import com.example.TrujillanosSAC.ventas.dto.reporte.*;
+import com.example.TrujillanosSAC.reportes.dto.*;
+import com.example.TrujillanosSAC.reportes.repository.ReporteVentasRepository;
 import org.springframework.data.domain.Sort;
 import org.springframework.context.ApplicationEventPublisher;
 import com.example.TrujillanosSAC.ventas.model.*;
@@ -43,6 +44,7 @@ import static org.mockito.Mockito.*;
 class VentasServiceTests {
 
     private final PedidoRepository pedidos = mock(PedidoRepository.class);
+    private final ReporteVentasRepository reportesRepository = mock(ReporteVentasRepository.class);
     private final ProductoRepository productos = mock(ProductoRepository.class);
     private final ClienteRepository clientes = mock(ClienteRepository.class);
     private final PagoRepository pagos = mock(PagoRepository.class);
@@ -354,16 +356,16 @@ class VentasServiceTests {
 
     @Test
     void reportesSoloCuentanPedidosPagadosYRespetanElTop() {
-        when(pedidos.reporteProductosMasVendidos(any(), any(), any())).thenReturn(List.of(
+        when(reportesRepository.productosMasVendidos(any(), any(), any())).thenReturn(List.of(
                 new ProductoMasVendidoDTO(1L, "A", 10L, new BigDecimal("10.00")),
                 new ProductoMasVendidoDTO(2L, "B", 5L, new BigDecimal("5.00")),
                 new ProductoMasVendidoDTO(3L, "C", 1L, new BigDecimal("1.00"))));
-        var reportes = new ReporteServiceImpl(pedidos);
+        var reportes = new ReporteServiceImpl(reportesRepository);
 
         reportes.ventasPorCategoria(null, null);
         assertThat(reportes.productosMasVendidos(null, null, 2)).hasSize(2);
 
-        verify(pedidos).reportePorCategoria(argThat(estados -> estados.containsAll(List.of("PAGADO", "LISTO_PARA_RECOJO", "ENTREGADO"))
+        verify(reportesRepository).porCategoria(argThat(estados -> estados.containsAll(List.of("PAGADO", "LISTO_PARA_RECOJO", "ENTREGADO"))
                 && !estados.contains("PENDIENTE") && !estados.contains("CANCELADO")), isNull(), isNull());
     }
 

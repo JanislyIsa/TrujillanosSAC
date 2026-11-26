@@ -1,7 +1,7 @@
 package com.example.TrujillanosSAC.ventas.controller;
 
-import com.example.TrujillanosSAC.ventas.dto.reporte.ProductoMasVendidoDTO;
-import com.example.TrujillanosSAC.ventas.dto.reporte.VentaPorCategoriaDTO;
+import com.example.TrujillanosSAC.reportes.dto.ProductoMasVendidoDTO;
+import com.example.TrujillanosSAC.reportes.dto.VentaPorCategoriaDTO;
 import com.example.TrujillanosSAC.ventas.service.service.ReporteService;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;

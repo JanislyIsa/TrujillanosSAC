@@ -14,4 +14,5 @@ public interface MovimientoRepository extends JpaRepository<Movimiento, Long> {
             order by m.idMovimiento desc
             """)
     List<Movimiento> findAllParaInventario();
+
 }

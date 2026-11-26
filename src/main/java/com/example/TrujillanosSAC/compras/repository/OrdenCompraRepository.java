@@ -74,4 +74,5 @@ public interface OrdenCompraRepository extends JpaRepository<OrdenCompra, Long> 
               ON p.ID_ORDEN_COMPRA = o.ID_ORDEN_COMPRA
             """, nativeQuery = true)
     ResumenOrdenesProjection resumenOrdenes();
+
 }

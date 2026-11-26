@@ -1,7 +1,7 @@
 package com.example.TrujillanosSAC.ventas.service.service;
 
-import com.example.TrujillanosSAC.ventas.dto.reporte.ProductoMasVendidoDTO;
-import com.example.TrujillanosSAC.ventas.dto.reporte.VentaPorCategoriaDTO;
+import com.example.TrujillanosSAC.reportes.dto.ProductoMasVendidoDTO;
+import com.example.TrujillanosSAC.reportes.dto.VentaPorCategoriaDTO;
 
 import java.time.LocalDateTime;
 import java.util.List;
