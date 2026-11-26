@@ -24,7 +24,7 @@ public class InventarioConfig implements WebMvcConfigurer {
 
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {
-        String frontend = frontendEmpleadosUrl.replaceAll("/+$", "");
+        String frontend = quitarBarrasFinales(frontendEmpleadosUrl);
         registry.addRedirectViewController(
                 "/admin/inventario",
                 frontend + "/#/inventario/catalogo");
@@ -40,5 +40,13 @@ public class InventarioConfig implements WebMvcConfigurer {
         registry.addRedirectViewController(
                 "/admin/productos",
                 frontend + "/#/inventario/catalogo");
+    }
+
+    static String quitarBarrasFinales(String url) {
+        int longitud = url.length();
+        while (longitud > 0 && url.charAt(longitud - 1) == '/') {
+            longitud--;
+        }
+        return url.substring(0, longitud);
     }
 }

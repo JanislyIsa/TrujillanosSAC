@@ -44,30 +44,26 @@ public class ComprasEstadosSeeder {
     }
 
     private void crearEstadoSolicitud(EstadoSolicitudCompraRepository repository, String nombre) {
-        repository.findByNombreIgnoreCase(nombre)
-                .orElseGet(() -> repository.save(EstadoSolicitudCompra.builder()
-                        .nombre(nombre)
-                        .build()));
+        if (repository.findByNombreIgnoreCase(nombre).isEmpty()) {
+            repository.save(EstadoSolicitudCompra.builder().nombre(nombre).build());
+        }
     }
 
     private void crearEstadoCotizacion(EstadoCotizacionRepository repository, String nombre) {
-        repository.findByNombreIgnoreCase(nombre)
-                .orElseGet(() -> repository.save(EstadoCotizacion.builder()
-                        .nombre(nombre)
-                        .build()));
+        if (repository.findByNombreIgnoreCase(nombre).isEmpty()) {
+            repository.save(EstadoCotizacion.builder().nombre(nombre).build());
+        }
     }
 
     private void crearEstadoComprobante(EstadoComprobanteCompraRepository repository, String nombre) {
-        repository.findByNombreIgnoreCase(nombre)
-                .orElseGet(() -> repository.save(EstadoComprobanteCompra.builder()
-                        .nombre(nombre)
-                        .build()));
+        if (repository.findByNombreIgnoreCase(nombre).isEmpty()) {
+            repository.save(EstadoComprobanteCompra.builder().nombre(nombre).build());
+        }
     }
 
     private void crearMetodoPago(MetodoPagoRepository repository, String nombre) {
-        repository.findByNombreIgnoreCase(nombre)
-                .orElseGet(() -> repository.save(MetodoPago.builder()
-                        .nombre(nombre)
-                        .build()));
+        if (repository.findByNombreIgnoreCase(nombre).isEmpty()) {
+            repository.save(MetodoPago.builder().nombre(nombre).build());
+        }
     }
 }
